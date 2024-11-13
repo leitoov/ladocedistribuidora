@@ -1,14 +1,9 @@
 <?php
-require 'config.php';
 
 // Función para generar el JWT
-function generateJWT($user_id, $secret) {
+function generateJWT($payload, $secret) {
     $header = json_encode(['alg' => 'HS256', 'typ' => 'JWT']);
-    $payload = json_encode([
-        'user_id' => $user_id,
-        'iat' => time(),
-        'exp' => time() + 3600  // Expira en 1 hora
-    ]);
+    $payload = json_encode($payload);
 
     // Codificar en base64
     $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));

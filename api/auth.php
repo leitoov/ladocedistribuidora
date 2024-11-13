@@ -3,7 +3,6 @@ require '../config.php';
 require '../verify_token.php';
 require '../vendor/autoload.php';  // Si estás usando Firebase JWT, de lo contrario ignora esta línea
 
-use Firebase\JWT\JWT;
 
 header('Content-Type: application/json');  // Asegura que el contenido sea JSON
 
@@ -35,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "user_id" => $user['id']
         ];
         
-        $jwt = JWT::encode($payload, $jwt_secret, 'HS256');
+        $jwt = generateJWT($payload, $jwt_secret);
         echo json_encode(["token" => $jwt]);
     } else {
         // Enviar respuesta de credenciales inválidas
