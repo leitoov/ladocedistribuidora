@@ -2,6 +2,9 @@
 require '../config.php';
 require '../verify_token.php';
 
+header('Content-Type: application/json');
+
+// Obtener el token del encabezado Authorization
 $headers = apache_request_headers();
 if (!isset($headers['Authorization'])) {
     http_response_code(401);
@@ -9,8 +12,11 @@ if (!isset($headers['Authorization'])) {
     exit();
 }
 
+// Extraer el token JWT del encabezado Authorization
 $authHeader = $headers['Authorization'];
 $jwt = str_replace("Bearer ", "", $authHeader);
+
+// Verificar el token usando la función `verifyJWT`
 $user_id = verifyJWT($jwt, $jwt_secret);
 
 if (!$user_id) {
@@ -19,14 +25,5 @@ if (!$user_id) {
     exit();
 }
 
-header('Content-Type: application/json');
-
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $stmt = $pdo->prepare("SELECT * FROM productos WHERE estado = 'Disponible'");
-    $stmt->execute();
-    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    echo json_encode($products);
-} else {
-    http_response_code(405);
-    echo json_encode(["message" => "Método no permitido"]);
-}
+// Si el token es válido, continuar con la lógica del endpoint
+echo json_encode(["message" => "Token válido", "user_id" => $user_id]);
