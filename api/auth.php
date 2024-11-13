@@ -8,7 +8,6 @@ require '../verify_token.php';
 
 // Asegurar que el tipo de respuesta sea JSON
 header('Content-Type: application/json');
-echo password_hash('vendedor123', PASSWORD_DEFAULT);
 
 // Verificar que el método de solicitud sea POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
