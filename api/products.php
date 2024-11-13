@@ -3,14 +3,11 @@ require '../config.php';
 require '../verify_token.php';
 
 header('Content-Type: application/json');
-$headers = getallheaders();
-echo json_encode($headers);
-exit();
-// Intentar capturar el encabezado Authorization de diferentes maneras
-$headers = getallheaders();  // Cambia apache_request_headers() por getallheaders()
 
-// Verificar varias posibles ubicaciones del encabezado Authorization
+// Intentar capturar el encabezado Authorization de diferentes maneras
+$headers = getallheaders();
 $authHeader = null;
+
 if (isset($headers['Authorization'])) {
     $authHeader = $headers['Authorization'];
 } elseif (isset($_SERVER['HTTP_AUTHORIZATION'])) {
@@ -19,13 +16,14 @@ if (isset($headers['Authorization'])) {
     $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
 }
 
+// Depuración: Ver los encabezados y el valor de Authorization si existe
 if (!$authHeader) {
     http_response_code(401);
-    echo json_encode(["message" => "Token no proporcionado"]);
+    echo json_encode(["message" => "Token no proporcionado", "headers" => $headers]);
     exit();
 }
 
-// Extraer el token JWT del encabezado Authorization
+// Extraer el token JWT del encabezado
 $jwt = str_replace("Bearer ", "", $authHeader);
 
 // Verificar el token usando la función `verifyJWT`
