@@ -3,7 +3,9 @@ require '../config.php';
 require '../verify_token.php';
 
 header('Content-Type: application/json');
-
+$headers = getallheaders();
+echo json_encode($headers);
+exit();
 // Intentar capturar el encabezado Authorization de diferentes maneras
 $headers = getallheaders();  // Cambia apache_request_headers() por getallheaders()
 
