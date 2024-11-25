@@ -1,13 +1,32 @@
 <?php
 session_start();
 
-// Verificar si el usuario está autenticado
+// Verificar si el usuario tiene un token en la sesión
 if (!isset($_SESSION['token'])) {
-    header('Location: index.html'); // Redirigir a login si no está logueado
+    header('Location: index.html');
     exit();
 }
-?>
 
+// Decodificar el token para obtener la información del usuario
+require '../verify_token.php';
+$jwt_secret = 'clave_secreta_segura';
+
+try {
+    $tokenData = verifyJWT($_SESSION['token'], $jwt_secret);
+    if (!$tokenData) {
+        throw new Exception('Token inválido o expirado.');
+    }
+} catch (Exception $e) {
+    session_destroy();
+    header('Location: index.html');
+    exit();
+}
+
+// Información del usuario autenticado
+$userId = $tokenData->user_id;
+$userRole = $tokenData->rol;
+
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -16,73 +35,64 @@ if (!isset($_SESSION['token'])) {
   <title>Distribuidora - Dashboard</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- CSS Global -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-custom">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">Distribuidora</a>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="logout.php" id="logoutButton">Cerrar Sesión</a>
-          </li>
-        </ul>
-      </div>
+      <button class="btn btn-outline-primary" id="logoutButton">Cerrar Sesión</button>
     </div>
   </nav>
 
   <!-- Contenido Principal -->
   <div class="container my-4">
-    <h1 class="section-title text-center">Panel Principal</h1>
-    
-    <!-- Estadísticas Principales -->
-    <div class="row">
+    <h1 class="text-center">Panel Principal</h1>
+    <div class="row text-center">
       <div class="col-md-4">
-        <div class="stat-card">
-          <h3 id="totalOrders">0</h3>
-          <p>Pedidos Totales</p>
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Pedidos Totales</h5>
+            <p id="totalOrders">0</p>
+          </div>
         </div>
       </div>
       <div class="col-md-4">
-        <div class="stat-card">
-          <h3 id="pendingOrders">0</h3>
-          <p>Pedidos Pendientes</p>
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Pedidos Pendientes</h5>
+            <p id="pendingOrders">0</p>
+          </div>
         </div>
       </div>
       <div class="col-md-4">
-        <div class="stat-card">
-          <h3 id="completedOrders">0</h3>
-          <p>Pedidos Completados</p>
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Pedidos Completados</h5>
+            <p id="completedOrders">0</p>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Pedidos Recientes -->
-    <h2 class="section-title">Pedidos Recientes</h2>
-    <div class="card">
-      <div class="card-header">Lista de Pedidos</div>
-      <div class="card-body">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>ID Pedido</th>
-              <th>Cliente</th>
-              <th>Total</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="ordersTable">
-            <tr>
-              <td colspan="5" class="text-center">Cargando pedidos...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <h2 class="mt-4">Pedidos Recientes</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="ordersTable">
+        <tr>
+          <td colspan="5" class="text-center">Cargando pedidos...</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
   <!-- jQuery y Bootstrap JS -->
@@ -90,56 +100,46 @@ if (!isset($_SESSION['token'])) {
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     $(document).ready(function() {
-      const token = '<?php echo $_SESSION["token"] ?? ""; ?>';
+      const token = '<?php echo $_SESSION['token']; ?>';
 
-      if (!token) {
-        alert('Por favor, inicie sesión.');
-        window.location.href = 'index.html';
-        return;
-      }
+      // Cargar estadísticas y pedidos
+      $.ajax({
+        url: 'api/orders.php',
+        headers: { Authorization: 'Bearer ' + token },
+        success: function(response) {
+          $('#totalOrders').text(response.total || 0);
+          $('#pendingOrders').text(response.pending || 0);
+          $('#completedOrders').text(response.completed || 0);
 
-      // Función para cargar estadísticas y pedidos
-      function loadDashboard() {
+          const table = $('#ordersTable');
+          table.empty();
+
+          response.orders.forEach(order => {
+            table.append(`
+              <tr>
+                <td>${order.id}</td>
+                <td>${order.cliente}</td>
+                <td>${order.total}</td>
+                <td>${order.estado}</td>
+                <td><button class="btn btn-sm btn-primary">Ver</button></td>
+              </tr>
+            `);
+          });
+        },
+        error: function() {
+          alert('Error al cargar los pedidos.');
+        }
+      });
+
+      // Cerrar sesión
+      $('#logoutButton').on('click', function() {
         $.ajax({
-          url: 'api/orders.php',
-          method: 'GET',
-          headers: { Authorization: 'Bearer ' + token },
-          success: function(response) {
-            // Actualizar estadísticas
-            $('#totalOrders').text(response.total || 0);
-            $('#pendingOrders').text(response.pending || 0);
-            $('#completedOrders').text(response.completed || 0);
-
-            // Actualizar tabla de pedidos
-            const ordersTable = $('#ordersTable');
-            ordersTable.empty();
-
-            if (response.orders && response.orders.length > 0) {
-              response.orders.forEach(order => {
-                ordersTable.append(`
-                  <tr>
-                    <td>${order.id}</td>
-                    <td>${order.cliente}</td>
-                    <td>$${order.total}</td>
-                    <td>${order.estado}</td>
-                    <td>
-                      <button class="btn btn-primary btn-sm">Ver</button>
-                    </td>
-                  </tr>
-                `);
-              });
-            } else {
-              ordersTable.append('<tr><td colspan="5" class="text-center">No hay pedidos recientes.</td></tr>');
-            }
-          },
-          error: function() {
-            alert('Error al cargar el dashboard.');
+          url: 'api/logout.php',
+          success: function() {
+            window.location.href = 'index.html';
           }
         });
-      }
-
-      // Cargar el dashboard
-      loadDashboard();
+      });
     });
   </script>
 </body>
