@@ -1,5 +1,4 @@
 <?php
-// config.php
 $host = 'localhost';
 $db_name = 'c2620852_ladoce';
 $username = 'c2620852_ladoce';
@@ -14,5 +13,4 @@ try {
 
 // Clave secreta para JWT
 $jwt_secret = 'clave_secreta_segura';
-
-
+?>

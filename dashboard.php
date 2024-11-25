@@ -1,4 +1,9 @@
 <?php
+// Mostrar errores directamente
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 
 // Verificar si el usuario tiene un token en la sesión
@@ -7,25 +12,25 @@ if (!isset($_SESSION['token'])) {
     exit();
 }
 
-// Decodificar el token para obtener la información del usuario
+// Incluir función para verificar el token
 require '../verify_token.php';
 $jwt_secret = 'clave_secreta_segura';
 
 try {
+    // Verificar y decodificar el token
     $tokenData = verifyJWT($_SESSION['token'], $jwt_secret);
     if (!$tokenData) {
         throw new Exception('Token inválido o expirado.');
     }
 } catch (Exception $e) {
-    session_destroy();
-    header('Location: index.html');
+    // Mostrar el error para depuración
+    echo 'Error al verificar el token: ' . $e->getMessage();
     exit();
 }
 
-// Información del usuario autenticado
+// Extraer información del token
 $userId = $tokenData->user_id;
 $userRole = $tokenData->rol;
-
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -33,20 +38,16 @@ $userRole = $tokenData->rol;
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Distribuidora - Dashboard</title>
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">Distribuidora</a>
       <button class="btn btn-outline-primary" id="logoutButton">Cerrar Sesión</button>
     </div>
   </nav>
-
-  <!-- Contenido Principal -->
   <div class="container my-4">
     <h1 class="text-center">Panel Principal</h1>
     <div class="row text-center">
@@ -75,7 +76,6 @@ $userRole = $tokenData->rol;
         </div>
       </div>
     </div>
-
     <h2 class="mt-4">Pedidos Recientes</h2>
     <table class="table table-striped">
       <thead>
@@ -94,15 +94,12 @@ $userRole = $tokenData->rol;
       </tbody>
     </table>
   </div>
-
-  <!-- jQuery y Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     $(document).ready(function() {
       const token = '<?php echo $_SESSION['token']; ?>';
 
-      // Cargar estadísticas y pedidos
       $.ajax({
         url: 'api/orders.php',
         headers: { Authorization: 'Bearer ' + token },
@@ -131,7 +128,6 @@ $userRole = $tokenData->rol;
         }
       });
 
-      // Cerrar sesión
       $('#logoutButton').on('click', function() {
         $.ajax({
           url: 'api/logout.php',
