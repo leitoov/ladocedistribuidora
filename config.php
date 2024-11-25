@@ -1,13 +1,18 @@
 <?php
 // config.php
-
-$dsn = 'mysql:host=localhost;dbname=c2620852_ladoce;charset=utf8mb4';
+$host = 'localhost';
+$db_name = 'c2620852_ladoce';
 $username = 'c2620852_ladoce';
 $password = 'ravoSEku18';
 
 try {
-    $pdo = new PDO($dsn, $username, $password);
+    $pdo = new PDO("mysql:host=$host;dbname=$db_name", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    die('Error en la conexión a la base de datos: ' . $e->getMessage());
+    die("Error en la conexión: " . $e->getMessage());
 }
+
+// Clave secreta para JWT
+$jwt_secret = 'clave_secreta_segura';
+
+
