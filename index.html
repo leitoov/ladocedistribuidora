@@ -8,6 +8,42 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- CSS Global -->
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Estilo personalizado para el modal */
+    .modal-header {
+      border-bottom: none;
+    }
+    .modal-title {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .modal-body {
+      font-size: 18px;
+      text-align: center;
+    }
+    .modal-footer {
+      justify-content: center;
+      border-top: none;
+    }
+    .modal.fade .modal-dialog {
+      transform: translateY(-100px);
+      transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    }
+    .modal.show .modal-dialog {
+      transform: translateY(0);
+    }
+    .success {
+      color: #28a745;
+    }
+    .error {
+      color: #dc3545;
+    }
+    .modal-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+  </style>
 </head>
 <body>
   <div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
@@ -25,19 +61,21 @@
     </div>
   </div>
 
-  <!-- Modal para mensajes -->
+  <!-- Modal Personalizado -->
   <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="messageModalLabel">Mensaje</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-header d-flex justify-content-center">
+          <h5 class="modal-title" id="messageModalLabel"></h5>
         </div>
-        <div class="modal-body" id="messageModalBody">
-          <!-- El mensaje se inserta aquí dinámicamente -->
+        <div class="modal-body">
+          <div class="modal-icon">
+            <i id="modalIcon" class=""></i>
+          </div>
+          <p id="messageModalBody"></p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
         </div>
       </div>
     </div>
@@ -53,7 +91,7 @@
         const password = $('#password').val();
 
         if (!username || !password) {
-          showMessage('Error', 'Por favor, complete ambos campos.');
+          showMessage('Error', 'Por favor, complete ambos campos.', 'error');
           return;
         }
 
@@ -65,24 +103,32 @@
           success: function(response) {
             if (response.token) {
               localStorage.setItem('token', response.token);
-              showMessage('Éxito', 'Login exitoso. Redirigiendo...');
+              showMessage('¡Éxito!', 'Login exitoso. Redirigiendo...', 'success');
               setTimeout(() => {
                 window.location.href = 'dashboard.html';
               }, 2000);
             } else {
-              showMessage('Error', response.message || 'Credenciales inválidas.');
+              showMessage('Error', response.message || 'Credenciales inválidas.', 'error');
             }
           },
           error: function() {
-            showMessage('Error', 'Error al conectar con el servidor.');
+            showMessage('Error', 'Error al conectar con el servidor.', 'error');
           }
         });
       });
 
       // Función para mostrar el modal con mensaje
-      function showMessage(title, message) {
+      function showMessage(title, message, type) {
+        const icon = $('#modalIcon');
         $('#messageModalLabel').text(title);
         $('#messageModalBody').text(message);
+
+        if (type === 'success') {
+          icon.removeClass().addClass('modal-icon text-success bi bi-check-circle-fill');
+        } else {
+          icon.removeClass().addClass('modal-icon text-danger bi bi-x-circle-fill');
+        }
+
         const modal = new bootstrap.Modal(document.getElementById('messageModal'));
         modal.show();
       }
