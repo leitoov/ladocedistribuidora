@@ -13,7 +13,7 @@ header('Content-Type: application/json');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents("php://input"));
     
-    // Verificar si se han proporcionado los datos necesarios (username y password)
+    // Verificar si se han proporcionado los datos necesarios (usuario y contrasena)
     if (!isset($data->username) || !isset($data->password)) {
         http_response_code(400);
         echo json_encode(["message" => "Faltan campos de usuario o contraseña"]);
@@ -28,13 +28,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute(['username' => $username]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    // Validar la contraseña usando password_verify
     if ($user && password_verify($password, $user['contrasena'])) {
         // Si la autenticación es exitosa, genera el token JWT
         $payload = [
             "iss" => "localhost",
             "iat" => time(),
             "exp" => time() + (60 * 60),  // Expira en 1 hora
-            "user_id" => $user['id']
+            "user_id" => $user['id'],
+            "rol" => $user['rol']  // Incluir el rol en el token
         ];
         
         // Generar el token usando la función manual
