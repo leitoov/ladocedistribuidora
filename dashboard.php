@@ -1,3 +1,13 @@
+<?php
+session_start();
+
+// Verificar si el usuario está autenticado
+if (!isset($_SESSION['token'])) {
+    header('Location: index.html'); // Redirigir a login si no está logueado
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -17,7 +27,7 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
-            <a class="nav-link" href="#" id="logoutButton">Cerrar Sesión</a>
+            <a class="nav-link" href="logout.php" id="logoutButton">Cerrar Sesión</a>
           </li>
         </ul>
       </div>
@@ -80,7 +90,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     $(document).ready(function() {
-      const token = localStorage.getItem('token');
+      const token = '<?php echo $_SESSION["token"] ?? ""; ?>';
 
       if (!token) {
         alert('Por favor, inicie sesión.');
@@ -130,12 +140,6 @@
 
       // Cargar el dashboard
       loadDashboard();
-
-      // Cerrar sesión
-      $('#logoutButton').on('click', function() {
-        localStorage.removeItem('token');
-        window.location.href = 'index.html';
-      });
     });
   </script>
 </body>
