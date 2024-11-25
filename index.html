@@ -22,7 +22,24 @@
         <input type="password" class="form-control" id="password" placeholder="Ingrese su contraseña">
       </div>
       <button class="btn btn-primary w-100" id="loginButton">Ingresar</button>
-      <div id="loginError" class="text-danger mt-3 text-center"></div>
+    </div>
+  </div>
+
+  <!-- Modal para mensajes -->
+  <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="messageModalLabel">Mensaje</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="messageModalBody">
+          <!-- El mensaje se inserta aquí dinámicamente -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -36,7 +53,7 @@
         const password = $('#password').val();
 
         if (!username || !password) {
-          $('#loginError').text('Por favor, complete ambos campos.');
+          showMessage('Error', 'Por favor, complete ambos campos.');
           return;
         }
 
@@ -48,17 +65,27 @@
           success: function(response) {
             if (response.token) {
               localStorage.setItem('token', response.token);
-              alert('Login exitoso');
-              window.location.href = 'dashboard.html';
+              showMessage('Éxito', 'Login exitoso. Redirigiendo...');
+              setTimeout(() => {
+                window.location.href = 'dashboard.html';
+              }, 2000);
             } else {
-              $('#loginError').text(response.message || 'Credenciales inválidas.');
+              showMessage('Error', response.message || 'Credenciales inválidas.');
             }
           },
           error: function() {
-            $('#loginError').text('Error al conectar con el servidor.');
+            showMessage('Error', 'Error al conectar con el servidor.');
           }
         });
       });
+
+      // Función para mostrar el modal con mensaje
+      function showMessage(title, message) {
+        $('#messageModalLabel').text(title);
+        $('#messageModalBody').text(message);
+        const modal = new bootstrap.Modal(document.getElementById('messageModal'));
+        modal.show();
+      }
     });
   </script>
 </body>
