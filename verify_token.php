@@ -1,42 +1,38 @@
 <?php
 
-// Función para generar el JWT
 function generateJWT($payload, $secret) {
     $header = json_encode(['alg' => 'HS256', 'typ' => 'JWT']);
     $payload = json_encode($payload);
 
-    // Codificar en base64
-    $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-    $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
+    $base64Header = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
+    $base64Payload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
 
-    // Crear la firma
-    $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, $secret, true);
-    $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+    $signature = hash_hmac('sha256', "$base64Header.$base64Payload", $secret, true);
+    $base64Signature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
 
-    // Construir el JWT
-    return $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
+    return "$base64Header.$base64Payload.$base64Signature";
 }
 
-// Función para verificar el JWT
 function verifyJWT($jwt, $secret) {
-    $tokenParts = explode('.', $jwt);
-    if (count($tokenParts) !== 3) {
-        return false;
+    $parts = explode('.', $jwt);
+    if (count($parts) !== 3) {
+        throw new Exception('Token inválido.');
     }
 
-    list($header, $payload, $signatureProvided) = $tokenParts;
+    [$header, $payload, $signature] = $parts;
 
-    $signatureVerification = hash_hmac('sha256', $header . "." . $payload, $secret, true);
-    $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signatureVerification));
+    $validSignature = hash_hmac('sha256', "$header.$payload", $secret, true);
+    $base64ValidSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($validSignature));
 
-    if ($base64UrlSignature !== $signatureProvided) {
-        return false;
+    if ($signature !== $base64ValidSignature) {
+        throw new Exception('Firma inválida.');
     }
 
     $payloadData = json_decode(base64_decode($payload));
+
     if ($payloadData->exp < time()) {
-        return false;
+        throw new Exception('Token expirado.');
     }
 
-    return $payloadData->user_id;
+    return $payloadData;
 }
