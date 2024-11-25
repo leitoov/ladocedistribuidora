@@ -1,82 +1,59 @@
-/* General */
-body {
-    background-color: #f4f4f4;
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .container {
-    margin: 20px auto;
-    max-width: 1200px;
-    padding: 20px;
-  }
-  
-  /* Navbar */
-  .navbar-custom {
-    background-color: #00bfff;
-    color: #fff;
-  }
-  
-  .navbar-custom .navbar-brand, 
-  .navbar-custom .nav-link {
-    color: #fff;
-  }
-  
-  .navbar-custom .nav-link:hover {
-    color: #333;
-  }
-  
-  /* Botones */
-  .btn-primary {
-    background-color: #00bfff;
-    border-color: #00bfff;
-    color: #fff;
-    border-radius: 5px;
-    transition: all 0.3s ease;
-  }
-  
-  .btn-primary:hover {
-    background-color: #0099cc;
-    border-color: #007bb5;
-  }
-  
-  /* Formularios */
-  .form-control {
-    border-radius: 5px;
-    border: 1px solid #ddd;
-    padding: 10px;
-  }
-  
-  .form-control:focus {
-    border-color: #00bfff;
-    box-shadow: 0 0 5px rgba(0, 191, 255, 0.5);
-  }
-  
-  /* Tarjetas */
-  .card {
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-    background: #fff;
-    padding: 20px;
-  }
-  
-  /* Pedidos */
-  .order {
-    padding: 15px;
-    background: #fff;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Textos */
-  .text-center {
-    text-align: center;
-  }
-  
-  .text-danger {
-    color: #e74c3c;
-  }
-  
+/* Estadísticas Principales */
+.stat-card {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.stat-card h3 {
+  font-size: 28px;
+  color: #00bfff;
+  margin: 0;
+}
+
+.stat-card p {
+  font-size: 16px;
+  color: #333;
+  margin: 0;
+}
+
+/* Secciones y Títulos */
+.section-title {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+}
+
+/* Tabla */
+.table {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table thead {
+  background-color: #00bfff;
+  color: #fff;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: #f4f4f4;
+}
+
+.table-striped tbody tr:hover {
+  background-color: #e9ecef;
+}
+
+/* Card Header */
+.card-header {
+  font-size: 20px;
+  font-weight: bold;
+  background-color: #00bfff;
+  color: white;
+  border-bottom: none;
+}
