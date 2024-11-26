@@ -11,7 +11,7 @@ if (!isset($_SESSION['token'])) {
 // Extraer datos del token
 $jwt_secret = 'Adeleteamo1988@';
 $tokenData = verifyJWT($_SESSION['token'], $jwt_secret);
-if (!$tokenData || $tokenData->rol !== 'vendedor') {
+if (!$tokenData || $tokenData->rol !== 'Vendedor') {
     session_destroy();
     header('Location: index.html');
     exit();
