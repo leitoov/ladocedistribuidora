@@ -60,7 +60,7 @@ $userRole = $tokenData->rol; // 'vendedor', 'caja', 'admin'
   <div class="container my-4">
     <h1 class="text-center mb-4">Panel Principal - <?php echo ucfirst($userRole); ?></h1>
 
-    <?php if ($userRole === 'vendedor'): ?>
+    <?php if ($userRole === 'Vendedor'): ?>
       <!-- Vista para Vendedor -->
       <div class="row text-center mb-4">
         <div class="col-md-6">
@@ -79,7 +79,7 @@ $userRole = $tokenData->rol; // 'vendedor', 'caja', 'admin'
         </div>
       </div>
 
-    <?php elseif ($userRole === 'caja'): ?>
+    <?php elseif ($userRole === 'Caja'): ?>
       <!-- Vista para Caja -->
       <div class="row text-center mb-4">
         <div class="col-md-4">
@@ -119,7 +119,7 @@ $userRole = $tokenData->rol; // 'vendedor', 'caja', 'admin'
         </tbody>
       </table>
 
-    <?php elseif ($userRole === 'admin'): ?>
+    <?php elseif ($userRole === 'Administrador'): ?>
       <!-- Vista para Administrador -->
       <div class="row text-center mb-4">
         <div class="col-md-4">
