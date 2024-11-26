@@ -4,7 +4,8 @@ require 'verify_token.php';
 
 // Verificar si el token es válido
 if (!isset($_SESSION['token'])) {
-    header('Location: index.html');
+    echo 'vendedor';
+    //header('Location: index.html');
     exit();
 }
 
@@ -13,7 +14,8 @@ $jwt_secret = 'Adeleteamo1988@';
 $tokenData = verifyJWT($_SESSION['token'], $jwt_secret);
 if (!$tokenData || $tokenData->rol !== 'Vendedor') {
     session_destroy();
-    header('Location: index.html');
+    echo 'vendedor';
+    //header('Location: index.html');
     exit();
 }
 ?>

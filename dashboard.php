@@ -8,7 +8,8 @@ session_start();
 
 // Verificar si el usuario tiene un token en la sesión
 if (!isset($_SESSION['token'])) {
-    header('Location: index.html');
+  echo 'NO';
+    //header('Location: index.html');
     exit();
 }
 
@@ -24,7 +25,7 @@ try {
     }
 
     // Extraer información del rol desde el token
-    $userRole = strtolower($tokenData->rol); // Rol en minúsculas: 'vendedor', 'caja', 'admin'
+    $userRole = ucfirst(strtolower($tokenData->rol)); // 'Vendedor', 'Caja', 'Administrador'
 
     // Redirigir a la vista correspondiente según el rol
     switch ($userRole) {
@@ -42,7 +43,8 @@ try {
     }
 } catch (Exception $e) {
     // Redirigir al login si el token no es válido
+    echo 'NO NO';
     session_destroy();
-    header('Location: index.html');
+   // header('Location: index.html');
     exit();
 }
