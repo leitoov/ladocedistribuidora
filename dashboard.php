@@ -13,7 +13,7 @@ if (!isset($_SESSION['token'])) {
 }
 
 // Incluir función para verificar el token
-require '../verify_token.php';
+require 'verify_token.php';
 $jwt_secret = 'clave_secreta_segura';
 
 try {
