@@ -31,7 +31,7 @@ try {
 
 // Extraer información del token
 $userId = $tokenData->user_id;
-$userRole = $tokenData->rol;
+$userRole = $tokenData->rol; // 'vendedor', 'caja', 'admin'
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -42,42 +42,12 @@ $userRole = $tokenData->rol;
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <style>
-    body {
-      background-color: #f4f4f4;
-      font-family: Arial, sans-serif;
-    }
-    .navbar {
-      background-color: #00bfff;
-    }
-    .navbar .navbar-brand, .navbar .btn {
-      color: #fff;
-    }
-    .navbar .btn:hover {
-      background-color: #0099cc;
-      color: #fff;
-    }
-    .card {
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .card h5 {
-      color: #007bff;
-    }
-    .btn-refresh {
-      background-color: #00bfff;
-      color: #fff;
-      border: none;
-    }
-    .btn-refresh:hover {
-      background-color: #0099cc;
-    }
-    table thead {
-      background-color: #007bff;
-      color: #fff;
-    }
-    table tbody tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
+    .card { border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+    .navbar { background-color: #00bfff; }
+    .navbar .navbar-brand, .navbar .btn { color: #fff; }
+    .navbar .btn:hover { background-color: #0099cc; color: #fff; }
+    table thead { background-color: #007bff; color: #fff; }
+    table tbody tr:nth-child(even) { background-color: #f2f2f2; }
   </style>
 </head>
 <body>
@@ -88,55 +58,102 @@ $userRole = $tokenData->rol;
     </div>
   </nav>
   <div class="container my-4">
-    <h1 class="text-center mb-4">Panel Principal</h1>
-    <div class="row text-center mb-4">
-      <div class="col-md-4">
-        <div class="card p-3">
-          <h5>Pedidos Totales</h5>
-          <p id="totalOrders" class="fs-4 fw-bold">0</p>
+    <h1 class="text-center mb-4">Panel Principal - <?php echo ucfirst($userRole); ?></h1>
+
+    <?php if ($userRole === 'vendedor'): ?>
+      <!-- Vista para Vendedor -->
+      <div class="row text-center mb-4">
+        <div class="col-md-6">
+          <div class="card p-3">
+            <h5>Armar Pedido</h5>
+            <p>Gestión rápida de productos para pedidos.</p>
+            <button class="btn btn-primary" id="newOrder">Nuevo Pedido</button>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card p-3">
+            <h5>Historial de Pedidos</h5>
+            <p>Consulta los pedidos realizados.</p>
+            <button class="btn btn-primary" id="orderHistory">Ver Historial</button>
+          </div>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="card p-3">
-          <h5>Pedidos Pendientes</h5>
-          <p id="pendingOrders" class="fs-4 fw-bold">0</p>
+
+    <?php elseif ($userRole === 'caja'): ?>
+      <!-- Vista para Caja -->
+      <div class="row text-center mb-4">
+        <div class="col-md-4">
+          <div class="card p-3">
+            <h5>Pedidos Totales</h5>
+            <p id="totalOrders" class="fs-4 fw-bold">0</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3">
+            <h5>Pedidos Pendientes</h5>
+            <p id="pendingOrders" class="fs-4 fw-bold">0</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3">
+            <h5>Pedidos Procesados</h5>
+            <p id="processedOrders" class="fs-4 fw-bold">0</p>
+          </div>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="card p-3">
-          <h5>Pedidos Completados</h5>
-          <p id="completedOrders" class="fs-4 fw-bold">0</p>
+      <h2 class="mt-4">Pedidos en Espera</h2>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="ordersTable">
+          <tr>
+            <td colspan="5" class="text-center">Cargando pedidos...</td>
+          </tr>
+        </tbody>
+      </table>
+
+    <?php elseif ($userRole === 'admin'): ?>
+      <!-- Vista para Administrador -->
+      <div class="row text-center mb-4">
+        <div class="col-md-4">
+          <div class="card p-3">
+            <h5>Estadísticas</h5>
+            <p>Visualiza métricas de ventas.</p>
+            <button class="btn btn-primary" id="viewStats">Ver Estadísticas</button>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3">
+            <h5>Gestión de Inventario</h5>
+            <p>Administra productos y cantidades.</p>
+            <button class="btn btn-primary" id="manageInventory">Gestionar Inventario</button>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3">
+            <h5>Informes</h5>
+            <p>Genera informes detallados.</p>
+            <button class="btn btn-primary" id="generateReports">Generar Informe</button>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2>Pedidos Recientes</h2>
-      <button class="btn btn-refresh" id="refreshButton">Actualizar Pedidos</button>
-    </div>
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Cliente</th>
-          <th>Total</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="ordersTable">
-        <tr>
-          <td colspan="5" class="text-center">Cargando pedidos...</td>
-        </tr>
-      </tbody>
-    </table>
+    <?php endif; ?>
   </div>
+
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     $(document).ready(function() {
       const token = '<?php echo $_SESSION['token']; ?>';
 
-      // Función para cargar pedidos
+      // Cargar pedidos (solo Caja)
       function loadOrders() {
         $.ajax({
           url: 'api/orders.php',
@@ -144,8 +161,6 @@ $userRole = $tokenData->rol;
           contentType: 'application/json',
           data: JSON.stringify({ token: token }),
           success: function(response) {
-            $('#totalOrders').text(response.length || 0);
-
             const table = $('#ordersTable');
             table.empty();
 
@@ -172,14 +187,11 @@ $userRole = $tokenData->rol;
         });
       }
 
-      // Llamar la función cada minuto
+      // Actualizar pedidos cada minuto (solo para Caja)
+      <?php if ($userRole === 'caja'): ?>
       setInterval(loadOrders, 60000);
-
-      // Botón para actualizar manualmente
-      $('#refreshButton').on('click', loadOrders);
-
-      // Cargar pedidos al inicio
       loadOrders();
+      <?php endif; ?>
 
       // Cerrar sesión
       $('#logoutButton').on('click', function() {
