@@ -1,7 +1,12 @@
 <?php
+// Mostrar errores para depuración
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 
-// Verificar si el usuario tiene un token en la sesión
+// Verificar si el token está presente en la sesión
 if (!isset($_SESSION['token'])) {
     header('Location: index.html');
     exit();
@@ -18,14 +23,16 @@ try {
         throw new Exception('Token inválido o expirado.');
     }
 } catch (Exception $e) {
+    // En caso de error, destruir la sesión y redirigir al login
     session_destroy();
     header('Location: index.html');
     exit();
 }
 
-// Redirigir según el rol
-$userRole = $tokenData->rol;
+// Extraer información del token
+$userRole = $tokenData->rol; // rol: 'vendedor', 'caja', 'admin'
 
+// Redirigir según el rol
 switch ($userRole) {
     case 'vendedor':
         header('Location: dashboard_vendedor.php');
@@ -37,7 +44,9 @@ switch ($userRole) {
         header('Location: dashboard_admin.php');
         break;
     default:
+        // Si el rol no es válido, destruir la sesión
         session_destroy();
         header('Location: index.html');
+        break;
 }
 exit();
