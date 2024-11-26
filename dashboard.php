@@ -1,5 +1,5 @@
 <?php
-// Mostrar errores directamente
+// Mostrar errores para depuración
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -14,7 +14,7 @@ if (!isset($_SESSION['token'])) {
 
 // Incluir función para verificar el token
 require 'verify_token.php';
-$jwt_secret = 'Adeleteamo1988@';
+$jwt_secret = 'clave_secreta_segura';
 
 try {
     // Verificar y decodificar el token
@@ -23,8 +23,9 @@ try {
         throw new Exception('Token inválido o expirado.');
     }
 } catch (Exception $e) {
-    // Mostrar el error para depuración
-    echo 'Error al verificar el token: ' . $e->getMessage();
+    // Redirigir al login si el token no es válido
+    session_destroy();
+    header('Location: index.html');
     exit();
 }
 
@@ -100,22 +101,23 @@ $userRole = $tokenData->rol;
     $(document).ready(function() {
       const token = '<?php echo $_SESSION['token']; ?>';
 
+      // Cargar pedidos
       $.ajax({
         url: 'api/orders.php',
-        headers: { Authorization: 'Bearer ' + token },
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ token: token }),
         success: function(response) {
-          $('#totalOrders').text(response.total || 0);
-          $('#pendingOrders').text(response.pending || 0);
-          $('#completedOrders').text(response.completed || 0);
+          $('#totalOrders').text(response.length || 0);
 
           const table = $('#ordersTable');
           table.empty();
 
-          response.orders.forEach(order => {
+          response.forEach(order => {
             table.append(`
               <tr>
-                <td>${order.id}</td>
-                <td>${order.cliente}</td>
+                <td>${order.pedido_id}</td>
+                <td>${order.producto_nombre || 'N/A'}</td>
                 <td>${order.total}</td>
                 <td>${order.estado}</td>
                 <td><button class="btn btn-sm btn-primary">Ver</button></td>
@@ -123,11 +125,13 @@ $userRole = $tokenData->rol;
             `);
           });
         },
-        error: function() {
+        error: function(xhr) {
+          console.error(xhr.responseText);
           alert('Error al cargar los pedidos.');
         }
       });
 
+      // Cerrar sesión
       $('#logoutButton').on('click', function() {
         $.ajax({
           url: 'logout.php',

@@ -4,17 +4,15 @@ require '../verify_token.php';
 
 header('Content-Type: application/json');
 
-// Obtener los encabezados HTTP correctamente
-$headers = apache_request_headers(); // Alternativa: getallheaders()
+// Obtener el cuerpo de la solicitud
+$data = json_decode(file_get_contents("php://input"), true);
+$jwt = isset($data['token']) ? $data['token'] : null;
 
-if (!isset($headers['Authorization'])) {
+if (!$jwt) {
     http_response_code(401);
     echo json_encode(["message" => "Token no proporcionado"]);
     exit();
 }
-
-$authHeader = $headers['Authorization'];
-$jwt = str_replace("Bearer ", "", $authHeader);
 
 // Verificar el token JWT
 try {
@@ -28,9 +26,9 @@ try {
     exit();
 }
 
-// Procesar solicitudes GET
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $id_cliente = isset($_GET['id_cliente']) ? (int)$_GET['id_cliente'] : 0;
+// Procesar solicitudes POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id_cliente = isset($data['id_cliente']) ? (int)$data['id_cliente'] : 0;
 
     try {
         // Consulta de pedidos
