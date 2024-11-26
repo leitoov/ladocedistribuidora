@@ -12,5 +12,5 @@ try {
 }
 
 // Clave secreta para JWT
-$jwt_secret = 'clave_secreta_segura';
+$jwt_secret = 'Adeleteamo1988@';
 ?>

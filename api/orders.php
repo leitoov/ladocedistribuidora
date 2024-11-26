@@ -4,7 +4,8 @@ require '../verify_token.php';
 
 header('Content-Type: application/json');
 
-$headers = getallheaders();
+// Obtener los encabezados HTTP correctamente
+$headers = apache_request_headers(); // Alternativa: getallheaders()
 
 if (!isset($headers['Authorization'])) {
     http_response_code(401);
@@ -15,10 +16,11 @@ if (!isset($headers['Authorization'])) {
 $authHeader = $headers['Authorization'];
 $jwt = str_replace("Bearer ", "", $authHeader);
 
+// Verificar el token JWT
 try {
     $tokenData = verifyJWT($jwt, $jwt_secret);
     if (!$tokenData) {
-        throw new Exception('Token inválido o expirado');
+        throw new Exception('Token inválido o expirado.');
     }
 } catch (Exception $e) {
     http_response_code(401);
@@ -26,10 +28,12 @@ try {
     exit();
 }
 
+// Procesar solicitudes GET
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $id_cliente = isset($_GET['id_cliente']) ? (int)$_GET['id_cliente'] : 0;
 
     try {
+        // Consulta de pedidos
         $stmt = $pdo->prepare("
             SELECT 
                 p.id AS pedido_id,

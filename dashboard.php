@@ -14,7 +14,7 @@ if (!isset($_SESSION['token'])) {
 
 // Incluir función para verificar el token
 require 'verify_token.php';
-$jwt_secret = 'clave_secreta_segura';
+$jwt_secret = 'Adeleteamo1988@';
 
 try {
     // Verificar y decodificar el token
