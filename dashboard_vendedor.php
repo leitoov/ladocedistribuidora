@@ -124,7 +124,11 @@ $userId = $tokenData->user_id;
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <input type="text" class="form-control mb-3" id="buscarProductoInput" placeholder="Ingrese nombre o código del producto">
+          <input type="text" class="form-control mb-3" id="buscarProductoInput" placeholder="Ingrese al menos 3 letras">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="filtroStock">
+            <label for="filtroStock" class="form-check-label">Solo con stock</label>
+          </div>
           <div id="resultadoBusqueda" class="mt-3"></div>
         </div>
         <div class="modal-footer">
@@ -144,11 +148,12 @@ $userId = $tokenData->user_id;
         </div>
         <div class="modal-body">
           <input type="text" class="form-control mb-3" placeholder="Nombre del producto" id="nuevoProductoNombre">
-          <input type="number" class="form-control mb-3" placeholder="Cantidad" id="nuevoProductoCantidad">
+          <textarea class="form-control mb-3" placeholder="Descripción del producto" id="nuevoProductoDescripcion"></textarea>
           <input type="number" class="form-control mb-3" placeholder="Precio" id="nuevoProductoPrecio">
+          <input type="number" class="form-control mb-3" placeholder="Cantidad en stock" id="nuevoProductoStock">
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" id="añadirProductoBtn">Añadir</button>
+          <button type="button" class="btn btn-primary" id="añadirProductoBtn">Guardar</button>
         </div>
       </div>
     </div>
@@ -165,17 +170,34 @@ $userId = $tokenData->user_id;
         <div class="modal-body">
           <input type="text" class="form-control mb-3" id="modificarProductoCodigo" placeholder="Código del producto">
           <input type="text" class="form-control mb-3" id="modificarProductoNombre" placeholder="Nuevo nombre">
-          <input type="number" class="form-control mb-3" id="modificarProductoCantidad" placeholder="Nueva cantidad">
+          <input type="number" class="form-control mb-3" id="modificarProductoStock" placeholder="Nueva cantidad">
           <input type="number" class="form-control mb-3" id="modificarProductoPrecio" placeholder="Nuevo precio">
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" id="modificarProductoBtn">Modificar</button>
+          <button type="button" class="btn btn-primary" id="modificarProductoBtn">Guardar</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- Modal Armar Pedido -->
+  <div class="modal fade" id="modalArmarPedido" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Armar Pedido</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>¡Contenido del modal para armar pedido aquí!</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary">Guardar Pedido</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
   <script>
