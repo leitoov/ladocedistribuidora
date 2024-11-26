@@ -130,7 +130,7 @@ $userRole = $tokenData->rol;
 
       $('#logoutButton').on('click', function() {
         $.ajax({
-          url: 'api/logout.php',
+          url: 'logout.php',
           success: function() {
             window.location.href = 'index.html';
           }

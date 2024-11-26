@@ -35,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $jwt = generateJWT($payload, $jwt_secret);
 
-        // Guardar el token en la sesión
         session_start();
         $_SESSION['token'] = $jwt;
 

@@ -1,6 +1,4 @@
 <?php
-
-// Función para generar el JWT
 function generateJWT($payload, $secret) {
     $header = json_encode(['alg' => 'HS256', 'typ' => 'JWT']);
     $payload = json_encode($payload);
@@ -14,7 +12,6 @@ function generateJWT($payload, $secret) {
     return "$base64Header.$base64Payload.$base64Signature";
 }
 
-// Función para verificar el JWT
 function verifyJWT($jwt, $secret) {
     $parts = explode('.', $jwt);
     if (count($parts) !== 3) {

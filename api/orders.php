@@ -4,8 +4,7 @@ require '../verify_token.php';
 
 header('Content-Type: application/json');
 
-// Obtener los encabezados HTTP
-$headers = getallheaders(); // Alternativa a apache_request_headers()
+$headers = getallheaders();
 
 if (!isset($headers['Authorization'])) {
     http_response_code(401);
@@ -16,10 +15,9 @@ if (!isset($headers['Authorization'])) {
 $authHeader = $headers['Authorization'];
 $jwt = str_replace("Bearer ", "", $authHeader);
 
-// Verificar el token JWT
 try {
-    $user_id = verifyJWT($jwt, $jwt_secret);
-    if (!$user_id) {
+    $tokenData = verifyJWT($jwt, $jwt_secret);
+    if (!$tokenData) {
         throw new Exception('Token inválido o expirado');
     }
 } catch (Exception $e) {
@@ -28,12 +26,10 @@ try {
     exit();
 }
 
-// Método GET para obtener pedidos
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $id_cliente = isset($_GET['id_cliente']) ? (int)$_GET['id_cliente'] : 0;
 
     try {
-        // Consulta de pedidos con detalles para un cliente específico
         $stmt = $pdo->prepare("
             SELECT 
                 p.id AS pedido_id,
