@@ -104,7 +104,6 @@
                 <button class="btn btn-primary w-100 mt-3" id="confirmarPedido">Confirmar Pedido</button>
                 <button class="btn btn-danger w-100 mt-3" id="cancelarPedido">Cancelar Pedido</button>
                 <h4 class="text-end mt-3" id="totalPedido">Total: $0</h4>
-                <button id="generarPDF" class="btn btn-success w-100 mt-3">Generar PDF del Pedido</button>
             </div>
 
             <!-- Funciones Complementarias -->
@@ -302,6 +301,9 @@
                     mostrarMensajeModal("Pedido confirmado correctamente");
                     productosEnPedido = [];
                     actualizarTablaPedido();
+                    if (tipoPedido === 'Reparto') {
+                        generarPDF();
+                    }
                 },
                 error: function(jqXHR) {
                     let errorMsg = jqXHR.responseJSON && jqXHR.responseJSON.message ? jqXHR.responseJSON.message : "Error al confirmar el pedido";
@@ -325,7 +327,7 @@
         });
 
         // Función para generar PDF utilizando jsPDF
-        document.getElementById('generarPDF').addEventListener('click', () => {
+        function generarPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
@@ -358,7 +360,7 @@
 
             // Guardar el PDF con un nombre específico
             doc.save("pedido.pdf");
-        });
+        }
     });
     </script>
 
