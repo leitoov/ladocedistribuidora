@@ -104,6 +104,7 @@
                 <button class="btn btn-primary w-100 mt-3" id="confirmarPedido">Confirmar Pedido</button>
                 <button class="btn btn-danger w-100 mt-3" id="cancelarPedido">Cancelar Pedido</button>
                 <h4 class="text-end mt-3" id="totalPedido">Total: $0</h4>
+                <button id="generarPDF" class="btn btn-success w-100 mt-3">Generar PDF del Pedido</button>
             </div>
 
             <!-- Funciones Complementarias -->
@@ -148,6 +149,7 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 
     <script>
     $(document).ready(function() {
@@ -248,9 +250,10 @@
                 nuevaCantidad = parseInt(nuevaCantidad);
                 if (nuevaCantidad > producto.stock) {
                     mostrarMensajeModal("No hay suficiente stock disponible.");
+                    // Find the specific input for this product and set its value to 1
                     $(`input.cantidadProducto[data-id="${id}"]`).val(1);
-                    producto.cantidad = 1;
-                    actualizarTablaPedido();
+                    producto.cantidad = 1; // Also update the product's quantity in the array
+                    actualizarTablaPedido(); // Refresh the table to reflect the change
                     return;
                 }
                 producto.cantidad = nuevaCantidad;
@@ -296,12 +299,7 @@
                     productos: productosEnPedido
                 }),
                 success: function(respuesta) {
-                    if (tipoPedido === 'Reparto') {
-                        mostrarMensajeModal("Pedido confirmado correctamente. Imprimiendo el pedido...");
-                        window.print();
-                    } else {
-                        mostrarMensajeModal("Pedido confirmado correctamente");
-                    }
+                    mostrarMensajeModal("Pedido confirmado correctamente");
                     productosEnPedido = [];
                     actualizarTablaPedido();
                 },
@@ -324,6 +322,42 @@
                 productosEnPedido = [];
                 actualizarTablaPedido();
             }
+        });
+
+        // Función para generar PDF utilizando jsPDF
+        document.getElementById('generarPDF').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Encabezado del PDF
+            doc.setFontSize(16);
+            doc.text("Distribuidora - Pedido", 10, 10);
+            doc.setFontSize(12);
+            doc.text(`Cliente: ${document.getElementById('clienteInput').value}`, 10, 20);
+            doc.text(`Tipo de Pedido: ${document.getElementById('tipoPedido').value}`, 10, 30);
+            doc.text(`Fecha: ${new Date().toLocaleString()}`, 10, 40);
+
+            // Agregar una línea para dividir el encabezado del contenido
+            doc.line(10, 45, 200, 45);
+
+            // Encabezado de la tabla de productos
+            doc.text("Productos:", 10, 55);
+            let y = 65;
+
+            // Añadir cada producto al PDF
+            productosEnPedido.forEach((producto, index) => {
+                doc.text(`${index + 1}. Producto: ${producto.nombre}`, 10, y);
+                doc.text(`Cantidad: ${producto.cantidad} - Precio: $${producto.precio} - Total: $${(producto.precio * producto.cantidad).toFixed(2)}`, 10, y + 10);
+                y += 20;
+            });
+
+            // Mostrar el total del pedido al final
+            const totalPedido = productosEnPedido.reduce((acc, producto) => acc + (producto.precio * producto.cantidad), 0);
+            doc.setFontSize(14);
+            doc.text(`Total del Pedido: $${totalPedido.toFixed(2)}`, 10, y + 10);
+
+            // Guardar el PDF con un nombre específico
+            doc.save("pedido.pdf");
         });
     });
     </script>
