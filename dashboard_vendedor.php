@@ -135,6 +135,7 @@ $userId = $tokenData->user_id;
 
                 <button class="btn btn-primary w-100 mt-3" id="confirmarPedido">Confirmar Pedido</button>
                 <button class="btn btn-danger w-100 mt-3" id="cancelarPedido">Cancelar Pedido</button>
+                <h4 class="text-end mt-3" id="totalPedido">Total: $0</h4>
             </div>
 
             <!-- Funciones Complementarias -->
@@ -147,72 +148,21 @@ $userId = $tokenData->user_id;
                 </button>
 
                 <!-- Añadir Producto -->
-                <button class="btn btn-outline-success w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalAñadirProducto">
+                <a href="añadir_producto.php" class="btn btn-outline-success w-100 mb-3">
                     <span class="material-icons">add_circle</span> Añadir Producto
-                </button>
+                </a>
 
                 <!-- Modificar Producto -->
-                <button class="btn btn-outline-warning w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalModificarProducto">
+                <a href="modificar_producto.php" class="btn btn-outline-warning w-100 mb-3">
                     <span class="material-icons">edit</span> Modificar Producto
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modals -->
-    <!-- Añadir Producto -->
-    <div class="modal fade" id="modalAñadirProducto" tabindex="-1" aria-labelledby="modalAñadirProductoLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalAñadirProductoLabel">Añadir Producto</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="text" class="form-control mb-3" placeholder="Nombre del producto" id="nuevoProductoNombre">
-                    <textarea class="form-control mb-3" placeholder="Descripción" id="nuevoProductoDescripcion"></textarea>
-                    <input type="number" class="form-control mb-3" placeholder="Precio" id="nuevoProductoPrecio">
-                    <input type="number" class="form-control mb-3" placeholder="Cantidad" id="nuevoProductoStock">
-                    <select class="form-control mb-3" id="nuevoProductoEstado">
-                        <option value="Disponible">Disponible</option>
-                        <option value="Agotado">Agotado</option>
-                    </select>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" id="guardarProducto">Guardar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modificar Producto -->
-    <div class="modal fade" id="modalModificarProducto" tabindex="-1" aria-labelledby="modalModificarProductoLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalModificarProductoLabel">Modificar Producto</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="text" class="form-control mb-3" placeholder="ID del producto" id="modificarProductoId">
-                    <input type="text" class="form-control mb-3" placeholder="Nuevo nombre" id="modificarProductoNombre">
-                    <textarea class="form-control mb-3" placeholder="Nueva descripción" id="modificarProductoDescripcion"></textarea>
-                    <input type="number" class="form-control mb-3" placeholder="Nuevo precio" id="modificarProductoPrecio">
-                    <input type="number" class="form-control mb-3" placeholder="Nueva cantidad" id="modificarProductoStock">
-                    <select class="form-control mb-3" id="modificarProductoEstado">
-                        <option value="Disponible">Disponible</option>
-                        <option value="Agotado">Agotado</option>
-                    </select>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-warning" id="modificarProducto">Modificar</button>
-                </div>
+                </a>
             </div>
         </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
         $(document).ready(function() {
             let productosEnPedido = [];
@@ -246,74 +196,6 @@ $userId = $tokenData->user_id;
                     });
                 } else {
                     $('#resultadosBusqueda').empty();
-                }
-            });
-
-            // Añadir producto con validación
-            $('#guardarProducto').on('click', function() {
-                let nombre = $('#nuevoProductoNombre').val().trim();
-                let descripcion = $('#nuevoProductoDescripcion').val().trim();
-                let precio = $('#nuevoProductoPrecio').val();
-                let stock = $('#nuevoProductoStock').val();
-                let estado = $('#nuevoProductoEstado').val();
-
-                if (nombre && descripcion && precio > 0 && stock >= 0) {
-                    $.ajax({
-                        url: 'apis/products.php',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            nombre: nombre,
-                            descripcion: descripcion,
-                            precio: precio,
-                            stock: stock,
-                            estado: estado
-                        }),
-                        success: function(respuesta) {
-                            alert("Producto añadido correctamente");
-                            $('#modalAñadirProducto').modal('hide');
-                        },
-                        error: function() {
-                            alert("Error al añadir producto");
-                        }
-                    });
-                } else {
-                    alert("Todos los campos son obligatorios y deben contener valores válidos.");
-                }
-            });
-
-            // Modificar producto
-            $('#modificarProducto').on('click', function() {
-                let id = $('#modificarProductoId').val().trim();
-                let nombre = $('#modificarProductoNombre').val().trim();
-                let descripcion = $('#modificarProductoDescripcion').val().trim();
-                let precio = $('#modificarProductoPrecio').val();
-                let stock = $('#modificarProductoStock').val();
-                let estado = $('#modificarProductoEstado').val();
-
-                if (id && nombre && descripcion && precio > 0 && stock >= 0) {
-                    $.ajax({
-                        url: 'apis/products.php',
-                        type: 'PUT',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            id: id,
-                            nombre: nombre,
-                            descripcion: descripcion,
-                            precio: precio,
-                            stock: stock,
-                            estado: estado
-                        }),
-                        success: function(respuesta) {
-                            alert("Producto modificado correctamente");
-                            $('#modalModificarProducto').modal('hide');
-                        },
-                        error: function() {
-                            alert("Error al modificar producto");
-                        }
-                    });
-                } else {
-                    alert("Todos los campos son obligatorios y deben contener valores válidos.");
                 }
             });
 
@@ -439,5 +321,6 @@ $userId = $tokenData->user_id;
             });
         });
     </script>
+
   </body>
 </html>
