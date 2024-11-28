@@ -29,7 +29,7 @@ try {
 
 // Extraer información del token
 $userId = $tokenData->user_id;
-?> 326
+?>
 <!DOCTYPE html>
 <html lang="es">
 
