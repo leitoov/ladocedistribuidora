@@ -293,7 +293,7 @@ $userId = $tokenData->user_id;
                 }
 
                 $.ajax({
-                    url: 'api/orders.php',
+                    url: 'api/pedido.php',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
