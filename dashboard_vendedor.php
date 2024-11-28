@@ -1,35 +1,3 @@
-<?php
-// Mostrar errores para depuración
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-session_start();
-
-// Verificar si el usuario tiene un token en la sesión
-if (!isset($_SESSION['token'])) {
-    header('Location: index.html');
-    exit();
-}
-
-// Incluir función para verificar el token
-require 'verify_token.php';
-$jwt_secret = 'Adeleteamo1988@';
-
-try {
-    $tokenData = verifyJWT($_SESSION['token'], $jwt_secret);
-    if (!$tokenData) {
-        throw new Exception('Token inválido o expirado.');
-    }
-} catch (Exception $e) {
-    session_destroy();
-    header('Location: index.html');
-    exit();
-}
-
-// Extraer información del token
-$userId = $tokenData->user_id;
-?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -280,10 +248,9 @@ $userId = $tokenData->user_id;
                 nuevaCantidad = parseInt(nuevaCantidad);
                 if (nuevaCantidad > producto.stock) {
                     mostrarMensajeModal("No hay suficiente stock disponible.");
-                    // Find the specific input for this product and set its value to 1
                     $(`input.cantidadProducto[data-id="${id}"]`).val(1);
-                    producto.cantidad = 1; // Also update the product's quantity in the array
-                    actualizarTablaPedido(); // Refresh the table to reflect the change
+                    producto.cantidad = 1;
+                    actualizarTablaPedido();
                     return;
                 }
                 producto.cantidad = nuevaCantidad;
@@ -329,7 +296,12 @@ $userId = $tokenData->user_id;
                     productos: productosEnPedido
                 }),
                 success: function(respuesta) {
-                    mostrarMensajeModal("Pedido confirmado correctamente");
+                    if (tipoPedido === 'Reparto') {
+                        mostrarMensajeModal("Pedido confirmado correctamente. Imprimiendo el pedido...");
+                        window.print();
+                    } else {
+                        mostrarMensajeModal("Pedido confirmado correctamente");
+                    }
                     productosEnPedido = [];
                     actualizarTablaPedido();
                 },

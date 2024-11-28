@@ -72,8 +72,11 @@ try {
         $nombreCliente = $cliente; // Guardar el nombre ingresado del cliente
     }
 
+    // Determinar el estado del pedido
+    $estadoPedido = ($tipoPedido === 'Reparto') ? 'Confirmado' : 'Pendiente';
+
     // Insertar el pedido (asegurándonos de usar el campo correcto)
-    $stmt = $pdo->prepare("INSERT INTO pedidos (id_cliente, nombre_cliente, total, estado, tipo_pedido) VALUES (:cliente, :nombre_cliente, :total, 'Pendiente', :tipo_pedido)");
+    $stmt = $pdo->prepare("INSERT INTO pedidos (id_cliente, nombre_cliente, total, estado, tipo_pedido) VALUES (:cliente, :nombre_cliente, :total, :estado, :tipo_pedido)");
     $total = array_reduce($productos, function ($acc, $producto) {
         return $acc + ($producto['precio'] * $producto['cantidad']);
     }, 0);
@@ -81,6 +84,7 @@ try {
         'cliente' => $idCliente,
         'nombre_cliente' => $nombreCliente, // Guardar el nombre del cliente (ya sea registrado o ingresado)
         'total' => $total,
+        'estado' => $estadoPedido,
         'tipo_pedido' => $tipoPedido
     ]);
 
@@ -114,7 +118,15 @@ try {
     // Confirmar la transacción
     $pdo->commit();
 
-    echo json_encode(["message" => "Pedido generado correctamente"]);
+    // Imprimir automáticamente el pedido si es de tipo "Reparto"
+    if ($tipoPedido === 'Reparto') {
+        echo json_encode([
+            "message" => "Pedido generado correctamente. Tipo: Reparto. Estado: Confirmado. Imprimiendo pedido...",
+            "print" => true
+        ]);
+    } else {
+        echo json_encode(["message" => "Pedido generado correctamente"]);
+    }
 } catch (Exception $e) {
     $pdo->rollBack();
     http_response_code(500);
