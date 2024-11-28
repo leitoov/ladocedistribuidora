@@ -32,189 +32,310 @@ $userId = $tokenData->user_id;
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Distribuidora - Panel Vendedor</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <style>
-    .navbar {
-      background-color: #00bfff;
-    }
-    .navbar .navbar-brand, .navbar .btn {
-      color: #fff;
-    }
-    .navbar .btn:hover {
-      background-color: #007acc;
-    }
-    .section-header {
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 15px;
-    }
-    .split {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-    .split > div {
-      flex: 1;
-      min-width: 45%;
-    }
-    .order-table th, .order-table td {
-      text-align: center;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distribuidora - Panel Vendedor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        .navbar {
+            background-color: #00bfff;
+        }
+
+        .navbar .navbar-brand,
+        .navbar .btn {
+            color: #fff;
+        }
+
+        .navbar .btn:hover {
+            background-color: #007acc;
+        }
+
+        .section-header {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .split {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .split>div {
+            flex: 1;
+            min-width: 45%;
+        }
+
+        .order-table th,
+        .order-table td {
+            text-align: center;
+        }
+    </style>
 </head>
+
 <body>
-  <nav class="navbar navbar-expand-lg">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">Distribuidora</a>
-      <button class="btn btn-outline-light" id="logoutButton">Cerrar Sesión</button>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Distribuidora</a>
+            <button class="btn btn-outline-light" id="logoutButton">Cerrar Sesión</button>
+        </div>
+    </nav>
+    <div class="container my-4">
+        <h1 class="text-center mb-4">Panel Vendedor</h1>
+
+        <div class="split">
+            <!-- Gestión de Pedidos -->
+            <div class="card p-4">
+                <h2 class="section-header">Gestión de Pedidos</h2>
+
+                <!-- Cliente -->
+                <div class="mb-3">
+                    <label for="clienteInput" class="form-label">Cliente</label>
+                    <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
+                </div>
+
+                <!-- Productos -->
+                <div class="mb-3">
+                    <label for="productoInput" class="form-label">Producto</label>
+                    <input type="text" class="form-control" id="productoInput" placeholder="Buscar producto (3 letras mínimo)">
+                    <div id="resultadosBusqueda" class="list-group mt-2"></div> <!-- Resultados de búsqueda -->
+                </div>
+
+                <!-- Pedido Actual -->
+                <table class="table table-striped order-table mt-3">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Total</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidoActual">
+                        <tr>
+                            <td colspan="5">No hay productos en el pedido.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <button class="btn btn-primary w-100 mt-3" id="guardarPedido">Guardar Pedido</button>
+            </div>
+
+            <!-- Funciones Complementarias -->
+            <div class="card p-4">
+                <h2 class="section-header">Funciones Complementarias</h2>
+
+                <!-- Historial de Pedidos -->
+                <button class="btn btn-outline-primary w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalHistorialPedidos">
+                    <span class="material-icons">history</span> Historial de Pedidos
+                </button>
+
+                <!-- Añadir Producto -->
+                <button class="btn btn-outline-success w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalAñadirProducto">
+                    <span class="material-icons">add_circle</span> Añadir Producto
+                </button>
+
+                <!-- Modificar Producto -->
+                <button class="btn btn-outline-warning w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalModificarProducto">
+                    <span class="material-icons">edit</span> Modificar Producto
+                </button>
+            </div>
+        </div>
     </div>
-  </nav>
-  <div class="container my-4">
-    <h1 class="text-center mb-4">Panel Vendedor</h1>
 
-    <div class="split">
-      <!-- Gestión de Pedidos -->
-      <div class="card p-4">
-        <h2 class="section-header">Gestión de Pedidos</h2>
-
-        <!-- Cliente -->
-        <div class="mb-3">
-          <label for="clienteInput" class="form-label">Cliente</label>
-          <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
+    <!-- Modals -->
+    <!-- Añadir Producto -->
+    <div class="modal fade" id="modalAñadirProducto" tabindex="-1" aria-labelledby="modalAñadirProductoLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAñadirProductoLabel">Añadir Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control mb-3" placeholder="Nombre del producto" id="nuevoProductoNombre">
+                    <textarea class="form-control mb-3" placeholder="Descripción" id="nuevoProductoDescripcion"></textarea>
+                    <input type="number" class="form-control mb-3" placeholder="Precio" id="nuevoProductoPrecio">
+                    <input type="number" class="form-control mb-3" placeholder="Cantidad" id="nuevoProductoStock">
+                    <select class="form-control mb-3" id="nuevoProductoEstado">
+                        <option value="Disponible">Disponible</option>
+                        <option value="Agotado">Agotado</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="guardarProducto">Guardar</button>
+                </div>
+            </div>
         </div>
-
-        <!-- Productos -->
-        <div class="mb-3">
-          <label for="productoInput" class="form-label">Producto</label>
-          <input type="text" class="form-control" id="productoInput" placeholder="Buscar producto (3 letras mínimo)">
-        </div>
-
-        <!-- Pedido Actual -->
-        <table class="table table-striped order-table mt-3">
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th>Cantidad</th>
-              <th>Precio Unitario</th>
-              <th>Total</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="pedidoActual">
-            <tr>
-              <td colspan="5">No hay productos en el pedido.</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <button class="btn btn-primary w-100 mt-3" id="guardarPedido">Guardar Pedido</button>
-      </div>
-
-      <!-- Funciones Complementarias -->
-      <div class="card p-4">
-        <h2 class="section-header">Funciones Complementarias</h2>
-
-        <!-- Historial de Pedidos -->
-        <button class="btn btn-outline-primary w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalHistorialPedidos">
-          <span class="material-icons">history</span> Historial de Pedidos
-        </button>
-
-        <!-- Añadir Producto -->
-        <button class="btn btn-outline-success w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalAñadirProducto">
-          <span class="material-icons">add_circle</span> Añadir Producto
-        </button>
-
-        <!-- Modificar Producto -->
-        <button class="btn btn-outline-warning w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalModificarProducto">
-          <span class="material-icons">edit</span> Modificar Producto
-        </button>
-      </div>
     </div>
-  </div>
 
-  <!-- Modals -->
-  <!-- Historial de Pedidos -->
-  <div class="modal fade" id="modalHistorialPedidos" tabindex="-1" aria-labelledby="modalHistorialPedidosLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalHistorialPedidosLabel">Historial de Pedidos</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Modificar Producto -->
+    <div class="modal fade" id="modalModificarProducto" tabindex="-1" aria-labelledby="modalModificarProductoLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalModificarProductoLabel">Modificar Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control mb-3" placeholder="ID del producto" id="modificarProductoId">
+                    <input type="text" class="form-control mb-3" placeholder="Nuevo nombre" id="modificarProductoNombre">
+                    <textarea class="form-control mb-3" placeholder="Nueva descripción" id="modificarProductoDescripcion"></textarea>
+                    <input type="number" class="form-control mb-3" placeholder="Nuevo precio" id="modificarProductoPrecio">
+                    <input type="number" class="form-control mb-3" placeholder="Nueva cantidad" id="modificarProductoStock">
+                    <select class="form-control mb-3" id="modificarProductoEstado">
+                        <option value="Disponible">Disponible</option>
+                        <option value="Agotado">Agotado</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning" id="modificarProducto">Modificar</button>
+                </div>
+            </div>
         </div>
-        <div class="modal-body">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Total</th>
-                <th>Estado</th>
-                <th>Fecha</th>
-              </tr>
-            </thead>
-            <tbody id="historialPedidosBody">
-              <tr>
-                <td colspan="5" class="text-center">Cargando...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
-  </div>
 
-  <!-- Añadir Producto -->
-  <div class="modal fade" id="modalAñadirProducto" tabindex="-1" aria-labelledby="modalAñadirProductoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalAñadirProductoLabel">Añadir Producto</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <input type="text" class="form-control mb-3" placeholder="Nombre del producto" id="nuevoProductoNombre">
-          <textarea class="form-control mb-3" placeholder="Descripción" id="nuevoProductoDescripcion"></textarea>
-          <input type="number" class="form-control mb-3" placeholder="Precio" id="nuevoProductoPrecio">
-          <input type="number" class="form-control mb-3" placeholder="Cantidad" id="nuevoProductoStock">
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" id="guardarProducto">Guardar</button>
-        </div>
-      </div>
-    </div>
-  </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Búsqueda de productos con AJAX
+            $('#productoInput').on('keyup', function() {
+                let termino = $(this).val();
+                if (termino.length >= 3) {
+                    $.ajax({
+                        url: 'productos.php',
+                        type: 'GET',
+                        data: { termino: termino },
+                        success: function(respuesta) {
+                            $('#resultadosBusqueda').empty();
+                            if (respuesta.length > 0) {
+                                respuesta.forEach(function(producto) {
+                                    $('#resultadosBusqueda').append(
+                                        `<button class="list-group-item list-group-item-action" onclick="agregarProducto(${producto.id}, '${producto.nombre}', ${producto.precio})">
+                                            ${producto.nombre} - $${producto.precio}
+                                        </button>`
+                                    );
+                                });
+                            } else {
+                                $('#resultadosBusqueda').append('<div class="list-group-item">No se encontraron productos.</div>');
+                            }
+                        },
+                        error: function() {
+                            $('#resultadosBusqueda').empty();
+                            $('#resultadosBusqueda').append('<div class="list-group-item text-danger">Error al realizar la búsqueda.</div>');
+                        }
+                    });
+                } else {
+                    $('#resultadosBusqueda').empty();
+                }
+            });
 
-  <!-- Modificar Producto -->
-  <div class="modal fade" id="modalModificarProducto" tabindex="-1" aria-labelledby="modalModificarProductoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalModificarProductoLabel">Modificar Producto</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <input type="text" class="form-control mb-3" placeholder="Código o nombre del producto">
-          <input type="text" class="form-control mb-3" placeholder="Nuevo nombre">
-          <input type="number" class="form-control mb-3" placeholder="Nueva cantidad">
-          <input type="number" class="form-control mb-3" placeholder="Nuevo precio">
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-warning">Modificar</button>
-        </div>
-      </div>
-    </div>
-  </div>
+            // Añadir producto con validación
+            $('#guardarProducto').on('click', function() {
+                let nombre = $('#nuevoProductoNombre').val().trim();
+                let descripcion = $('#nuevoProductoDescripcion').val().trim();
+                let precio = $('#nuevoProductoPrecio').val();
+                let stock = $('#nuevoProductoStock').val();
+                let estado = $('#nuevoProductoEstado').val();
 
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // Aquí puedes añadir la lógica de las funcionalidades
-  </script>
+                if (nombre && descripcion && precio > 0 && stock >= 0) {
+                    $.ajax({
+                        url: 'productos.php',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            nombre: nombre,
+                            descripcion: descripcion,
+                            precio: precio,
+                            stock: stock,
+                            estado: estado
+                        }),
+                        success: function(respuesta) {
+                            alert("Producto añadido correctamente");
+                            $('#modalAñadirProducto').modal('hide');
+                        },
+                        error: function() {
+                            alert("Error al añadir producto");
+                        }
+                    });
+                } else {
+                    alert("Todos los campos son obligatorios y deben contener valores válidos.");
+                }
+            });
+
+            // Modificar producto
+            $('#modificarProducto').on('click', function() {
+                let id = $('#modificarProductoId').val().trim();
+                let nombre = $('#modificarProductoNombre').val().trim();
+                let descripcion = $('#modificarProductoDescripcion').val().trim();
+                let precio = $('#modificarProductoPrecio').val();
+                let stock = $('#modificarProductoStock').val();
+                let estado = $('#modificarProductoEstado').val();
+
+                if (id && nombre && descripcion && precio > 0 && stock >= 0) {
+                    $.ajax({
+                        url: 'productos.php',
+                        type: 'PUT',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            id: id,
+                            nombre: nombre,
+                            descripcion: descripcion,
+                            precio: precio,
+                            stock: stock,
+                            estado: estado
+                        }),
+                        success: function(respuesta) {
+                            alert("Producto modificado correctamente");
+                            $('#modalModificarProducto').modal('hide');
+                        },
+                        error: function() {
+                            alert("Error al modificar producto");
+                        }
+                    });
+                } else {
+                    alert("Todos los campos son obligatorios y deben contener valores válidos.");
+                }
+            });
+
+            // Agregar producto al pedido actual
+            window.agregarProducto = function(id, nombre, precio) {
+                let cantidad = 1; // Puedes ajustar para permitir seleccionar la cantidad.
+                let total = precio * cantidad;
+
+                let nuevaFila = `
+                    <tr>
+                        <td>${nombre}</td>
+                        <td><input type="number" class="form-control text-center cantidadProducto" value="${cantidad}" min="1" onchange="actualizarTotal(this, ${precio})"></td>
+                        <td>${precio}</td>
+                        <td class="totalProducto">${total}</td>
+                        <td><button class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">Eliminar</button></td>
+                    </tr>
+                `;
+
+                $('#pedidoActual').append(nuevaFila);
+            };
+
+            // Actualizar el total cuando cambie la cantidad
+            window.actualizarTotal = function(elemento, precioUnitario) {
+                let cantidad = $(elemento).val();
+                let total = cantidad * precioUnitario;
+                $(elemento).closest('tr').find('.totalProducto').text(total);
+            };
+
+            // Eliminar producto del pedido
+            window.eliminarProducto = function(elemento) {
+                $(elemento).closest('tr').remove();
+            };
+        });
+    </script>
 </body>
+
 </html>
