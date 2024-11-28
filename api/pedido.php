@@ -27,10 +27,10 @@ try {
 // Obtener los datos del pedido
 $data = json_decode(file_get_contents("php://input"), true);
 $cliente = $data['cliente'] ?? null;
-$tipoPedido = $data['tipoPedido'] ?? null; // Aquí cambie `tipo` por `tipoPedido` para coincidir con el JSON del frontend
+$tipoPedido = $data['tipoPedido'] ?? null;
 $productos = $data['productos'] ?? [];
 
-if (!$cliente || !$tipoPedido || empty($productos)) {
+if (empty($productos)) {
     http_response_code(400);
     echo json_encode(["message" => "Datos del pedido incompletos"]);
     exit();
@@ -40,14 +40,29 @@ try {
     // Iniciar transacción para asegurar la consistencia del pedido y el stock
     $pdo->beginTransaction();
 
+    // Verificar si el cliente existe
+    $stmtCliente = $pdo->prepare("SELECT id, nombre FROM clientes WHERE nombre = :nombre LIMIT 1");
+    $stmtCliente->execute(['nombre' => $cliente]);
+    $clienteData = $stmtCliente->fetch(PDO::FETCH_ASSOC);
+
+    if ($clienteData) {
+        $idCliente = $clienteData['id'];
+        $nombreCliente = $clienteData['nombre'];
+    } else {
+        // Usar un ID genérico para clientes no registrados
+        $idCliente = 9999; // ID genérico para cliente no registrado
+        $nombreCliente = $cliente; // Guardar el nombre ingresado del cliente
+    }
+
     // Insertar el pedido
-    $stmt = $pdo->prepare("INSERT INTO pedidos (id_cliente, tipo, fecha, total, estado) VALUES (:cliente, :tipo, NOW(), :total, 'Pendiente')");
+    $stmt = $pdo->prepare("INSERT INTO pedidos (id_cliente, nombre_cliente, tipo_pedido, fecha, total, estado) VALUES (:cliente, :nombre_cliente, :tipo_pedido, NOW(), :total, 'Pendiente')");
     $total = array_reduce($productos, function ($acc, $producto) {
         return $acc + ($producto['precio'] * $producto['cantidad']);
     }, 0);
     $stmt->execute([
-        'cliente' => $cliente,
-        'tipo' => $tipoPedido,
+        'cliente' => $idCliente,
+        'nombre_cliente' => $nombreCliente,
+        'tipo_pedido' => $tipoPedido,
         'total' => $total
     ]);
 
