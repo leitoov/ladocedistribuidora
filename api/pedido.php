@@ -27,7 +27,7 @@ try {
 // Obtener los datos del pedido
 $data = json_decode(file_get_contents("php://input"), true);
 $cliente = $data['cliente'] ?? null;
-$tipoPedido = $data['tipoPedido'] ?? null; // Aquí cambie `tipo_pedido` por `tipoPedido` para coincidir con el JSON del frontend
+$tipoPedido = $data['tipoPedido'] ?? null; // Aquí cambie `tipo` por `tipoPedido` para coincidir con el JSON del frontend
 $productos = $data['productos'] ?? [];
 
 if (!$cliente || !$tipoPedido || empty($productos)) {
@@ -41,13 +41,13 @@ try {
     $pdo->beginTransaction();
 
     // Insertar el pedido
-    $stmt = $pdo->prepare("INSERT INTO pedidos (id_cliente, tipo_pedido, fecha, total, estado) VALUES (:cliente, :tipo_pedido, NOW(), :total, 'Pendiente')");
+    $stmt = $pdo->prepare("INSERT INTO pedidos (id_cliente, tipo, fecha, total, estado) VALUES (:cliente, :tipo, NOW(), :total, 'Pendiente')");
     $total = array_reduce($productos, function ($acc, $producto) {
         return $acc + ($producto['precio'] * $producto['cantidad']);
     }, 0);
     $stmt->execute([
         'cliente' => $cliente,
-        'tipo_pedido' => $tipoPedido,
+        'tipo' => $tipoPedido,
         'total' => $total
     ]);
 
