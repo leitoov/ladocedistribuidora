@@ -17,13 +17,11 @@ require 'verify_token.php';
 $jwt_secret = 'Adeleteamo1988@';
 
 try {
-    // Verificar y decodificar el token
     $tokenData = verifyJWT($_SESSION['token'], $jwt_secret);
     if (!$tokenData) {
         throw new Exception('Token inválido o expirado.');
     }
 } catch (Exception $e) {
-    // Redirigir al login si el token no es válido
     session_destroy();
     header('Location: index.html');
     exit();
@@ -40,15 +38,8 @@ $userId = $tokenData->user_id;
   <title>Distribuidora - Panel Vendedor</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
-    .card {
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s ease;
-    }
-    .card:hover {
-      transform: scale(1.05);
-    }
     .navbar {
       background-color: #00bfff;
     }
@@ -58,9 +49,22 @@ $userId = $tokenData->user_id;
     .navbar .btn:hover {
       background-color: #007acc;
     }
-    table thead {
-      background-color: #007bff;
-      color: #fff;
+    .section-header {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    .split {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .split > div {
+      flex: 1;
+      min-width: 45%;
+    }
+    .order-table th, .order-table td {
+      text-align: center;
     }
   </style>
 </head>
@@ -73,135 +77,144 @@ $userId = $tokenData->user_id;
   </nav>
   <div class="container my-4">
     <h1 class="text-center mb-4">Panel Vendedor</h1>
-    <div class="row text-center">
-      <div class="col-md-4">
-        <div class="card p-3">
-          <h5>Buscar Productos</h5>
-          <p>Consulta rápida de productos en el inventario.</p>
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalBuscarProducto">Buscar Productos</button>
+
+    <div class="split">
+      <!-- Gestión de Pedidos -->
+      <div class="card p-4">
+        <h2 class="section-header">Gestión de Pedidos</h2>
+
+        <!-- Cliente -->
+        <div class="mb-3">
+          <label for="clienteInput" class="form-label">Cliente</label>
+          <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
         </div>
+
+        <!-- Productos -->
+        <div class="mb-3">
+          <label for="productoInput" class="form-label">Producto</label>
+          <input type="text" class="form-control" id="productoInput" placeholder="Buscar producto (3 letras mínimo)">
+        </div>
+
+        <!-- Pedido Actual -->
+        <table class="table table-striped order-table mt-3">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio Unitario</th>
+              <th>Total</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="pedidoActual">
+            <tr>
+              <td colspan="5">No hay productos en el pedido.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <button class="btn btn-primary w-100 mt-3" id="guardarPedido">Guardar Pedido</button>
       </div>
-      <div class="col-md-4">
-        <div class="card p-3">
-          <h5>Añadir Producto</h5>
-          <p>Agrega nuevos productos al inventario.</p>
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAñadirProducto">Añadir Producto</button>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card p-3">
-          <h5>Modificar Producto</h5>
-          <p>Actualiza los detalles de productos existentes.</p>
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalModificarProducto">Modificar Producto</button>
-        </div>
-      </div>
-    </div>
-    <div class="row text-center mt-4">
-      <div class="col-md-6">
-        <div class="card p-3">
-          <h5>Armar Pedido</h5>
-          <p>Gestión rápida de productos para pedidos.</p>
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalArmarPedido">Nuevo Pedido</button>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card p-3">
-          <h5>Historial de Pedidos</h5>
-          <p>Consulta los pedidos realizados anteriormente.</p>
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalHistorialPedidos">Ver Historial</button>
-        </div>
+
+      <!-- Funciones Complementarias -->
+      <div class="card p-4">
+        <h2 class="section-header">Funciones Complementarias</h2>
+
+        <!-- Historial de Pedidos -->
+        <button class="btn btn-outline-primary w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalHistorialPedidos">
+          <span class="material-icons">history</span> Historial de Pedidos
+        </button>
+
+        <!-- Añadir Producto -->
+        <button class="btn btn-outline-success w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalAñadirProducto">
+          <span class="material-icons">add_circle</span> Añadir Producto
+        </button>
+
+        <!-- Modificar Producto -->
+        <button class="btn btn-outline-warning w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalModificarProducto">
+          <span class="material-icons">edit</span> Modificar Producto
+        </button>
       </div>
     </div>
   </div>
 
   <!-- Modals -->
-  <!-- Modal Buscar Producto -->
-  <div class="modal fade" id="modalBuscarProducto" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+  <!-- Historial de Pedidos -->
+  <div class="modal fade" id="modalHistorialPedidos" tabindex="-1" aria-labelledby="modalHistorialPedidosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Buscar Producto</h5>
+          <h5 class="modal-title" id="modalHistorialPedidosLabel">Historial de Pedidos</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <input type="text" class="form-control mb-3" id="buscarProductoInput" placeholder="Ingrese al menos 3 letras">
-          <div class="form-check">
-            <input type="checkbox" class="form-check-input" id="filtroStock">
-            <label for="filtroStock" class="form-check-label">Solo con stock</label>
-          </div>
-          <div id="resultadoBusqueda" class="mt-3"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" id="buscarProductoBtn">Buscar</button>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody id="historialPedidosBody">
+              <tr>
+                <td colspan="5" class="text-center">Cargando...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal Añadir Producto -->
-  <div class="modal fade" id="modalAñadirProducto" tabindex="-1" aria-hidden="true">
+  <!-- Añadir Producto -->
+  <div class="modal fade" id="modalAñadirProducto" tabindex="-1" aria-labelledby="modalAñadirProductoLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Añadir Producto</h5>
+          <h5 class="modal-title" id="modalAñadirProductoLabel">Añadir Producto</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <input type="text" class="form-control mb-3" placeholder="Nombre del producto" id="nuevoProductoNombre">
-          <textarea class="form-control mb-3" placeholder="Descripción del producto" id="nuevoProductoDescripcion"></textarea>
+          <textarea class="form-control mb-3" placeholder="Descripción" id="nuevoProductoDescripcion"></textarea>
           <input type="number" class="form-control mb-3" placeholder="Precio" id="nuevoProductoPrecio">
-          <input type="number" class="form-control mb-3" placeholder="Cantidad en stock" id="nuevoProductoStock">
+          <input type="number" class="form-control mb-3" placeholder="Cantidad" id="nuevoProductoStock">
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" id="añadirProductoBtn">Guardar</button>
+          <button type="button" class="btn btn-primary" id="guardarProducto">Guardar</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal Modificar Producto -->
-  <div class="modal fade" id="modalModificarProducto" tabindex="-1" aria-hidden="true">
+  <!-- Modificar Producto -->
+  <div class="modal fade" id="modalModificarProducto" tabindex="-1" aria-labelledby="modalModificarProductoLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Modificar Producto</h5>
+          <h5 class="modal-title" id="modalModificarProductoLabel">Modificar Producto</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <input type="text" class="form-control mb-3" id="modificarProductoCodigo" placeholder="Código del producto">
-          <input type="text" class="form-control mb-3" id="modificarProductoNombre" placeholder="Nuevo nombre">
-          <input type="number" class="form-control mb-3" id="modificarProductoStock" placeholder="Nueva cantidad">
-          <input type="number" class="form-control mb-3" id="modificarProductoPrecio" placeholder="Nuevo precio">
+          <input type="text" class="form-control mb-3" placeholder="Código o nombre del producto">
+          <input type="text" class="form-control mb-3" placeholder="Nuevo nombre">
+          <input type="number" class="form-control mb-3" placeholder="Nueva cantidad">
+          <input type="number" class="form-control mb-3" placeholder="Nuevo precio">
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" id="modificarProductoBtn">Guardar</button>
+          <button type="button" class="btn btn-warning">Modificar</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal Armar Pedido -->
-  <div class="modal fade" id="modalArmarPedido" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Armar Pedido</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>¡Contenido del modal para armar pedido aquí!</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary">Guardar Pedido</button>
-        </div>
-      </div>
-    </div>
-  </div>
-<!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Aquí puedes añadir los scripts necesarios para la funcionalidad de los modales
+    // Aquí puedes añadir la lógica de las funcionalidades
   </script>
 </body>
 </html>
