@@ -73,15 +73,12 @@ try {
     }
 
     // Insertar el pedido (asegurándonos de usar el campo correcto)
-    $stmt = $pdo->prepare("INSERT INTO pedidos (id_cliente, nombre_cliente, pedido, fecha, total, estado) VALUES (:cliente, :nombre_cliente, :pedido, NOW(), :total, 'Pendiente')");
-    $total = array_reduce($productos, function ($acc, $producto) {
-        return $acc + ($producto['precio'] * $producto['cantidad']);
-    }, 0);
+    $stmt = $pdo->prepare("INSERT INTO pedidos (id_cliente, total, estado, tipo, anotaciones) VALUES (:cliente, :total, 'Pendiente', :tipo, :anotaciones)");
     $stmt->execute([
         'cliente' => $idCliente,
-        'nombre_cliente' => $nombreCliente,
-        'pedido' => $tipoPedido,
-        'total' => $total
+        'total' => $total,
+        'tipo' => $tipoPedido,
+        'anotaciones' => $cliente // Store the client name in the anotaciones field
     ]);
 
     $pedidoId = $pdo->lastInsertId();
