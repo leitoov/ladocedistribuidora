@@ -80,20 +80,34 @@ try {
     $stmt->execute([
         'cliente' => $idCliente,
         'total' => $total,
-        'tipo_pedido' => $tipoPedido // Use the existing 'tipo_pedido' column instead of 'pedido'
+        'tipo_pedido' => $tipoPedido
     ]);
 
     $pedidoId = $pdo->lastInsertId();
 
-    // Insertar los productos en detalle_pedido
+    // Insertar los productos en detalle_pedido y actualizar el stock
     $stmtDetalle = $pdo->prepare("INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad, precio) VALUES (:pedido_id, :producto_id, :cantidad, :precio)");
+    $stmtUpdateStock = $pdo->prepare("UPDATE productos SET stock = stock - :cantidad WHERE id = :producto_id AND stock >= :cantidad");
+
     foreach ($productos as $producto) {
+        // Insertar detalle del pedido
         $stmtDetalle->execute([
             'pedido_id' => $pedidoId,
             'producto_id' => $producto['id'],
             'cantidad' => $producto['cantidad'],
             'precio' => $producto['precio']
         ]);
+
+        // Actualizar el stock del producto
+        $stmtUpdateStock->execute([
+            'producto_id' => $producto['id'],
+            'cantidad' => $producto['cantidad']
+        ]);
+
+        // Verificar si se actualizó correctamente el stock
+        if ($stmtUpdateStock->rowCount() === 0) {
+            throw new Exception('Stock insuficiente para el producto con ID: ' . $producto['id']);
+        }
     }
 
     // Confirmar la transacción
