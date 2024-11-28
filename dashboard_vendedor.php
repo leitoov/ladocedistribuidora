@@ -210,7 +210,7 @@ $userId = $tokenData->user_id;
                 let termino = $(this).val();
                 if (termino.length >= 3) {
                     $.ajax({
-                        url: 'productos.php',
+                        url: 'api/products.php',
                         type: 'GET',
                         data: { termino: termino },
                         success: function(respuesta) {
@@ -247,7 +247,7 @@ $userId = $tokenData->user_id;
 
                 if (nombre && descripcion && precio > 0 && stock >= 0) {
                     $.ajax({
-                        url: 'productos.php',
+                        url: 'apis/products.php',
                         type: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify({
@@ -281,7 +281,7 @@ $userId = $tokenData->user_id;
 
                 if (id && nombre && descripcion && precio > 0 && stock >= 0) {
                     $.ajax({
-                        url: 'productos.php',
+                        url: 'apis/products.php',
                         type: 'PUT',
                         contentType: 'application/json',
                         data: JSON.stringify({
