@@ -99,6 +99,15 @@ $userId = $tokenData->user_id;
                     <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
                 </div>
 
+                <!-- Tipo de Pedido -->
+                <div class="mb-3">
+                    <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
+                    <select class="form-control" id="tipoPedido">
+                        <option value="Caja">Caja</option>
+                        <option value="Reparto">Reparto</option>
+                    </select>
+                </div>
+
                 <!-- Productos -->
                 <div class="mb-3">
                     <label for="productoInput" class="form-label">Producto</label>
@@ -124,7 +133,8 @@ $userId = $tokenData->user_id;
                     </tbody>
                 </table>
 
-                <button class="btn btn-primary w-100 mt-3" id="guardarPedido">Guardar Pedido</button>
+                <button class="btn btn-primary w-100 mt-3" id="confirmarPedido">Confirmar Pedido</button>
+                <button class="btn btn-danger w-100 mt-3" id="cancelarPedido">Cancelar Pedido</button>
             </div>
 
             <!-- Funciones Complementarias -->
@@ -203,8 +213,12 @@ $userId = $tokenData->user_id;
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function() {
+            let productosEnPedido = [];
+
             // Búsqueda de productos con AJAX
             $('#productoInput').on('keyup', function() {
                 let termino = $(this).val();
@@ -307,35 +321,107 @@ $userId = $tokenData->user_id;
 
             // Agregar producto al pedido actual
             window.agregarProducto = function(id, nombre, precio) {
-                let cantidad = 1; // Puedes ajustar para permitir seleccionar la cantidad.
-                let total = precio * cantidad;
-
-                let nuevaFila = `
-                    <tr>
-                        <td>${nombre}</td>
-                        <td><input type="number" class="form-control text-center cantidadProducto" value="${cantidad}" min="1" onchange="actualizarTotal(this, ${precio})"></td>
-                        <td>${precio}</td>
-                        <td class="totalProducto">${total}</td>
-                        <td><button class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">Eliminar</button></td>
-                    </tr>
-                `;
-
-                $('#pedidoActual').append(nuevaFila);
+                let productoExistente = productosEnPedido.find(p => p.id === id);
+                if (productoExistente) {
+                    productoExistente.cantidad++;
+                    actualizarTablaPedido();
+                } else {
+                    let nuevoProducto = {
+                        id: id,
+                        nombre: nombre,
+                        precio: precio,
+                        cantidad: 1
+                    };
+                    productosEnPedido.push(nuevoProducto);
+                    actualizarTablaPedido();
+                }
             };
 
-            // Actualizar el total cuando cambie la cantidad
-            window.actualizarTotal = function(elemento, precioUnitario) {
-                let cantidad = $(elemento).val();
-                let total = cantidad * precioUnitario;
-                $(elemento).closest('tr').find('.totalProducto').text(total);
+            // Actualizar la tabla del pedido actual
+            function actualizarTablaPedido() {
+                let tbody = $('#pedidoActual');
+                tbody.empty();
+                let totalPedido = 0;
+                productosEnPedido.forEach(function(producto) {
+                    let totalProducto = producto.precio * producto.cantidad;
+                    totalPedido += totalProducto;
+                    tbody.append(`
+                        <tr>
+                            <td>${producto.nombre}</td>
+                            <td><input type="number" class="form-control text-center cantidadProducto" value="${producto.cantidad}" min="1" onchange="actualizarCantidad(${producto.id}, this.value)"></td>
+                            <td>${producto.precio}</td>
+                            <td class="totalProducto">${totalProducto}</td>
+                            <td><button class="btn btn-danger btn-sm" onclick="eliminarProducto(${producto.id})">Eliminar</button></td>
+                        </tr>
+                    `);
+                });
+                if (productosEnPedido.length === 0) {
+                    tbody.append('<tr><td colspan="5">No hay productos en el pedido.</td></tr>');
+                }
+            }
+
+            // Actualizar cantidad de un producto en el pedido
+            window.actualizarCantidad = function(id, nuevaCantidad) {
+                let producto = productosEnPedido.find(p => p.id === id);
+                if (producto) {
+                    producto.cantidad = parseInt(nuevaCantidad);
+                    if (producto.cantidad <= 0) {
+                        eliminarProducto(id);
+                    } else {
+                        actualizarTablaPedido();
+                    }
+                }
             };
 
             // Eliminar producto del pedido
-            window.eliminarProducto = function(elemento) {
-                $(elemento).closest('tr').remove();
+            window.eliminarProducto = function(id) {
+                productosEnPedido = productosEnPedido.filter(p => p.id !== id);
+                actualizarTablaPedido();
             };
+
+            // Confirmar pedido
+            $('#confirmarPedido').on('click', function() {
+                if (productosEnPedido.length === 0) {
+                    alert("No hay productos en el pedido para confirmar.");
+                    return;
+                }
+
+                let tipoPedido = $('#tipoPedido').val();
+                let cliente = $('#clienteInput').val().trim();
+
+                if (!cliente) {
+                    alert("Debe ingresar un cliente para confirmar el pedido.");
+                    return;
+                }
+
+                $.ajax({
+                    url: 'api/orders.php',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        cliente: cliente,
+                        tipoPedido: tipoPedido,
+                        productos: productosEnPedido
+                    }),
+                    success: function(respuesta) {
+                        alert("Pedido confirmado correctamente");
+                        productosEnPedido = [];
+                        actualizarTablaPedido();
+                    },
+                    error: function() {
+                        alert("Error al confirmar el pedido");
+                    }
+                });
+            });
+
+            // Cancelar pedido
+            $('#cancelarPedido').on('click', function() {
+                if (confirm("¿Está seguro de que desea cancelar el pedido? Todos los productos se eliminarán.")) {
+                    productosEnPedido = [];
+                    actualizarTablaPedido();
+                }
+            });
         });
     </script>
-</body>
-
+  </body>
 </html>
