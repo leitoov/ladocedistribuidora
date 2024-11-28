@@ -27,7 +27,7 @@ try {
 // Obtener los datos del pedido
 $data = json_decode(file_get_contents("php://input"), true);
 $cliente = $data['cliente'] ?? null;
-$tipoPedido = $data['tipo_pedido'] ?? null;
+$tipoPedido = $data['tipoPedido'] ?? null; // Aquí cambie `tipo_pedido` por `tipoPedido` para coincidir con el JSON del frontend
 $productos = $data['productos'] ?? [];
 
 if (!$cliente || !$tipoPedido || empty($productos)) {
