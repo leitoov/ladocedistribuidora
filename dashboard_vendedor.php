@@ -213,8 +213,6 @@ $userId = $tokenData->user_id;
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function() {
             let productosEnPedido = [];
@@ -232,7 +230,7 @@ $userId = $tokenData->user_id;
                             if (respuesta.length > 0) {
                                 respuesta.forEach(function(producto) {
                                     $('#resultadosBusqueda').append(
-                                        `<button class="list-group-item list-group-item-action" onclick="agregarProducto(${producto.id}, '${producto.nombre}', ${producto.precio})">
+                                        `<button class="list-group-item list-group-item-action" onclick="agregarProducto(${producto.id}, '${producto.nombre}', ${producto.precio}, ${producto.stock})">
                                             ${producto.nombre} - $${producto.precio}
                                         </button>`
                                     );
@@ -320,20 +318,29 @@ $userId = $tokenData->user_id;
             });
 
             // Agregar producto al pedido actual
-            window.agregarProducto = function(id, nombre, precio) {
+            window.agregarProducto = function(id, nombre, precio, stock) {
                 let productoExistente = productosEnPedido.find(p => p.id === id);
                 if (productoExistente) {
-                    productoExistente.cantidad++;
-                    actualizarTablaPedido();
+                    if (productoExistente.cantidad < stock) {
+                        productoExistente.cantidad++;
+                        actualizarTablaPedido();
+                    } else {
+                        alert("No hay suficiente stock disponible.");
+                    }
                 } else {
-                    let nuevoProducto = {
-                        id: id,
-                        nombre: nombre,
-                        precio: precio,
-                        cantidad: 1
-                    };
-                    productosEnPedido.push(nuevoProducto);
-                    actualizarTablaPedido();
+                    if (stock > 0) {
+                        let nuevoProducto = {
+                            id: id,
+                            nombre: nombre,
+                            precio: precio,
+                            cantidad: 1,
+                            stock: stock
+                        };
+                        productosEnPedido.push(nuevoProducto);
+                        actualizarTablaPedido();
+                    } else {
+                        alert("No hay suficiente stock disponible.");
+                    }
                 }
             };
 
@@ -348,7 +355,7 @@ $userId = $tokenData->user_id;
                     tbody.append(`
                         <tr>
                             <td>${producto.nombre}</td>
-                            <td><input type="number" class="form-control text-center cantidadProducto" value="${producto.cantidad}" min="1" onchange="actualizarCantidad(${producto.id}, this.value)"></td>
+                            <td><input type="number" class="form-control text-center cantidadProducto" value="${producto.cantidad}" min="1" max="${producto.stock}" onchange="actualizarCantidad(${producto.id}, this.value)"></td>
                             <td>${producto.precio}</td>
                             <td class="totalProducto">${totalProducto}</td>
                             <td><button class="btn btn-danger btn-sm" onclick="eliminarProducto(${producto.id})">Eliminar</button></td>
@@ -358,13 +365,19 @@ $userId = $tokenData->user_id;
                 if (productosEnPedido.length === 0) {
                     tbody.append('<tr><td colspan="5">No hay productos en el pedido.</td></tr>');
                 }
+                $('#totalPedido').text(`Total: $${totalPedido}`);
             }
 
             // Actualizar cantidad de un producto en el pedido
             window.actualizarCantidad = function(id, nuevaCantidad) {
                 let producto = productosEnPedido.find(p => p.id === id);
                 if (producto) {
-                    producto.cantidad = parseInt(nuevaCantidad);
+                    nuevaCantidad = parseInt(nuevaCantidad);
+                    if (nuevaCantidad > producto.stock) {
+                        alert("No hay suficiente stock disponible.");
+                        return;
+                    }
+                    producto.cantidad = nuevaCantidad;
                     if (producto.cantidad <= 0) {
                         eliminarProducto(id);
                     } else {
@@ -375,8 +388,11 @@ $userId = $tokenData->user_id;
 
             // Eliminar producto del pedido
             window.eliminarProducto = function(id) {
-                productosEnPedido = productosEnPedido.filter(p => p.id !== id);
-                actualizarTablaPedido();
+                let producto = productosEnPedido.find(p => p.id === id);
+                if (producto) {
+                    productosEnPedido = productosEnPedido.filter(p => p.id !== id);
+                    actualizarTablaPedido();
+                }
             };
 
             // Confirmar pedido
