@@ -30,7 +30,7 @@ $cliente = $data['cliente'] ?? null;
 $tipoPedido = $data['tipoPedido'] ?? null;
 $productos = $data['productos'] ?? [];
 
-if (empty($productos)) {
+if (empty($productos) || empty($cliente)) {
     http_response_code(400);
     echo json_encode(["message" => "Datos del pedido incompletos"]);
     exit();
@@ -49,20 +49,38 @@ try {
         $idCliente = $clienteData['id'];
         $nombreCliente = $clienteData['nombre'];
     } else {
-        // Usar un ID genérico para clientes no registrados
+        // Verificar si el cliente genérico ya existe, si no, insertarlo
+        $stmtGenCliente = $pdo->prepare("SELECT id FROM clientes WHERE id = 9999 LIMIT 1");
+        $stmtGenCliente->execute();
+        $genClienteData = $stmtGenCliente->fetch(PDO::FETCH_ASSOC);
+
+        if (!$genClienteData) {
+            // Insertar cliente genérico si no existe
+            $stmtInsertGen = $pdo->prepare("INSERT INTO clientes (id, nombre) VALUES (9999, 'Cliente Genérico')");
+            $stmtInsertGen->execute();
+        }
+
+        // Después de intentar insertar, verificar que el cliente genérico ahora exista
+        $stmtGenCliente->execute(); // Volver a ejecutar para verificar
+        $genClienteData = $stmtGenCliente->fetch(PDO::FETCH_ASSOC);
+        if (!$genClienteData) {
+            throw new Exception('No se pudo insertar el cliente genérico.');
+        }
+
+        // Usar el ID genérico para clientes no registrados
         $idCliente = 9999; // ID genérico para cliente no registrado
         $nombreCliente = $cliente; // Guardar el nombre ingresado del cliente
     }
 
-    // Insertar el pedido
-    $stmt = $pdo->prepare("INSERT INTO pedidos (id_cliente, nombre_cliente, tipo_pedido, fecha, total, estado) VALUES (:cliente, :nombre_cliente, :tipo_pedido, NOW(), :total, 'Pendiente')");
+    // Insertar el pedido (asegurándonos de usar el campo correcto)
+    $stmt = $pdo->prepare("INSERT INTO pedidos (id_cliente, nombre_cliente, pedido, fecha, total, estado) VALUES (:cliente, :nombre_cliente, :pedido, NOW(), :total, 'Pendiente')");
     $total = array_reduce($productos, function ($acc, $producto) {
         return $acc + ($producto['precio'] * $producto['cantidad']);
     }, 0);
     $stmt->execute([
         'cliente' => $idCliente,
         'nombre_cliente' => $nombreCliente,
-        'tipo_pedido' => $tipoPedido,
+        'pedido' => $tipoPedido,
         'total' => $total
     ]);
 
