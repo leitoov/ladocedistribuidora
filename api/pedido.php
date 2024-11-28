@@ -1,7 +1,6 @@
 <?php
 require '../config.php';
 require '../verify_token.php';
-require 'fpdf.php';
 
 header('Content-Type: application/json');
 session_start();
@@ -61,6 +60,13 @@ try {
             $stmtInsertGen->execute();
         }
 
+        // Después de intentar insertar, verificar que el cliente genérico ahora exista
+        $stmtGenCliente->execute(); // Volver a ejecutar para verificar
+        $genClienteData = $stmtGenCliente->fetch(PDO::FETCH_ASSOC);
+        if (!$genClienteData) {
+            throw new Exception('No se pudo insertar el cliente genérico.');
+        }
+
         // Usar el ID genérico para clientes no registrados
         $idCliente = 9999; // ID genérico para cliente no registrado
         $nombreCliente = $cliente; // Guardar el nombre ingresado del cliente
@@ -69,14 +75,14 @@ try {
     // Determinar el estado del pedido
     $estadoPedido = ($tipoPedido === 'Reparto') ? 'Confirmado' : 'Pendiente';
 
-    // Insertar el pedido
+    // Insertar el pedido (asegurándonos de usar el campo correcto)
     $stmt = $pdo->prepare("INSERT INTO pedidos (id_cliente, nombre_cliente, total, estado, tipo_pedido) VALUES (:cliente, :nombre_cliente, :total, :estado, :tipo_pedido)");
     $total = array_reduce($productos, function ($acc, $producto) {
         return $acc + ($producto['precio'] * $producto['cantidad']);
     }, 0);
     $stmt->execute([
         'cliente' => $idCliente,
-        'nombre_cliente' => $nombreCliente,
+        'nombre_cliente' => $nombreCliente, // Guardar el nombre del cliente (ya sea registrado o ingresado)
         'total' => $total,
         'estado' => $estadoPedido,
         'tipo_pedido' => $tipoPedido
@@ -112,9 +118,8 @@ try {
     // Confirmar la transacción
     $pdo->commit();
 
-    // Generar e imprimir el PDF si el pedido es de tipo "Reparto"
+    // Imprimir automáticamente el pedido si es de tipo "Reparto"
     if ($tipoPedido === 'Reparto') {
-        generarPDFPedido($pedidoId, $nombreCliente, $productos, $total);
         echo json_encode([
             "message" => "Pedido generado correctamente. Tipo: Reparto. Estado: Confirmado. Imprimiendo pedido...",
             "print" => true
@@ -126,48 +131,4 @@ try {
     $pdo->rollBack();
     http_response_code(500);
     echo json_encode(["message" => "Error al generar el pedido", "error" => $e->getMessage()]);
-}
-
-// Función para generar el PDF del pedido
-function generarPDFPedido($pedidoId, $nombreCliente, $productos, $total)
-{
-    $pdf = new FPDF();
-    $pdf->AddPage();
-    $pdf->SetFont('Arial', 'B', 16);
-    $pdf->Cell(40, 10, 'Distribuidora La Doce');
-    $pdf->Ln(10);
-
-    // Mostrar información del cliente
-    $pdf->SetFont('Arial', '', 12);
-    $pdf->Cell(0, 10, 'Cliente: ' . $nombreCliente, 0, 1);
-    $pdf->Cell(0, 10, 'ID Pedido: ' . $pedidoId, 0, 1);
-    $pdf->Cell(0, 10, 'Fecha: ' . date('Y-m-d H:i:s'), 0, 1);
-    $pdf->Ln(5);
-
-    // Tabla de productos
-    $pdf->SetFont('Arial', 'B', 10);
-    $pdf->Cell(30, 10, 'Codigo', 1);
-    $pdf->Cell(50, 10, 'Descripcion', 1);
-    $pdf->Cell(30, 10, 'Cantidad', 1);
-    $pdf->Cell(30, 10, 'P. Unitario', 1);
-    $pdf->Cell(30, 10, 'Total', 1);
-    $pdf->Ln();
-
-    $pdf->SetFont('Arial', '', 10);
-    foreach ($productos as $producto) {
-        $pdf->Cell(30, 10, $producto['id'], 1);
-        $pdf->Cell(50, 10, $producto['nombre'], 1);
-        $pdf->Cell(30, 10, $producto['cantidad'], 1);
-        $pdf->Cell(30, 10, number_format($producto['precio'], 2), 1);
-        $pdf->Cell(30, 10, number_format($producto['cantidad'] * $producto['precio'], 2), 1);
-        $pdf->Ln();
-    }
-
-    // Total del pedido
-    $pdf->Ln(10);
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Cell(0, 10, 'Total: $' . number_format($total, 2), 0, 1, 'R');
-
-    // Guardar y emitir el PDF
-    $pdf->Output('I', 'Pedido_' . $pedidoId . '.pdf');
 }
