@@ -112,7 +112,7 @@ $userId = $tokenData->user_id;
                 <div class="mb-3">
                     <label for="productoInput" class="form-label">Producto</label>
                     <input type="text" class="form-control" id="productoInput" placeholder="Buscar producto (3 letras mínimo)">
-                    <div id="resultadosBusqueda" class="list-group mt-2"></div> <!-- Resultados de búsqueda -->
+                    <div id="resultadosBusqueda" class="list-group mt-2"></div>
                 </div>
 
                 <!-- Pedido Actual -->
@@ -260,7 +260,7 @@ $userId = $tokenData->user_id;
                 tbody.append(`
                     <tr>
                         <td>${producto.nombre}</td>
-                        <td><input type="number" class="form-control text-center cantidadProducto" value="${producto.cantidad}" min="1" max="${producto.stock}" onchange="actualizarCantidad(${producto.id}, this.value)"></td>
+                        <td><input type="number" class="form-control text-center cantidadProducto" data-id="${producto.id}" value="${producto.cantidad}" min="1" max="${producto.stock}" onchange="actualizarCantidad(${producto.id}, this.value)"></td>
                         <td>${producto.precio}</td>
                         <td class="totalProducto">${totalProducto}</td>
                         <td><button class="btn btn-danger btn-sm" onclick="eliminarProducto(${producto.id})">Eliminar</button></td>
@@ -280,8 +280,10 @@ $userId = $tokenData->user_id;
                 nuevaCantidad = parseInt(nuevaCantidad);
                 if (nuevaCantidad > producto.stock) {
                     mostrarMensajeModal("No hay suficiente stock disponible.");
-                    // Set the input value back to 1 if stock is insufficient
-                    $(`input.cantidadProducto[value='${nuevaCantidad}']`).val(1);
+                    // Find the specific input for this product and set its value to 1
+                    $(`input.cantidadProducto[data-id="${id}"]`).val(1);
+                    producto.cantidad = 1; // Also update the product's quantity in the array
+                    actualizarTablaPedido(); // Refresh the table to reflect the change
                     return;
                 }
                 producto.cantidad = nuevaCantidad;
