@@ -346,16 +346,14 @@
         doc.setFont("helvetica", "normal");
         doc.text("Necochea 1350 (CABA) la boca", 10, offsetY + 15);
         doc.text("1559092429 / Whatsapp 1557713277", 10, offsetY + 20);
-        doc.text("ladocedistribuidora@hotmail.com", 10, offsetY + 25);
 
         // Información del remito
         doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
-        doc.text("Remito", 150, offsetY + 10);
+        doc.text(`N° Remito: ${Math.floor(Math.random() * 100000)}`, 150, offsetY + 10);
         doc.setFont("helvetica", "normal");
         doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, offsetY + 15);
-        doc.text(`Ficha: ${Math.floor(Math.random() * 10000)}`, 150, offsetY + 20); // Ficha con un número aleatorio
-        doc.text(`N° Remito: ${Math.floor(Math.random() * 100000)}`, 150, offsetY + 25);
+        doc.text(`ladocedistribuidora@hotmail.com`, 150, offsetY + 25);
 
         // Línea divisoria
         doc.setLineWidth(0.5);
