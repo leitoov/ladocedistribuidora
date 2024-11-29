@@ -151,7 +151,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 
     <script>
-      
+      $(document).ready(function() {
         let productosEnPedido = [];
 
         // Function to show messages in a modal
@@ -361,7 +361,7 @@
             // Guardar el PDF con un nombre específico
             doc.save("pedido.pdf");
         }
- 
+      });
     </script>
   </body>
 </html>
