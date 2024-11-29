@@ -151,7 +151,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 
     <script>
-    $(document).ready(function() {
+      
         let productosEnPedido = [];
 
         // Function to show messages in a modal
@@ -299,11 +299,11 @@
                 }),
                 success: function(respuesta) {
                     mostrarMensajeModal("Pedido confirmado correctamente");
-                    productosEnPedido = [];
-                    actualizarTablaPedido();
                     if (tipoPedido === 'Reparto') {
                         generarPDF();
                     }
+                    productosEnPedido = [];
+                    actualizarTablaPedido();
                 },
                 error: function(jqXHR) {
                     let errorMsg = jqXHR.responseJSON && jqXHR.responseJSON.message ? jqXHR.responseJSON.message : "Error al confirmar el pedido";
@@ -363,6 +363,5 @@
         }
     });
     </script>
-
   </body>
 </html>
