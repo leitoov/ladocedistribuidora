@@ -331,7 +331,6 @@
             }
         });
 
-        // Función para generar PDF utilizando jsPDF
         function generarPDF() {
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF();
@@ -351,12 +350,24 @@
           doc.setFont("helvetica", "normal");
           doc.text(`N° Remito: ${Math.floor(Math.random() * 100000)}`, 10, 30); // Número aleatorio para simular número de remito
           doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, 30);
+          doc.text(`Hora: ${new Date().toLocaleTimeString()}`, 150, 40); // Añadir la hora de emisión del remito
           doc.text(`Cliente: ${document.getElementById('clienteInput').value}`, 10, 40);
-          doc.text(`Tipo de Pedido: ${document.getElementById('tipoPedido').value}`, 150, 40);
+          doc.text(`Tipo de Pedido: ${document.getElementById('tipoPedido').value}`, 10, 50);
 
-          // Espacio para Datos del Transportista (si aplica)
-          doc.text("Transportista: _______________________", 10, 50);
-          doc.text("Vehículo: ____________________________", 150, 50);
+          // Datos de contacto de "La Doce"
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(12);
+          doc.text("LA DOCE", 10, 60);
+          doc.setFont("helvetica", "normal");
+          doc.text("Necochea 1350 (CABA) la boca", 10, 70);
+          doc.text("1559092429 / Whatsapp 1557713277", 10, 80);
+          doc.text("ladocedistribuidora@hotmail.com", 10, 90);
+
+          // Aclaración: Documento no válido como factura
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "italic");
+          doc.setTextColor(255, 0, 0);  // Texto en rojo para resaltar
+          doc.text("Documento no válido como factura", 105, 100, null, null, "center");
 
           // Tabla de productos usando AutoTable para el detalle del remito
           let tableBody = productosEnPedido.map((producto, index) => {
@@ -372,7 +383,7 @@
           doc.autoTable({
               head: [['#', 'Producto', 'Cantidad', 'Precio Unitario', 'Total']],
               body: tableBody,
-              startY: 60,
+              startY: 110,
               theme: 'plain',
               styles: {
                   fontSize: 10,
@@ -401,22 +412,22 @@
           doc.setFont("helvetica", "bold");
           doc.text(`Total del Pedido: $${totalPedido.toFixed(2)}`, 150, doc.lastAutoTable.finalY + 10);
 
-          // Firmas
+          // Aclaración sobre devoluciones
           doc.setFontSize(10);
-          doc.setFont("helvetica", "normal");
-          doc.text("Firma del Cliente: ____________________________", 10, doc.lastAutoTable.finalY + 30);
-          doc.text("Firma del Vendedor: ___________________________", 150, doc.lastAutoTable.finalY + 30);
+          doc.setFont("helvetica", "italic");
+          doc.setTextColor(0, 0, 0);
+          doc.text("Una vez recibida la mercadería no se aceptan devoluciones", 105, doc.lastAutoTable.finalY + 20, null, null, "center");
 
           // Línea divisoria inferior
-          doc.line(10, doc.lastAutoTable.finalY + 40, 200, doc.lastAutoTable.finalY + 40);
+          doc.line(10, doc.lastAutoTable.finalY + 30, 200, doc.lastAutoTable.finalY + 30);
 
           // Agradecimiento al cliente
           doc.setFontSize(10);
-          doc.text("Gracias por su compra. Ante cualquier consulta, comuníquese al 0800-123-4567.", 105, doc.lastAutoTable.finalY + 50, null, null, "center");
+          doc.text("Gracias por su compra. Ante cualquier consulta, comuníquese al 0800-123-4567.", 105, doc.lastAutoTable.finalY + 40, null, null, "center");
 
           // Guardar el PDF con un nombre específico
           doc.save("remito.pdf");
-      }
+        }
 
       });
     </script>
