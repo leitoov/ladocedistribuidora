@@ -361,7 +361,7 @@
             // Guardar el PDF con un nombre específico
             doc.save("pedido.pdf");
         }
-    });
+ 
     </script>
   </body>
 </html>
