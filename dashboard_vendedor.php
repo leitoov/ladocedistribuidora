@@ -335,95 +335,92 @@
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF();
 
-          // Encabezado del remito
-          doc.setFontSize(20);
+          // Encabezado de la empresa
+          doc.setFontSize(18);
           doc.setFont("helvetica", "bold");
           doc.setTextColor(0, 0, 0);
-          doc.text("Distribuidora de Productos - Remito", 105, 15, null, null, "center");
+          doc.text("LA DOCE", 10, 15);
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          doc.text("Necochea 1350 (CABA) la boca", 10, 20);
+          doc.text("1559092429 / Whatsapp 1557713277", 10, 25);
+          doc.text("ladocedistribuidora@hotmail.com", 10, 30);
+
+          // Información del remito
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
+          doc.text("Remito", 150, 15);
+          doc.setFont("helvetica", "normal");
+          doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, 20);
+          doc.text(`Ficha: ${Math.floor(Math.random() * 10000)}`, 150, 25); // Ficha con un número aleatorio
+          doc.text(`N° Remito: ${Math.floor(Math.random() * 100000)}`, 150, 30);
 
           // Línea divisoria
           doc.setLineWidth(0.5);
-          doc.line(10, 20, 200, 20);
+          doc.line(10, 35, 200, 35);
 
-          // Información del cliente y del pedido
+          // Información del cliente
           doc.setFontSize(12);
-          doc.setFont("helvetica", "normal");
-          doc.text(`N° Remito: ${Math.floor(Math.random() * 100000)}`, 10, 30); // Número aleatorio para simular número de remito
-          doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, 30);
-          doc.text(`Hora: ${new Date().toLocaleTimeString()}`, 150, 40); // Añadir la hora de emisión del remito
-          doc.text(`Cliente: ${document.getElementById('clienteInput').value}`, 10, 40);
-          doc.text(`Tipo de Pedido: ${document.getElementById('tipoPedido').value}`, 10, 50);
-
-          // Datos de contacto de "La Doce"
           doc.setFont("helvetica", "bold");
-          doc.setFontSize(12);
-          doc.text("LA DOCE", 10, 60);
+          doc.text("Sres:", 10, 45);
           doc.setFont("helvetica", "normal");
-          doc.text("Necochea 1350 (CABA) la boca", 10, 70);
-          doc.text("1559092429 / Whatsapp 1557713277", 10, 80);
-          doc.text("ladocedistribuidora@hotmail.com", 10, 90);
+          doc.text(`${document.getElementById('clienteInput').value}`, 25, 45);
+          doc.text("N° Cliente: 817", 150, 45); // Ejemplo de número de cliente
 
-          // Aclaración: Documento no válido como factura
+          // Encabezado de la tabla de productos
           doc.setFontSize(10);
-          doc.setFont("helvetica", "italic");
-          doc.setTextColor(255, 0, 0);  // Texto en rojo para resaltar
-          doc.text("Documento no válido como factura", 105, 100, null, null, "center");
+          doc.setFont("helvetica", "bold");
+          doc.text("Código", 10, 55);
+          doc.text("Unidades", 30, 55);
+          doc.text("Bultos", 55, 55);
+          doc.text("Descripción", 80, 55);
+          doc.text("P. Unitario", 150, 55);
+          doc.text("Total", 180, 55);
 
-          // Tabla de productos usando AutoTable para el detalle del remito
-          let tableBody = productosEnPedido.map((producto, index) => {
-              return [
-                  index + 1,
-                  producto.nombre,
-                  producto.cantidad,
-                  `$${producto.precio.toFixed(2)}`,
-                  `$${(producto.precio * producto.cantidad).toFixed(2)}`
-              ];
+          // Línea debajo del encabezado de la tabla
+          doc.line(10, 58, 200, 58);
+
+          // Cuerpo de la tabla de productos
+          let startY = 65;
+          doc.setFont("helvetica", "normal");
+          let totalPedido = 0;
+          
+          productosEnPedido.forEach((producto, index) => {
+              const totalProducto = producto.precio * producto.cantidad;
+              totalPedido += totalProducto;
+
+              doc.text(producto.codigo || `#${index + 1}`, 10, startY);
+              doc.text(`${producto.cantidad}`, 30, startY);
+              doc.text(`${producto.bultos || '-'}`, 55, startY); // Si hay bultos o dejar vacío
+              doc.text(`${producto.nombre}`, 80, startY);
+              doc.text(`$${producto.precio.toFixed(2)}`, 150, startY, null, null, "right");
+              doc.text(`$${totalProducto.toFixed(2)}`, 180, startY, null, null, "right");
+              startY += 10;
           });
 
-          doc.autoTable({
-              head: [['#', 'Producto', 'Cantidad', 'Precio Unitario', 'Total']],
-              body: tableBody,
-              startY: 110,
-              theme: 'plain',
-              styles: {
-                  fontSize: 10,
-                  cellPadding: 3,
-                  lineWidth: 0.1,
-                  valign: 'middle',
-                  halign: 'center',
-              },
-              headStyles: {
-                  fillColor: [200, 200, 200], // Gris claro para los encabezados
-                  textColor: [0, 0, 0],
-                  fontStyle: 'bold'
-              },
-              columnStyles: {
-                  0: { cellWidth: 10 },  // #
-                  1: { cellWidth: 70 },  // Producto
-                  2: { cellWidth: 25 },  // Cantidad
-                  3: { cellWidth: 35 },  // Precio Unitario
-                  4: { cellWidth: 35 }   // Total
-              }
-          });
+          // Línea divisoria antes del total
+          doc.line(10, startY, 200, startY);
+          startY += 5;
 
-          // Total del pedido al final del remito
-          const totalPedido = productosEnPedido.reduce((acc, producto) => acc + (producto.precio * producto.cantidad), 0);
+          // Total del pedido
           doc.setFontSize(12);
           doc.setFont("helvetica", "bold");
-          doc.text(`Total del Pedido: $${totalPedido.toFixed(2)}`, 150, doc.lastAutoTable.finalY + 10);
+          doc.text(`TOTAL: $${totalPedido.toFixed(2)}`, 180, startY, null, null, "right");
+          startY += 10;
 
-          // Aclaración sobre devoluciones
+          // Aclaraciones al pie del remito
           doc.setFontSize(10);
           doc.setFont("helvetica", "italic");
           doc.setTextColor(0, 0, 0);
-          doc.text("Una vez recibida la mercadería no se aceptan devoluciones", 105, doc.lastAutoTable.finalY + 20, null, null, "center");
+          doc.text("Una vez recibida la mercadería no se aceptan devoluciones.", 10, startY);
+          startY += 10;
 
-          // Línea divisoria inferior
-          doc.line(10, doc.lastAutoTable.finalY + 30, 200, doc.lastAutoTable.finalY + 30);
-
-          // Agradecimiento al cliente
+          // Pie de página con hora y máquina
           doc.setFontSize(10);
-          doc.text("Gracias por su compra. Ante cualquier consulta, comuníquese al 0800-123-4567.", 105, doc.lastAutoTable.finalY + 40, null, null, "center");
+          doc.setFont("helvetica", "normal");
+          doc.text(`Máquina: 1`, 10, startY);
+          doc.text(`Hora: ${new Date().toLocaleTimeString()}`, 50, startY);
+          doc.text("HOJA 1/1", 150, startY);
 
           // Guardar el PDF con un nombre específico
           doc.save("remito.pdf");
