@@ -332,110 +332,112 @@
         });
 
         function generarPDF() {
-          const { jsPDF } = window.jspdf;
-          const doc = new jsPDF();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-          // Función para generar el contenido de cada mitad
-          function generarContenido(doc, offsetY) {
-              // Encabezado de la empresa
-              doc.setFontSize(18);
-              doc.setFont("helvetica", "bold");
-              doc.setTextColor(0, 0, 0);
-              doc.text("LA DOCE", 10, offsetY + 15);
-              doc.setFontSize(10);
-              doc.setFont("helvetica", "normal");
-              doc.text("Necochea 1350 (CABA) la boca", 10, offsetY + 20);
-              doc.text("1559092429 / Whatsapp 1557713277", 10, offsetY + 25);
-              doc.text("ladocedistribuidora@hotmail.com", 10, offsetY + 30);
+    // Función para generar el contenido de cada mitad
+    function generarContenido(doc, offsetY) {
+        // Encabezado de la empresa
+        doc.setFontSize(14);  // Reducir tamaño de fuente del encabezado
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0, 0, 0);
+        doc.text("LA DOCE", 10, offsetY + 10);
+        doc.setFontSize(8);  // Reducir tamaño de fuente para los detalles de contacto
+        doc.setFont("helvetica", "normal");
+        doc.text("Necochea 1350 (CABA) la boca", 10, offsetY + 15);
+        doc.text("1559092429 / Whatsapp 1557713277", 10, offsetY + 20);
+        doc.text("ladocedistribuidora@hotmail.com", 10, offsetY + 25);
 
-              // Información del remito
-              doc.setFontSize(12);
-              doc.setFont("helvetica", "bold");
-              doc.text("Remito", 150, offsetY + 15);
-              doc.setFont("helvetica", "normal");
-              doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, offsetY + 20);
-              doc.text(`Ficha: ${Math.floor(Math.random() * 10000)}`, 150, offsetY + 25); // Ficha con un número aleatorio
-              doc.text(`N° Remito: ${Math.floor(Math.random() * 100000)}`, 150, offsetY + 30);
+        // Información del remito
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text("Remito", 150, offsetY + 10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, offsetY + 15);
+        doc.text(`Ficha: ${Math.floor(Math.random() * 10000)}`, 150, offsetY + 20); // Ficha con un número aleatorio
+        doc.text(`N° Remito: ${Math.floor(Math.random() * 100000)}`, 150, offsetY + 25);
 
-              // Línea divisoria
-              doc.setLineWidth(0.5);
-              doc.line(10, offsetY + 35, 200, offsetY + 35);
+        // Línea divisoria
+        doc.setLineWidth(0.5);
+        doc.line(10, offsetY + 30, 200, offsetY + 30);
 
-              // Información del cliente
-              doc.setFontSize(12);
-              doc.setFont("helvetica", "bold");
-              doc.text("Sres:", 10, offsetY + 45);
-              doc.setFont("helvetica", "normal");
-              doc.text(`${document.getElementById('clienteInput').value}`, 25, offsetY + 45);
+        // Información del cliente
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text("Sres:", 10, offsetY + 35);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${document.getElementById('clienteInput').value}`, 25, offsetY + 35);
 
-              // Encabezado de la tabla de productos
-              doc.setFontSize(10);
-              doc.setFont("helvetica", "bold");
-              doc.text("Código", 10, offsetY + 55);
-              doc.text("Unidades", 30, offsetY + 55);
-              doc.text("Bultos", 55, offsetY + 55);
-              doc.text("Descripción", 80, offsetY + 55);
-              doc.text("P. Unitario", 150, offsetY + 55);
-              doc.text("Total", 180, offsetY + 55);
+        // Encabezado de la tabla de productos
+        doc.setFontSize(8);  // Reducir el tamaño de fuente del encabezado de la tabla
+        doc.setFont("helvetica", "bold");
+        doc.text("Código", 10, offsetY + 43);
+        doc.text("Unidades", 30, offsetY + 43);
+        doc.text("Bultos", 55, offsetY + 43);
+        doc.text("Descripción", 80, offsetY + 43);
+        doc.text("P. Unitario", 150, offsetY + 43);
+        doc.text("Total", 180, offsetY + 43);
 
-              // Línea debajo del encabezado de la tabla
-              doc.line(10, offsetY + 58, 200, offsetY + 58);
+        // Línea debajo del encabezado de la tabla
+        doc.line(10, offsetY + 46, 200, offsetY + 46);
 
-              // Cuerpo de la tabla de productos
-              let startY = offsetY + 65;
-              doc.setFont("helvetica", "normal");
-              let totalPedido = 0;
+        // Cuerpo de la tabla de productos
+        let startY = offsetY + 50;
+        doc.setFont("helvetica", "normal");
+        let totalPedido = 0;
 
-              productosEnPedido.forEach((producto, index) => {
-                  const totalProducto = producto.precio * producto.cantidad;
-                  totalPedido += totalProducto;
+        productosEnPedido.forEach((producto, index) => {
+            if (index >= 10) return; // Limitar el número de productos a 10 para asegurar que todo quede en la misma hoja
 
-                  doc.text(producto.codigo || `#${index + 1}`, 10, startY);
-                  doc.text(`${producto.cantidad}`, 30, startY);
-                  doc.text(`${producto.bultos || '-'}`, 55, startY); // Si hay bultos o dejar vacío
-                  doc.text(`${producto.nombre}`, 80, startY);
-                  doc.text(`$${producto.precio.toFixed(2)}`, 150, startY, null, null, "right");
-                  doc.text(`$${totalProducto.toFixed(2)}`, 180, startY, null, null, "right");
-                  startY += 10;
-              });
+            const totalProducto = producto.precio * producto.cantidad;
+            totalPedido += totalProducto;
 
-              // Línea divisoria antes del total
-              doc.line(10, startY, 200, startY);
-              startY += 5;
+            doc.text(producto.codigo || `#${index + 1}`, 10, startY);
+            doc.text(`${producto.cantidad}`, 30, startY);
+            doc.text(`${producto.bultos || '-'}`, 55, startY);
+            doc.text(`${producto.nombre}`, 80, startY);
+            doc.text(`$${producto.precio.toFixed(2)}`, 150, startY, null, null, "right");
+            doc.text(`$${totalProducto.toFixed(2)}`, 180, startY, null, null, "right");
+            startY += 7;  // Reducir el espacio entre filas para que todo entre en la misma hoja
+        });
 
-              // Total del pedido
-              doc.setFontSize(12);
-              doc.setFont("helvetica", "bold");
-              doc.text(`TOTAL: $${totalPedido.toFixed(2)}`, 180, startY, null, null, "right");
-              startY += 10;
+        // Línea divisoria antes del total
+        doc.line(10, startY, 200, startY);
+        startY += 5;
 
-              // Aclaraciones al pie del remito
-              doc.setFontSize(10);
-              doc.setFont("helvetica", "italic");
-              doc.setTextColor(0, 0, 0);
-              doc.text("Una vez recibida la mercadería no se aceptan devoluciones.", 10, startY);
-              startY += 10;
+        // Total del pedido
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text(`TOTAL: $${totalPedido.toFixed(2)}`, 180, startY, null, null, "right");
+        startY += 7;
 
-              // Pie de página con hora y máquina
-              doc.setFontSize(10);
-              doc.setFont("helvetica", "normal");
-              doc.text(`Máquina: 1`, 10, startY);
-              doc.text(`Hora: ${new Date().toLocaleTimeString()}`, 50, startY);
-              doc.text("HOJA 1/1", 150, startY);
-          }
+        // Aclaraciones al pie del remito
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "italic");
+        doc.setTextColor(0, 0, 0);
+        doc.text("Una vez recibida la mercadería no se aceptan devoluciones.", 10, startY);
+        startY += 7;
 
-          // Generar la primera mitad
-          generarContenido(doc, 0);
+        // Pie de página con hora y máquina
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Máquina: 1`, 10, startY);
+        doc.text(`Hora: ${new Date().toLocaleTimeString()}`, 50, startY);
+        doc.text("HOJA 1/1", 150, startY);
+    }
 
-          // Línea divisoria horizontal para separar las dos mitades
-          doc.line(10, 145, 200, 145);
+    // Generar la primera mitad
+    generarContenido(doc, 0);
 
-          // Generar la segunda mitad desplazada verticalmente
-          generarContenido(doc, 150);
+    // Línea divisoria horizontal para separar las dos mitades
+    doc.line(10, 145, 200, 145);
 
-          // Guardar el PDF con un nombre específico
-          doc.save("remito.pdf");
-        }
+    // Generar la segunda mitad desplazada verticalmente
+    generarContenido(doc, 150);
+
+    // Guardar el PDF con un nombre específico
+    doc.save("remito.pdf");
+}
 
       });
     </script>
