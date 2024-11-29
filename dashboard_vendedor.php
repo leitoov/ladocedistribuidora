@@ -328,39 +328,91 @@
 
         // Función para generar PDF utilizando jsPDF
         function generarPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
 
-            // Encabezado del PDF
-            doc.setFontSize(16);
-            doc.text("Distribuidora - Pedido", 10, 10);
-            doc.setFontSize(12);
-            doc.text(`Cliente: ${document.getElementById('clienteInput').value}`, 10, 20);
-            doc.text(`Tipo de Pedido: ${document.getElementById('tipoPedido').value}`, 10, 30);
-            doc.text(`Fecha: ${new Date().toLocaleString()}`, 10, 40);
+          // Encabezado del remito
+          doc.setFontSize(20);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(0, 0, 0);
+          doc.text("Distribuidora de Productos - Remito", 105, 15, null, null, "center");
 
-            // Agregar una línea para dividir el encabezado del contenido
-            doc.line(10, 45, 200, 45);
+          // Línea divisoria
+          doc.setLineWidth(0.5);
+          doc.line(10, 20, 200, 20);
 
-            // Encabezado de la tabla de productos
-            doc.text("Productos:", 10, 55);
-            let y = 65;
+          // Información del cliente y del pedido
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "normal");
+          doc.text(`N° Remito: ${Math.floor(Math.random() * 100000)}`, 10, 30); // Número aleatorio para simular número de remito
+          doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, 30);
+          doc.text(`Cliente: ${document.getElementById('clienteInput').value}`, 10, 40);
+          doc.text(`Tipo de Pedido: ${document.getElementById('tipoPedido').value}`, 150, 40);
 
-            // Añadir cada producto al PDF
-            productosEnPedido.forEach((producto, index) => {
-                doc.text(`${index + 1}. Producto: ${producto.nombre}`, 10, y);
-                doc.text(`Cantidad: ${producto.cantidad} - Precio: $${producto.precio} - Total: $${(producto.precio * producto.cantidad).toFixed(2)}`, 10, y + 10);
-                y += 20;
-            });
+          // Espacio para Datos del Transportista (si aplica)
+          doc.text("Transportista: _______________________", 10, 50);
+          doc.text("Vehículo: ____________________________", 150, 50);
 
-            // Mostrar el total del pedido al final
-            const totalPedido = productosEnPedido.reduce((acc, producto) => acc + (producto.precio * producto.cantidad), 0);
-            doc.setFontSize(14);
-            doc.text(`Total del Pedido: $${totalPedido.toFixed(2)}`, 10, y + 10);
+          // Tabla de productos usando AutoTable para el detalle del remito
+          let tableBody = productosEnPedido.map((producto, index) => {
+              return [
+                  index + 1,
+                  producto.nombre,
+                  producto.cantidad,
+                  `$${producto.precio.toFixed(2)}`,
+                  `$${(producto.precio * producto.cantidad).toFixed(2)}`
+              ];
+          });
 
-            // Guardar el PDF con un nombre específico
-            doc.save("pedido.pdf");
-        }
+          doc.autoTable({
+              head: [['#', 'Producto', 'Cantidad', 'Precio Unitario', 'Total']],
+              body: tableBody,
+              startY: 60,
+              theme: 'plain',
+              styles: {
+                  fontSize: 10,
+                  cellPadding: 3,
+                  lineWidth: 0.1,
+                  valign: 'middle',
+                  halign: 'center',
+              },
+              headStyles: {
+                  fillColor: [200, 200, 200], // Gris claro para los encabezados
+                  textColor: [0, 0, 0],
+                  fontStyle: 'bold'
+              },
+              columnStyles: {
+                  0: { cellWidth: 10 },  // #
+                  1: { cellWidth: 70 },  // Producto
+                  2: { cellWidth: 25 },  // Cantidad
+                  3: { cellWidth: 35 },  // Precio Unitario
+                  4: { cellWidth: 35 }   // Total
+              }
+          });
+
+          // Total del pedido al final del remito
+          const totalPedido = productosEnPedido.reduce((acc, producto) => acc + (producto.precio * producto.cantidad), 0);
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
+          doc.text(`Total del Pedido: $${totalPedido.toFixed(2)}`, 150, doc.lastAutoTable.finalY + 10);
+
+          // Firmas
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          doc.text("Firma del Cliente: ____________________________", 10, doc.lastAutoTable.finalY + 30);
+          doc.text("Firma del Vendedor: ___________________________", 150, doc.lastAutoTable.finalY + 30);
+
+          // Línea divisoria inferior
+          doc.line(10, doc.lastAutoTable.finalY + 40, 200, doc.lastAutoTable.finalY + 40);
+
+          // Agradecimiento al cliente
+          doc.setFontSize(10);
+          doc.text("Gracias por su compra. Ante cualquier consulta, comuníquese al 0800-123-4567.", 105, doc.lastAutoTable.finalY + 50, null, null, "center");
+
+          // Guardar el PDF con un nombre específico
+          doc.save("remito.pdf");
+      }
+
       });
     </script>
   </body>
