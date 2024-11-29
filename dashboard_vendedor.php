@@ -335,92 +335,103 @@
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF();
 
-          // Encabezado de la empresa
-          doc.setFontSize(18);
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(0, 0, 0);
-          doc.text("LA DOCE", 10, 15);
-          doc.setFontSize(10);
-          doc.setFont("helvetica", "normal");
-          doc.text("Necochea 1350 (CABA) la boca", 10, 20);
-          doc.text("1559092429 / Whatsapp 1557713277", 10, 25);
-          doc.text("ladocedistribuidora@hotmail.com", 10, 30);
+          // Función para generar el contenido de cada mitad
+          function generarContenido(doc, offsetY) {
+              // Encabezado de la empresa
+              doc.setFontSize(18);
+              doc.setFont("helvetica", "bold");
+              doc.setTextColor(0, 0, 0);
+              doc.text("LA DOCE", 10, offsetY + 15);
+              doc.setFontSize(10);
+              doc.setFont("helvetica", "normal");
+              doc.text("Necochea 1350 (CABA) la boca", 10, offsetY + 20);
+              doc.text("1559092429 / Whatsapp 1557713277", 10, offsetY + 25);
+              doc.text("ladocedistribuidora@hotmail.com", 10, offsetY + 30);
 
-          // Información del remito
-          doc.setFontSize(12);
-          doc.setFont("helvetica", "bold");
-          doc.text("Remito", 150, 15);
-          doc.setFont("helvetica", "normal");
-          doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, 20);
-          doc.text(`Ficha: ${Math.floor(Math.random() * 10000)}`, 150, 25); // Ficha con un número aleatorio
-          doc.text(`N° Remito: ${Math.floor(Math.random() * 100000)}`, 150, 30);
+              // Información del remito
+              doc.setFontSize(12);
+              doc.setFont("helvetica", "bold");
+              doc.text("Remito", 150, offsetY + 15);
+              doc.setFont("helvetica", "normal");
+              doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, offsetY + 20);
+              doc.text(`Ficha: ${Math.floor(Math.random() * 10000)}`, 150, offsetY + 25); // Ficha con un número aleatorio
+              doc.text(`N° Remito: ${Math.floor(Math.random() * 100000)}`, 150, offsetY + 30);
 
-          // Línea divisoria
-          doc.setLineWidth(0.5);
-          doc.line(10, 35, 200, 35);
+              // Línea divisoria
+              doc.setLineWidth(0.5);
+              doc.line(10, offsetY + 35, 200, offsetY + 35);
 
-          // Información del cliente
-          doc.setFontSize(12);
-          doc.setFont("helvetica", "bold");
-          doc.text("Sres:", 10, 45);
-          doc.setFont("helvetica", "normal");
-          doc.text(`${document.getElementById('clienteInput').value}`, 25, 45);
-          doc.text("N° Cliente: 817", 150, 45); // Ejemplo de número de cliente
+              // Información del cliente
+              doc.setFontSize(12);
+              doc.setFont("helvetica", "bold");
+              doc.text("Sres:", 10, offsetY + 45);
+              doc.setFont("helvetica", "normal");
+              doc.text(`${document.getElementById('clienteInput').value}`, 25, offsetY + 45);
 
-          // Encabezado de la tabla de productos
-          doc.setFontSize(10);
-          doc.setFont("helvetica", "bold");
-          doc.text("Código", 10, 55);
-          doc.text("Unidades", 30, 55);
-          doc.text("Bultos", 55, 55);
-          doc.text("Descripción", 80, 55);
-          doc.text("P. Unitario", 150, 55);
-          doc.text("Total", 180, 55);
+              // Encabezado de la tabla de productos
+              doc.setFontSize(10);
+              doc.setFont("helvetica", "bold");
+              doc.text("Código", 10, offsetY + 55);
+              doc.text("Unidades", 30, offsetY + 55);
+              doc.text("Bultos", 55, offsetY + 55);
+              doc.text("Descripción", 80, offsetY + 55);
+              doc.text("P. Unitario", 150, offsetY + 55);
+              doc.text("Total", 180, offsetY + 55);
 
-          // Línea debajo del encabezado de la tabla
-          doc.line(10, 58, 200, 58);
+              // Línea debajo del encabezado de la tabla
+              doc.line(10, offsetY + 58, 200, offsetY + 58);
 
-          // Cuerpo de la tabla de productos
-          let startY = 65;
-          doc.setFont("helvetica", "normal");
-          let totalPedido = 0;
-          
-          productosEnPedido.forEach((producto, index) => {
-              const totalProducto = producto.precio * producto.cantidad;
-              totalPedido += totalProducto;
+              // Cuerpo de la tabla de productos
+              let startY = offsetY + 65;
+              doc.setFont("helvetica", "normal");
+              let totalPedido = 0;
 
-              doc.text(producto.codigo || `#${index + 1}`, 10, startY);
-              doc.text(`${producto.cantidad}`, 30, startY);
-              doc.text(`${producto.bultos || '-'}`, 55, startY); // Si hay bultos o dejar vacío
-              doc.text(`${producto.nombre}`, 80, startY);
-              doc.text(`$${producto.precio.toFixed(2)}`, 150, startY, null, null, "right");
-              doc.text(`$${totalProducto.toFixed(2)}`, 180, startY, null, null, "right");
+              productosEnPedido.forEach((producto, index) => {
+                  const totalProducto = producto.precio * producto.cantidad;
+                  totalPedido += totalProducto;
+
+                  doc.text(producto.codigo || `#${index + 1}`, 10, startY);
+                  doc.text(`${producto.cantidad}`, 30, startY);
+                  doc.text(`${producto.bultos || '-'}`, 55, startY); // Si hay bultos o dejar vacío
+                  doc.text(`${producto.nombre}`, 80, startY);
+                  doc.text(`$${producto.precio.toFixed(2)}`, 150, startY, null, null, "right");
+                  doc.text(`$${totalProducto.toFixed(2)}`, 180, startY, null, null, "right");
+                  startY += 10;
+              });
+
+              // Línea divisoria antes del total
+              doc.line(10, startY, 200, startY);
+              startY += 5;
+
+              // Total del pedido
+              doc.setFontSize(12);
+              doc.setFont("helvetica", "bold");
+              doc.text(`TOTAL: $${totalPedido.toFixed(2)}`, 180, startY, null, null, "right");
               startY += 10;
-          });
 
-          // Línea divisoria antes del total
-          doc.line(10, startY, 200, startY);
-          startY += 5;
+              // Aclaraciones al pie del remito
+              doc.setFontSize(10);
+              doc.setFont("helvetica", "italic");
+              doc.setTextColor(0, 0, 0);
+              doc.text("Una vez recibida la mercadería no se aceptan devoluciones.", 10, startY);
+              startY += 10;
 
-          // Total del pedido
-          doc.setFontSize(12);
-          doc.setFont("helvetica", "bold");
-          doc.text(`TOTAL: $${totalPedido.toFixed(2)}`, 180, startY, null, null, "right");
-          startY += 10;
+              // Pie de página con hora y máquina
+              doc.setFontSize(10);
+              doc.setFont("helvetica", "normal");
+              doc.text(`Máquina: 1`, 10, startY);
+              doc.text(`Hora: ${new Date().toLocaleTimeString()}`, 50, startY);
+              doc.text("HOJA 1/1", 150, startY);
+          }
 
-          // Aclaraciones al pie del remito
-          doc.setFontSize(10);
-          doc.setFont("helvetica", "italic");
-          doc.setTextColor(0, 0, 0);
-          doc.text("Una vez recibida la mercadería no se aceptan devoluciones.", 10, startY);
-          startY += 10;
+          // Generar la primera mitad
+          generarContenido(doc, 0);
 
-          // Pie de página con hora y máquina
-          doc.setFontSize(10);
-          doc.setFont("helvetica", "normal");
-          doc.text(`Máquina: 1`, 10, startY);
-          doc.text(`Hora: ${new Date().toLocaleTimeString()}`, 50, startY);
-          doc.text("HOJA 1/1", 150, startY);
+          // Línea divisoria horizontal para separar las dos mitades
+          doc.line(10, 145, 200, 145);
+
+          // Generar la segunda mitad desplazada verticalmente
+          generarContenido(doc, 150);
 
           // Guardar el PDF con un nombre específico
           doc.save("remito.pdf");
