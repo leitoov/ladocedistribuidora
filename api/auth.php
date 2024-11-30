@@ -28,14 +28,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $payload = [
             "iss" => "localhost",
             "iat" => time(),
-            "exp" => time() + (60 * 60),
+            "exp" => time() + (24 * 60 * 60),  // Extiende la expiración a 24 horas
             "user_id" => $user['id'],
             "rol" => $user['rol']
         ];
 
         $jwt = generateJWT($payload, $jwt_secret);
 
+        // Extender la duración de la sesión a 24 horas
+        ini_set('session.gc_maxlifetime', 24 * 60 * 60);
+        session_set_cookie_params(24 * 60 * 60);
         session_start();
+
         $_SESSION['token'] = $jwt;
 
         echo json_encode(["token" => $jwt]);
