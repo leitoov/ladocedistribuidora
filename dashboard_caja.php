@@ -162,14 +162,6 @@ $userId = $tokenData->user_id;
             width: 100%;
         }
 
-        .descuento {
-            color: red;
-        }
-
-        .recargo {
-            color: green;
-        }
-
         /* Responsive Adjustments */
         @media (max-width: 576px) {
             .order-management {
@@ -183,6 +175,14 @@ $userId = $tokenData->user_id;
             .order-table {
                 font-size: 0.9rem;
             }
+        }
+
+        .text-green {
+            color: green;
+        }
+
+        .text-red {
+            color: red;
         }
     </style>
 </head>
@@ -303,15 +303,19 @@ $userId = $tokenData->user_id;
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Descuento Aplicado (Efectivo)</label>
-                            <p id="descuentoAplicado" class="form-control-plaintext descuento"></p>
+                            <p id="descuentoAplicado" class="form-control-plaintext text-red"></p>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Recargo Aplicado (Transferencia)</label>
-                            <p id="recargoAplicado" class="form-control-plaintext recargo"></p>
+                            <p id="recargoAplicado" class="form-control-plaintext text-green"></p>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Vuelto</label>
                             <p id="vuelto" class="form-control-plaintext"></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Monto Total Final</label>
+                            <p id="montoTotalFinal" class="form-control-plaintext"></p>
                         </div>
                     </form>
                 </div>
@@ -424,44 +428,54 @@ $userId = $tokenData->user_id;
 
                 // Llenar la información del modal con los detalles del pedido
                 $('#totalAPagar').text(`$${pedido.total.toFixed(2)}`);
+                $('#modalCobrarCuerpo').find('#montoEfectivo, #montoTransferencia, #vuelto, #descuentoAplicado, #recargoAplicado, #montoTotalFinal').text('');
                 $('#modalCobrarPedido').modal('show');
 
                 // Calcular el total con recargo/ descuento en tiempo real
-                $('#montoEfectivo, #montoTransferencia').off('input').on('input', function () {
+                $('#montoEfectivo, #montoTransferencia').on('input', function () {
                     let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
                     let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
                     let total = pedido.total;
 
+                    // Validaciones
+                    if (montoTransferencia > total) {
+                        $('#montoTransferencia').val(total);
+                        mostrarMensajeModal("El monto en transferencia no puede ser mayor al total a pagar.");
+                        return;
+                    }
+
+                    let totalConRecargo = total;
                     let descuentoAplicado = 0;
                     let recargoAplicado = 0;
+                    let vuelto = 0;
 
                     if (montoTransferencia > 0) {
-                        recargoAplicado = montoTransferencia * 0.05; // Recargo del 5% sobre transferencia
-                        $('#recargoAplicado').text(`$${recargoAplicado.toFixed(2)} (recargo por transferencia)`).addClass('recargo');
-                    } else {
-                        $('#recargoAplicado').text('$0.00').removeClass('recargo');
+                        recargoAplicado = (montoTransferencia * 0.05);
+                        totalConRecargo += recargoAplicado;
                     }
-
                     if (montoEfectivo > 0 && montoTransferencia === 0) {
-                        descuentoAplicado = montoEfectivo * 0.05; // Descuento del 5% sobre efectivo solo si no hay transferencia
-                        $('#descuentoAplicado').text(`$${descuentoAplicado.toFixed(2)} (descuento por pago en efectivo)`).addClass('descuento');
-                    } else {
-                        $('#descuentoAplicado').text('$0.00').removeClass('descuento');
+                        descuentoAplicado = (montoEfectivo * 0.05);
+                        totalConRecargo -= descuentoAplicado;
                     }
 
-                    // Calcular el vuelto
-                    let totalConRecargoDescuento = total + recargoAplicado - descuentoAplicado;
-                    let vuelto = montoEfectivo - totalConRecargoDescuento;
+                    if (montoEfectivo > totalConRecargo) {
+                        vuelto = montoEfectivo - totalConRecargo;
+                    }
+
+                    $('#descuentoAplicado').text(`$${descuentoAplicado.toFixed(2)}`).toggleClass('text-red', descuentoAplicado > 0);
+                    $('#recargoAplicado').text(`$${recargoAplicado.toFixed(2)}`).toggleClass('text-green', recargoAplicado > 0);
                     $('#vuelto').text(`$${vuelto.toFixed(2)}`);
+                    $('#montoTotalFinal').text(`$${totalConRecargo.toFixed(2)}`);
                 });
 
                 // Confirmar cobro
                 $('#confirmarCobro').off('click').on('click', function () {
                     let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
                     let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
-                    let totalConRecargoDescuento = parseFloat($('#totalConRecargoDescuento').val()) || 0;
+                    let totalConRecargo = parseFloat($('#montoTotalFinal').text().replace('$', '')) || 0;
 
-                    mostrarMensajeModal(`Pedido ${pedidoId} cobrado correctamente. Total pagado: $${totalConRecargoDescuento.toFixed(2)}`);
+                    // Lógica para cobrar el pedido (esto puede involucrar una llamada AJAX para actualizar el pedido en el servidor)
+                    mostrarMensajeModal(`Pedido ${pedidoId} cobrado correctamente. Total pagado: $${totalConRecargo}`);
                     $('#modalCobrarPedido').modal('hide');
                     cargarPedidosCaja();
                 });
