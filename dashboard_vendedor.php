@@ -521,7 +521,12 @@ $userId = $tokenData->user_id;
                 doc.save("pedido.pdf");
             }
 
+            //Cerrar sesion
+            $('#logoutButton').on('click', function () {
+                window.location.href = 'logout.php';
+            });
             // Confirm order
+
             $('#confirmarPedido').on('click', function () {
                 if (productosEnPedido.length === 0) {
                     mostrarMensajeModal("No hay productos en el pedido para confirmar.");
