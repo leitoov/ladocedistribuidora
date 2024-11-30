@@ -181,6 +181,9 @@ $userId = $tokenData->user_id;
         .modal-content {
             border-radius: 12px;
         }
+        .form-label{
+            width: 100%;
+        }
 
         /* Responsive Adjustments */
         @media (max-width: 576px) {
@@ -231,7 +234,7 @@ $userId = $tokenData->user_id;
 
                 <!-- Order Type -->
                 <div class="input-group">
-                    <label for="tipoPedido" class="form-label">Tipo de Pedido</label><br>
+                    <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
                     <select class="form-control" id="tipoPedido">
                         <option value="Caja">Caja</option>
                         <option value="Reparto">Reparto</option>
