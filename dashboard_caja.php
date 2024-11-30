@@ -281,7 +281,7 @@ $userId = $tokenData->user_id;
             // Cargar los pedidos para la caja
             function cargarPedidosCaja() {
                 $.ajax({
-                    url: 'api/pedidos.php',
+                    url: 'api/orders.php',
                     type: 'GET',
                     dataType: 'json',
                     success: function (data) {
