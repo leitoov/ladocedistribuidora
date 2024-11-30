@@ -284,17 +284,16 @@ $userId = $tokenData->user_id;
                 $.ajax({
                     url: 'api/orders.php',
                     type: 'POST',
-                    dataType: 'json', // Añade esta línea para especificar que esperas JSON
+                    dataType: 'json',
                     contentType: 'application/json',
                     data: JSON.stringify({ 
                         token: '<?php echo $_SESSION['token']; ?>', 
-                        
                     }),
                     success: function (data) {
                         let tbody = $('#pedidosCaja');
                         tbody.empty();
                         console.log(data)
-                        // Agrupar pedidos por pedido_id
+                        // Group orders by pedido_id
                         let pedidosAgrupados = {};
                         data.forEach(function(item) {
                             if (!pedidosAgrupados[item.pedido_id]) {
@@ -317,7 +316,7 @@ $userId = $tokenData->user_id;
                             });
                         });
 
-                        // Mostrar pedidos
+                        // Show orders
                         if (Object.keys(pedidosAgrupados).length > 0) {
                             Object.values(pedidosAgrupados).forEach(function (pedido) {
                                 tbody.append(`
@@ -327,8 +326,17 @@ $userId = $tokenData->user_id;
                                         <td>${pedido.tipo_pedido}</td>
                                         <td>$${pedido.total}</td>
                                         <td>
-                                            <button class="btn btn-primary btn-sm" onclick="procesarPedido(${pedido.pedido_id})">Procesar</button>
-                                            <button class="btn btn-warning btn-sm" onclick="editarPedido(${pedido.pedido_id})">Editar</button>
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <button class="btn btn-primary btn-sm" onclick="cobrarPedido(${pedido.pedido_id})">
+                                                    <i class="bi bi-cash-coin me-1"></i>Cobrar
+                                                </button>
+                                                <button class="btn btn-warning btn-sm" onclick="editarPedido(${pedido.pedido_id})">
+                                                    <i class="bi bi-pencil me-1"></i>Editar
+                                                </button>
+                                                <button class="btn btn-danger btn-sm" onclick="anularPedido(${pedido.pedido_id})">
+                                                    <i class="bi bi-x-circle me-1"></i>Anular
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 `);
@@ -338,35 +346,37 @@ $userId = $tokenData->user_id;
                         }
                     },
                     error: function (xhr, status, error) {
-                        // Manejo de errores más detallado
                         console.error("Error en la solicitud:", status, error);
                         console.log("Respuesta del servidor:", xhr.responseText);
                         mostrarMensajeModal("Error al cargar los pedidos de la caja: " + error);
                     }
                 });
             }
-
             // Function to show messages in a modal
             function mostrarMensajeModal(mensaje) {
                 $('#modalMensajeCuerpo').text(mensaje);
                 $('#modalMensaje').modal('show');
             }
 
-            // Procesar Pedido
-            window.procesarPedido = function (pedidoId) {
-                // Lógica para procesar un pedido, por ejemplo cambiar el estado del pedido o confirmar su pago
-                mostrarMensajeModal(`Pedido ${pedidoId} procesado correctamente.`);
-                cargarPedidosCaja();
-            }
-
             // Editar Pedido
             window.editarPedido = function (pedidoId) {
-                // Redirigir a una página donde se pueda editar el pedido
                 window.location.href = `editar_pedido.php?pedidoId=${pedidoId}`;
             }
-
+            //Cobrar pedido
+            window.cobrarPedido = function (pedidoId) {
+                mostrarMensajeModal(`Pedido ${pedidoId} cobrado correctamente.`);
+                cargarPedidosCaja();
+            }
+            //Anular pedido
+            window.anularPedido = function (pedidoId) {
+    if (confirm(`¿Estás seguro de que quieres anular el pedido ${pedidoId}?`)) {
+        mostrarMensajeModal(`Pedido ${pedidoId} anulado.`);
+        cargarPedidosCaja();
+    }
+}
             // Cargar pedidos al cargar la página
             cargarPedidosCaja();
+
 
             //Cerrar sesión
             $('#logoutButton').on('click', function () {
