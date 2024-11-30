@@ -1,51 +1,61 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 require '../config.php';
 require '../verify_token.php';
 
 header('Content-Type: application/json');
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $data = json_decode(file_get_contents("php://input"));
+// Obtener el cuerpo de la solicitud
+$data = json_decode(file_get_contents("php://input"), true);
+$jwt = isset($data['token']) ? $data['token'] : null;
 
-    if (!isset($data->username) || !isset($data->password)) {
-        http_response_code(400);
-        echo json_encode(["message" => "Faltan campos de usuario o contraseña"]);
-        exit();
+if (!$jwt) {
+    http_response_code(401);
+    echo json_encode(["message" => "Token no proporcionado"]);
+    exit();
+}
+
+// Verificar el token JWT
+try {
+    $tokenData = verifyJWT($jwt, $jwt_secret);
+    if (!$tokenData) {
+        throw new Exception('Token inválido o expirado.');
     }
+} catch (Exception $e) {
+    http_response_code(401);
+    echo json_encode(["message" => $e->getMessage()]);
+    exit();
+}
 
-    $username = $data->username;
-    $password = $data->password;
+// Procesar solicitudes POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id_cliente = isset($data['id_cliente']) ? (int)$data['id_cliente'] : 0;
 
-    $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE usuario = :username LIMIT 1");
-    $stmt->execute(['username' => $username]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    try {
+        // Consulta de pedidos
+        $stmt = $pdo->prepare("
+            SELECT 
+                p.id AS pedido_id,
+                p.fecha,
+                p.total,
+                p.estado,
+                p.tipo_pedido,
+                p.nombre_cliente AS cliente_nombre,
+                dp.id_producto,
+                prod.nombre AS producto_nombre,
+                dp.cantidad,
+                dp.precio AS precio_producto
+            FROM pedidos p
+            LEFT JOIN detalle_pedido dp ON p.id = dp.id_pedido
+            LEFT JOIN productos prod ON dp.id_producto = prod.id
+            WHERE p.id_cliente = :id_cliente AND p.estado = 'Pendiente' AND p.tipo_pedido = 'Caja'
+        ");
+        $stmt->execute(['id_cliente' => $id_cliente]);
+        $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    if ($user && password_verify($password, $user['contrasena'])) {
-        $payload = [
-            "iss" => "localhost",
-            "iat" => time(),
-            "exp" => time() + (24 * 60 * 60),  // Extiende la expiración a 24 horas
-            "user_id" => $user['id'],
-            "rol" => $user['rol']
-        ];
-
-        $jwt = generateJWT($payload, $jwt_secret);
-
-        // Extender la duración de la sesión a 24 horas
-        ini_set('session.gc_maxlifetime', 24 * 60 * 60);
-        session_set_cookie_params(24 * 60 * 60);
-        session_start();
-
-        $_SESSION['token'] = $jwt;
-
-        echo json_encode(["token" => $jwt]);
-    } else {
-        http_response_code(401);
-        echo json_encode(["message" => "Credenciales inválidas"]);
+        echo json_encode($orders);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["message" => "Error al obtener pedidos: " . $e->getMessage()]);
     }
 } else {
     http_response_code(405);
