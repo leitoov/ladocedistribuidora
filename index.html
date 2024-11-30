@@ -33,25 +33,31 @@
     .modal.show .modal-dialog {
       transform: translateY(0);
     }
-    .success {
-      color: #28a745;
-    }
-    .error {
-      color: #dc3545;
-    }
     .modal-icon {
       font-size: 48px;
       margin-bottom: 15px;
     }
-    /* Spinner */
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid rgba(0, 0, 0, 0.1);
-      border-top: 5px solid #00bfff;
+
+    /* Spinner Global en Medio de la Pantalla */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.8);
+      z-index: 1050; /* Supera el índice del modal */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #loadingScreen .spinner {
+      width: 80px;
+      height: 80px;
+      border: 10px solid rgba(0, 0, 0, 0.1);
+      border-top: 10px solid #00bfff;
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      margin: 20px auto;
     }
     @keyframes spin {
       0% {
@@ -82,22 +88,26 @@
     </div>
   </div>
 
-  <!-- Modal Personalizado -->
-  <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+  <!-- Loading Screen -->
+  <div id="loadingScreen" class="d-none">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Modal Personalizado (Sólo para Errores) -->
+  <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header d-flex justify-content-center">
-          <h5 class="modal-title" id="messageModalLabel"></h5>
+          <h5 class="modal-title" id="errorModalLabel"></h5>
         </div>
         <div class="modal-body">
-          <div id="loadingSpinner" class="spinner d-none"></div> <!-- Spinner para carga -->
           <div class="modal-icon">
-            <i id="modalIcon" class=""></i>
+            <i id="modalIcon" class="text-danger bi bi-x-circle-fill"></i>
           </div>
-          <p id="messageModalBody"></p>
+          <p id="errorModalBody"></p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary d-none" data-bs-dismiss="modal" id="closeModalButton">Cerrar</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="closeModalButton">Cerrar</button>
         </div>
       </div>
     </div>
@@ -113,11 +123,12 @@
         const password = $('#password').val();
 
         if (!username || !password) {
-          showMessage('Error', 'Por favor, complete ambos campos.', 'error');
+          showMessage('Error', 'Por favor, complete ambos campos.');
           return;
         }
 
-        showLoading('Verificando credenciales...');
+        // Mostrar el spinner de carga en el centro de la pantalla
+        $('#loadingScreen').removeClass('d-none');
 
         $.ajax({
           url: 'api/auth.php',
@@ -127,48 +138,27 @@
           success: function(response) {
             if (response.token) {
               localStorage.setItem('token', response.token);
-              showMessage('¡Éxito!', 'Login exitoso. Redirigiendo...', 'success');
-              setTimeout(() => {
-                window.location.href = 'dashboard.php';
-              }, 2000);
+              // Redirigir sin mostrar el modal
+              window.location.href = 'dashboard.php';
             } else {
-              showMessage('Error', response.message || 'Credenciales inválidas.', 'error');
+              // Esconder el spinner de carga y mostrar el modal de error
+              $('#loadingScreen').addClass('d-none');
+              showMessage('Error', response.message || 'Credenciales inválidas.');
             }
           },
           error: function() {
-            showMessage('Error', 'Error al conectar con el servidor.', 'error');
+            // Esconder el spinner de carga y mostrar el modal de error
+            $('#loadingScreen').addClass('d-none');
+            showMessage('Error', 'Error al conectar con el servidor.');
           }
         });
       });
 
-      // Mostrar el modal con spinner de carga
-      function showLoading(message) {
-        $('#messageModalLabel').text('Cargando...');
-        $('#messageModalBody').text(message);
-        $('#modalIcon').addClass('d-none');
-        $('#loadingSpinner').removeClass('d-none');
-        $('#closeModalButton').addClass('d-none');
-        const modal = new bootstrap.Modal(document.getElementById('messageModal'));
-        modal.show();
-      }
-
-      // Mostrar el modal con un mensaje
-      function showMessage(title, message, type) {
-        $('#messageModalLabel').text(title);
-        $('#messageModalBody').text(message);
-        $('#loadingSpinner').addClass('d-none'); // Esconde el spinner
-        const icon = $('#modalIcon');
-        icon.removeClass().addClass('modal-icon');
-
-        if (type === 'success') {
-          icon.addClass('text-success bi bi-check-circle-fill');
-        } else if (type === 'error') {
-          icon.addClass('text-danger bi bi-x-circle-fill');
-        }
-
-        $('#modalIcon').removeClass('d-none');
-        $('#closeModalButton').removeClass('d-none');
-        const modal = new bootstrap.Modal(document.getElementById('messageModal'));
+      // Mostrar el modal de error
+      function showMessage(title, message) {
+        $('#errorModalLabel').text(title);
+        $('#errorModalBody').text(message);
+        const modal = new bootstrap.Modal(document.getElementById('errorModal'));
         modal.show();
       }
     });
