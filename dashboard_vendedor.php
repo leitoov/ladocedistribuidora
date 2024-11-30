@@ -282,94 +282,67 @@ $userId = $tokenData->user_id;
 
                 // Definir una función auxiliar para generar la misma información en dos secciones de la página
                 function generarContenido(startY) {
-                    // Encabezado de la Distribuidora
-                    doc.setFontSize(14);
+                    // Encabezado de la Distribuidora (Compacto)
+                    doc.setFontSize(12);
                     doc.setFont("helvetica", "bold");
                     doc.setTextColor(0, 0, 0);
                     doc.text("LA DOCE", 10, startY);
-                    doc.setFontSize(10);
+                    
+                    doc.setFontSize(8);
                     doc.setFont("helvetica", "normal");
-                    doc.text("Necochea 1350 (CABA) LA BOCA", 10, startY + 5);
-                    doc.text("Tel: 1559092429 / WhatsApp: 1557713277", 10, startY + 10);
-                    doc.text("Correo: ladocedistribuidora@hotmail.com", 10, startY + 15);
-                    doc.text("Documento no válido como factura", 10, startY + 20);
+                    doc.text("Necochea 1350 (CABA), LA BOCA", 10, startY + 5);
+                    doc.text("Tel: 1559092429", 10, startY + 10);
+                    doc.text("WhatsApp: 1557713277", 10, startY + 15);
+                    doc.text("ladocedistribuidora@hotmail.com", 10, startY + 20);
+                    doc.text("Documento no válido como factura", 10, startY + 25);
 
                     // Detalles del Pedido
                     doc.setFontSize(10);
                     doc.setFont("helvetica", "bold");
-                    doc.text("REMITO FICHA", 150, startY);
-                    doc.setFontSize(10);
+                    doc.text("REMITO FICHA", 120, startY);
                     doc.setFont("helvetica", "normal");
-                    doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, startY + 5);
-                    doc.text("Ticket N°: 8938", 150, startY + 10);
+                    doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 120, startY + 5);
 
                     // Información del Cliente
                     doc.setFontSize(12);
                     doc.setFont("helvetica", "bold");
-                    doc.text(`Sres.: ${$('#clienteInput').val()}`, 10, startY + 30);
+                    doc.text(`Sres.: ${$('#clienteInput').val()}`, 10, startY + 35);
+
+                    // Productos del Pedido (Sin Tabla)
+                    let yPosition = startY + 50;
                     doc.setFontSize(10);
-                    doc.setFont("helvetica", "normal");
-                    doc.text("CÓDIGO: 817", 10, startY + 35);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("Productos:", 10, yPosition);
+                    yPosition += 5;
 
-                    // Ajustar la fuente de la tabla si hay más de 15 productos
-                    const isLongList = productosEnPedido.length > 15;
-                    const tableFontSize = isLongList ? 6 : 8;
-                    const cellPadding = isLongList ? 1 : 3;
+                    productosEnPedido.forEach((producto, index) => {
+                        // Imprimir cada producto en una línea
+                        const productoTexto = `${index + 1}. ${producto.nombre} - ${producto.cantidad} ${producto.unidades || ''} - $${producto.precio.toFixed(2)} - Total: $${(producto.precio * producto.cantidad).toFixed(2)}`;
+                        doc.setFontSize(8);
+                        doc.setFont("helvetica", "normal");
+                        doc.text(productoTexto, 10, yPosition);
 
-                    // Ajuste de Tabla: Si hay más de 15 productos, se reduce el tamaño y se compactan las filas
-                    let tableBody = [];
-                    if (isLongList) {
-                        for (let i = 0; i < productosEnPedido.length; i += 2) {
-                            let producto1 = productosEnPedido[i];
-                            let producto2 = productosEnPedido[i + 1] || {}; // Puede ser undefined, manejamos como objeto vacío
-                            tableBody.push([
-                                producto1.codigo || i + 1, producto1.cantidad, producto1.unidades || "-", producto1.nombre, `$${producto1.precio?.toFixed(2)}`, `$${(producto1.precio * producto1.cantidad).toFixed(2)}`,
-                                producto2.codigo || "", producto2.cantidad || "", producto2.unidades || "", producto2.nombre || "", producto2.precio ? `$${producto2.precio.toFixed(2)}` : "", producto2.precio ? `$${(producto2.precio * producto2.cantidad).toFixed(2)}` : ""
-                            ]);
+                        yPosition += 5;
+
+                        // Si se acerca al borde inferior de la página, pasa a la siguiente sección
+                        if (yPosition > 260) {
+                            yPosition = startY + 10; // Reiniciar en la mitad inferior de la página para la segunda copia
                         }
-                    } else {
-                        tableBody = productosEnPedido.map((producto, index) => [
-                            producto.codigo ? producto.codigo : index + 1,
-                            producto.cantidad,
-                            producto.unidades ? `${producto.unidades} ${producto.medida}` : "-",
-                            producto.nombre,
-                            `$${producto.precio.toFixed(2)}`,
-                            `$${(producto.precio * producto.cantidad).toFixed(2)}`
-                        ]);
-                    }
-
-                    // Dibujar la tabla
-                    doc.autoTable({
-                        head: isLongList
-                            ? [['Código', 'Unidades', 'Bultos', 'Descripción', 'P. Unitario', 'Total', 'Código', 'Unidades', 'Bultos', 'Descripción', 'P. Unitario', 'Total']]
-                            : [['Código', 'Unidades', 'Bultos', 'Descripción', 'P. Unitario', 'Total']],
-                        body: tableBody,
-                        startY: startY + 45,
-                        styles: {
-                            fontSize: tableFontSize,
-                            cellPadding: cellPadding,
-                            lineWidth: 0.1,
-                            valign: 'middle',
-                            halign: 'center',
-                        },
-                        headStyles: {
-                            fillColor: [200, 200, 200], // Gris claro para los encabezados
-                            textColor: [0, 0, 0],
-                            fontStyle: 'bold'
-                        },
                     });
 
-                    // Total y Nota Final
+                    // Total del Pedido
                     const totalPedido = productosEnPedido.reduce((sum, producto) => sum + (producto.precio * producto.cantidad), 0);
-                    doc.setFontSize(12);
-                    doc.setFont("helvetica", "bold");
-                    doc.text(`Total: $${totalPedido.toFixed(2)}`, 150, doc.previousAutoTable.finalY + 10);
-
-                    // Nota
+                    yPosition += 10;
                     doc.setFontSize(10);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`Total: $${totalPedido.toFixed(2)}`, 10, yPosition);
+
+                    // Nota Final
+                    yPosition += 10;
+                    doc.setFontSize(8);
                     doc.setFont("helvetica", "normal");
-                    doc.text("Una vez recibida la mercadería, no se aceptan devoluciones.", 10, doc.previousAutoTable.finalY + 20);
-                    doc.text("Recibi de conformidad:", 150, doc.previousAutoTable.finalY + 20);
+                    doc.text("Una vez recibida la mercadería, no se aceptan devoluciones.", 10, yPosition);
+                    doc.text("Recibi de conformidad:", 120, yPosition);
                 }
 
                 // Generar el contenido dos veces, para la parte superior e inferior de la hoja
