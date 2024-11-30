@@ -15,7 +15,8 @@ function generateJWT($payload, $secret) {
 function verifyJWT($jwt, $secret) {
     $parts = explode('.', $jwt);
     if (count($parts) !== 3) {
-        throw new Exception('Token inválido.');
+        header('Location: logout.php'); // Redirige si el token no tiene la estructura correcta
+        exit();
     }
 
     [$header, $payload, $signature] = $parts;
@@ -24,13 +25,15 @@ function verifyJWT($jwt, $secret) {
     $base64ValidSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($validSignature));
 
     if ($signature !== $base64ValidSignature) {
-        throw new Exception('Firma inválida.');
+        header('Location: logout.php'); // Redirige si la firma no es válida
+        exit();
     }
 
     $payloadData = json_decode(base64_decode($payload));
 
     if ($payloadData->exp < time()) {
-        throw new Exception('Token expirado.');
+        header('Location: logout.php'); // Redirige si el token ha expirado
+        exit();
     }
 
     return $payloadData;
