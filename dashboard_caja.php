@@ -293,6 +293,14 @@ $userId = $tokenData->user_id;
                             <label for="totalConRecargo" class="form-label">Total con Recargo/Descuento</label>
                             <input type="text" class="form-control" id="totalConRecargo" readonly>
                         </div>
+                        <div class="mb-3">
+                            <label for="totalAPagar" class="form-label">Total a Pagar</label>
+                            <input type="text" class="form-control" id="totalAPagar" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="vuelto" class="form-label">Vuelto</label>
+                            <input type="text" class="form-control" id="vuelto" readonly>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -402,7 +410,7 @@ $userId = $tokenData->user_id;
                 }
 
                 // Llenar la información del modal con los detalles del pedido
-                $('#modalCobrarCuerpo').find('#montoEfectivo, #montoTransferencia, #totalConRecargo').val('');
+                $('#modalCobrarCuerpo').find('#montoEfectivo, #montoTransferencia, #totalConRecargo, #totalAPagar, #vuelto').val('');
                 $('#modalCobrarPedido').modal('show');
 
                 // Calcular el total con recargo/ descuento en tiempo real
@@ -418,8 +426,18 @@ $userId = $tokenData->user_id;
                     if (montoEfectivo > 0 && montoTransferencia === 0) {
                         totalConRecargo -= (montoEfectivo * 0.05); // Descuento del 5% sobre efectivo solo si no hay transferencia
                     }
-                    
                     $('#totalConRecargo').val(totalConRecargo.toFixed(2));
+                    
+                    // Total a pagar
+                    let totalPagado = montoEfectivo + montoTransferencia;
+                    $('#totalAPagar').val(totalPagado.toFixed(2));
+
+                    // Calcular vuelto si hay exceso de pago en efectivo
+                    let vuelto = 0;
+                    if (montoEfectivo > totalConRecargo) {
+                        vuelto = montoEfectivo - totalConRecargo;
+                    }
+                    $('#vuelto').val(vuelto.toFixed(2));
                 });
 
                 // Confirmar cobro
