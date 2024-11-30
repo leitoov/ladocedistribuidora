@@ -343,6 +343,20 @@ $userId = $tokenData->user_id;
                     }
                 });
             });
+            $('#cancelarPedido').on('click', function () {
+                if (productosEnPedido.length === 0) {
+                    mostrarMensajeModal("No hay productos para cancelar.");
+                    return;
+                }
+
+                // Vaciar la lista de productos
+                productosEnPedido = [];
+
+                // Actualizar la tabla para reflejar que el pedido ha sido cancelado
+                actualizarTablaPedido();
+
+                mostrarMensajeModal("Pedido cancelado correctamente.");
+            });
         });
     </script>
 </body>
