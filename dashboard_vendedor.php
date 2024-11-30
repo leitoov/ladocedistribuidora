@@ -280,33 +280,44 @@ $userId = $tokenData->user_id;
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
 
-                // Encabezado del PDF
-                doc.setFontSize(16);
+                // Encabezado de la Distribuidora
+                doc.setFontSize(14);
                 doc.setFont("helvetica", "bold");
                 doc.setTextColor(0, 0, 0);
-                doc.text("Distribuidora - Pedido", 10, 10);
-
+                doc.text("LA DOCE", 10, 10);
                 doc.setFontSize(10);
                 doc.setFont("helvetica", "normal");
-                doc.text(`Cliente: ${$('#clienteInput').val()}`, 10, 20);
-                doc.text(`Tipo de Pedido: ${$('#tipoPedido').val()}`, 10, 25);
-                doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 10, 30);
-                doc.text(`Hora: ${new Date().toLocaleTimeString()}`, 10, 35);
+                doc.text("RECIBIDA 15/04/2024  - ENTREGA 20/04/2024", 10, 15);
+                doc.text("lacontactodistribucion@gmail.com", 10, 20);
+                doc.text("REMITO FICHA", 150, 10);
+                doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, 15);
+                doc.text("Ticket N°: 8938", 150, 20);
 
-                // Tabla de Productos
+                // Información del Cliente
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "bold");
+                doc.text("Sres.: Manuel Colorado", 10, 30);
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "normal");
+                doc.text("CÓDIGO: 817", 10, 35);
+
+                // Espacio para la tabla de productos
+                let startY = 50;
+
+                // Encabezado de la Tabla
                 let tableBody = productosEnPedido.map((producto, index) => [
-                    index + 1,
-                    producto.nombre,
-                    producto.descripcion,
+                    producto.codigo ? producto.codigo : index + 1,
                     producto.cantidad,
+                    producto.unidades ? `${producto.unidades} ${producto.medida}` : "-",
+                    producto.nombre,
                     `$${producto.precio.toFixed(2)}`,
                     `$${(producto.precio * producto.cantidad).toFixed(2)}`
                 ]);
 
                 doc.autoTable({
-                    head: [['#', 'Producto', 'Descripción', 'Cantidad', 'Precio Unitario', 'Total']],
+                    head: [['Código', 'Unidades', 'Bultos', 'Descripción', 'P. Unitario', 'Total']],
                     body: tableBody,
-                    startY: 40,
+                    startY: startY,
                     styles: {
                         fontSize: 8,
                         cellPadding: 3,
@@ -321,9 +332,22 @@ $userId = $tokenData->user_id;
                     },
                 });
 
+                // Total y Nota Final
+                const totalPedido = productosEnPedido.reduce((sum, producto) => sum + (producto.precio * producto.cantidad), 0);
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "bold");
+                doc.text(`Total: $${totalPedido.toFixed(2)}`, 150, doc.previousAutoTable.finalY + 10);
+
+                // Nota
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "normal");
+                doc.text("Una vez recibida la mercadería, no se aceptan devoluciones.", 10, doc.previousAutoTable.finalY + 20);
+                doc.text("Recibi de conformidad:", 150, doc.previousAutoTable.finalY + 20);
+
                 // Guardar el PDF con un nombre específico
                 doc.save("pedido.pdf");
             }
+
 
             // Confirm order
             $('#confirmarPedido').on('click', function () {
