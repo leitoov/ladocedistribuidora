@@ -478,6 +478,9 @@ $userId = $tokenData->user_id;
                     mostrarMensajeModal(`Pedido ${pedidoId} cobrado correctamente. Total pagado: $${totalConRecargo}`);
                     $('#modalCobrarPedido').modal('hide');
                     cargarPedidosCaja();
+
+                    // Llamar a la función de impresión
+                    imprimirTicket(pedido);
                 });
             }
 
@@ -496,7 +499,32 @@ $userId = $tokenData->user_id;
             $('#logoutButton').on('click', function () {
                 window.location.href = 'logout.php';
             });
+
+            // Función para imprimir el ticket
+            function imprimirTicket(pedido) {
+                let ventana = window.open('', 'PRINT', 'height=600,width=400');
+                ventana.document.write('<html><head><title>Ticket de Venta</title>');
+                ventana.document.write('</head><body>');
+                ventana.document.write('<div class="ticket-container">');
+                ventana.document.write(`<div class="header">
+                                            <p><strong>Distribuidora XYZ</strong><br>
+                                            Fecha: ${pedido.fecha}<br>
+                                            Cliente: ${pedido.cliente_nombre}<br>
+                                            Nº de Ticket: ${pedido.pedido_id}</p>
+                                        </div>`);
+                pedido.productos.forEach(producto => {
+                    ventana.document.write(`<div class="item">
+                                                <span>${producto.producto_nombre} (${producto.precio_producto} x ${producto.cantidad})</span>
+                                                <span>${(producto.precio_producto * producto.cantidad).toFixed(2)}</span>
+                                            </div>`);
+                });
+                ventana.document.write(`<div class="total"><p>Total: ${pedido.total.toFixed(2)}</p></div>`);
+                ventana.document.write('</div></body></html>');
+                ventana.document.close();
+                ventana.print();
+            }
         });
     </script>
+
     </body>
 </html>
