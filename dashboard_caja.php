@@ -278,24 +278,54 @@ $userId = $tokenData->user_id;
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
+           
             // Cargar los pedidos para la caja
             function cargarPedidosCaja() {
                 $.ajax({
                     url: 'api/orders.php',
                     type: 'POST',
+                    dataType: 'json', // Añade esta línea para especificar que esperas JSON
                     contentType: 'application/json',
-                    data: JSON.stringify({ token: '<?php echo $_SESSION['token']; ?>', id_cliente: <?php echo $userId; ?> }),
+                    data: JSON.stringify({ 
+                        token: '<?php echo $_SESSION['token']; ?>', 
+                        id_cliente: <?php echo $userId; ?> 
+                    }),
                     success: function (data) {
                         let tbody = $('#pedidosCaja');
                         tbody.empty();
-                        if (data.length > 0) {
-                            data.forEach(function (pedido) {
+                        
+                        // Agrupar pedidos por pedido_id
+                        let pedidosAgrupados = {};
+                        data.forEach(function(item) {
+                            if (!pedidosAgrupados[item.pedido_id]) {
+                                pedidosAgrupados[item.pedido_id] = {
+                                    pedido_id: item.pedido_id,
+                                    fecha: item.fecha,
+                                    total: item.total,
+                                    estado: item.estado,
+                                    tipo_pedido: item.tipo_pedido,
+                                    cliente_nombre: item.cliente_nombre,
+                                    productos: []
+                                };
+                            }
+                            
+                            pedidosAgrupados[item.pedido_id].productos.push({
+                                id_producto: item.id_producto,
+                                producto_nombre: item.producto_nombre,
+                                cantidad: item.cantidad,
+                                precio_producto: item.precio_producto
+                            });
+                        });
+
+                        // Mostrar pedidos
+                        if (Object.keys(pedidosAgrupados).length > 0) {
+                            Object.values(pedidosAgrupados).forEach(function (pedido) {
                                 tbody.append(`
                                     <tr>
                                         <td>${pedido.pedido_id}</td>
                                         <td>${pedido.cliente_nombre}</td>
                                         <td>${pedido.tipo_pedido}</td>
-                                        <td>$${pedido.total}</td>
+                                        <td>$${pedido.total.toFixed(2)}</td>
                                         <td>
                                             <button class="btn btn-primary btn-sm" onclick="procesarPedido(${pedido.pedido_id})">Procesar</button>
                                             <button class="btn btn-warning btn-sm" onclick="editarPedido(${pedido.pedido_id})">Editar</button>
@@ -307,8 +337,11 @@ $userId = $tokenData->user_id;
                             tbody.append('<tr><td colspan="5" class="text-center text-muted">No hay pedidos disponibles</td></tr>');
                         }
                     },
-                    error: function () {
-                        mostrarMensajeModal("Error al cargar los pedidos de la caja.");
+                    error: function (xhr, status, error) {
+                        // Manejo de errores más detallado
+                        console.error("Error en la solicitud:", status, error);
+                        console.log("Respuesta del servidor:", xhr.responseText);
+                        mostrarMensajeModal("Error al cargar los pedidos de la caja: " + error);
                     }
                 });
             }
