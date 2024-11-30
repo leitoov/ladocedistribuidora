@@ -280,74 +280,105 @@ $userId = $tokenData->user_id;
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
 
-                // Encabezado de la Distribuidora
-                doc.setFontSize(14);
-                doc.setFont("helvetica", "bold");
-                doc.setTextColor(0, 0, 0);
-                doc.text("LA DOCE", 10, 10);
-                doc.setFontSize(10);
-                doc.setFont("helvetica", "normal");
-                doc.text("RECIBIDA 15/04/2024  - ENTREGA 20/04/2024", 10, 15);
-                doc.text("lacontactodistribucion@gmail.com", 10, 20);
-                doc.text("REMITO FICHA", 150, 10);
-                doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, 15);
-                doc.text("Ticket N°: 8938", 150, 20);
+                // Definir una función auxiliar para generar la misma información en dos secciones de la página
+                function generarContenido(startY) {
+                    // Encabezado de la Distribuidora
+                    doc.setFontSize(14);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(0, 0, 0);
+                    doc.text("LA DOCE", 10, startY);
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.text("Necochea 1350 (CABA) LA BOCA", 10, startY + 5);
+                    doc.text("Tel: 1559092429 / WhatsApp: 1557713277", 10, startY + 10);
+                    doc.text("Correo: ladocedistribuidora@hotmail.com", 10, startY + 15);
+                    doc.text("Documento no válido como factura", 10, startY + 20);
 
-                // Información del Cliente
-                doc.setFontSize(12);
-                doc.setFont("helvetica", "bold");
-                doc.text("Sres.: Manuel Colorado", 10, 30);
-                doc.setFontSize(10);
-                doc.setFont("helvetica", "normal");
-                doc.text("CÓDIGO: 817", 10, 35);
+                    // Detalles del Pedido
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("REMITO FICHA", 150, startY);
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 150, startY + 5);
+                    doc.text("Ticket N°: 8938", 150, startY + 10);
 
-                // Espacio para la tabla de productos
-                let startY = 50;
+                    // Información del Cliente
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`Sres.: ${$('#clienteInput').val()}`, 10, startY + 30);
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.text("CÓDIGO: 817", 10, startY + 35);
 
-                // Encabezado de la Tabla
-                let tableBody = productosEnPedido.map((producto, index) => [
-                    producto.codigo ? producto.codigo : index + 1,
-                    producto.cantidad,
-                    producto.unidades ? `${producto.unidades} ${producto.medida}` : "-",
-                    producto.nombre,
-                    `$${producto.precio.toFixed(2)}`,
-                    `$${(producto.precio * producto.cantidad).toFixed(2)}`
-                ]);
+                    // Ajustar la fuente de la tabla si hay más de 15 productos
+                    const isLongList = productosEnPedido.length > 15;
+                    const tableFontSize = isLongList ? 6 : 8;
+                    const cellPadding = isLongList ? 1 : 3;
 
-                doc.autoTable({
-                    head: [['Código', 'Unidades', 'Bultos', 'Descripción', 'P. Unitario', 'Total']],
-                    body: tableBody,
-                    startY: startY,
-                    styles: {
-                        fontSize: 8,
-                        cellPadding: 3,
-                        lineWidth: 0.1,
-                        valign: 'middle',
-                        halign: 'center',
-                    },
-                    headStyles: {
-                        fillColor: [200, 200, 200], // Gris claro para los encabezados
-                        textColor: [0, 0, 0],
-                        fontStyle: 'bold'
-                    },
-                });
+                    // Ajuste de Tabla: Si hay más de 15 productos, se reduce el tamaño y se compactan las filas
+                    let tableBody = [];
+                    if (isLongList) {
+                        for (let i = 0; i < productosEnPedido.length; i += 2) {
+                            let producto1 = productosEnPedido[i];
+                            let producto2 = productosEnPedido[i + 1] || {}; // Puede ser undefined, manejamos como objeto vacío
+                            tableBody.push([
+                                producto1.codigo || i + 1, producto1.cantidad, producto1.unidades || "-", producto1.nombre, `$${producto1.precio?.toFixed(2)}`, `$${(producto1.precio * producto1.cantidad).toFixed(2)}`,
+                                producto2.codigo || "", producto2.cantidad || "", producto2.unidades || "", producto2.nombre || "", producto2.precio ? `$${producto2.precio.toFixed(2)}` : "", producto2.precio ? `$${(producto2.precio * producto2.cantidad).toFixed(2)}` : ""
+                            ]);
+                        }
+                    } else {
+                        tableBody = productosEnPedido.map((producto, index) => [
+                            producto.codigo ? producto.codigo : index + 1,
+                            producto.cantidad,
+                            producto.unidades ? `${producto.unidades} ${producto.medida}` : "-",
+                            producto.nombre,
+                            `$${producto.precio.toFixed(2)}`,
+                            `$${(producto.precio * producto.cantidad).toFixed(2)}`
+                        ]);
+                    }
 
-                // Total y Nota Final
-                const totalPedido = productosEnPedido.reduce((sum, producto) => sum + (producto.precio * producto.cantidad), 0);
-                doc.setFontSize(12);
-                doc.setFont("helvetica", "bold");
-                doc.text(`Total: $${totalPedido.toFixed(2)}`, 150, doc.previousAutoTable.finalY + 10);
+                    // Dibujar la tabla
+                    doc.autoTable({
+                        head: isLongList
+                            ? [['Código', 'Unidades', 'Bultos', 'Descripción', 'P. Unitario', 'Total', 'Código', 'Unidades', 'Bultos', 'Descripción', 'P. Unitario', 'Total']]
+                            : [['Código', 'Unidades', 'Bultos', 'Descripción', 'P. Unitario', 'Total']],
+                        body: tableBody,
+                        startY: startY + 45,
+                        styles: {
+                            fontSize: tableFontSize,
+                            cellPadding: cellPadding,
+                            lineWidth: 0.1,
+                            valign: 'middle',
+                            halign: 'center',
+                        },
+                        headStyles: {
+                            fillColor: [200, 200, 200], // Gris claro para los encabezados
+                            textColor: [0, 0, 0],
+                            fontStyle: 'bold'
+                        },
+                    });
 
-                // Nota
-                doc.setFontSize(10);
-                doc.setFont("helvetica", "normal");
-                doc.text("Una vez recibida la mercadería, no se aceptan devoluciones.", 10, doc.previousAutoTable.finalY + 20);
-                doc.text("Recibi de conformidad:", 150, doc.previousAutoTable.finalY + 20);
+                    // Total y Nota Final
+                    const totalPedido = productosEnPedido.reduce((sum, producto) => sum + (producto.precio * producto.cantidad), 0);
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`Total: $${totalPedido.toFixed(2)}`, 150, doc.previousAutoTable.finalY + 10);
+
+                    // Nota
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.text("Una vez recibida la mercadería, no se aceptan devoluciones.", 10, doc.previousAutoTable.finalY + 20);
+                    doc.text("Recibi de conformidad:", 150, doc.previousAutoTable.finalY + 20);
+                }
+
+                // Generar el contenido dos veces, para la parte superior e inferior de la hoja
+                generarContenido(10); // Primera copia en la parte superior
+                generarContenido(150); // Segunda copia en la parte inferior
 
                 // Guardar el PDF con un nombre específico
                 doc.save("pedido.pdf");
             }
-
 
             // Confirm order
             $('#confirmarPedido').on('click', function () {
