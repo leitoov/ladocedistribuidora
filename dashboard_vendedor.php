@@ -44,223 +44,276 @@ $userId = $tokenData->user_id;
         :root {
             --primary-color: #00bfff;
             --secondary-color: #007acc;
-            --background-color: #f8f9fa;
+            --background-color: #f0f4f8;
             --text-color: #333;
-            --header-color: #ffffff;
+            --card-background: #ffffff;
+            --hover-color: #e6f2ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.3s ease;
         }
 
         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--background-color);
-            font-family: Arial, sans-serif;
             color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
 
         .navbar {
             background-color: var(--primary-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        .navbar .navbar-brand,
-        .navbar .btn {
-            color: var(--header-color);
+        .navbar-brand {
+            font-weight: bold;
+            color: white !important;
         }
 
-        .navbar .btn:hover {
-            background-color: var(--secondary-color);
-        }
-
-        .content-wrapper {
-            display: flex;
-            flex-wrap: wrap;
+        .order-management {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
-            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .order-management {
+                grid-template-columns: 1fr;
+            }
         }
 
         .card {
-            flex: 1;
-            min-width: 280px;
-            background-color: var(--header-color);
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             padding: 20px;
+            margin-bottom: 20px;
         }
 
         .card-header {
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-bottom: 1px solid #ddd;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            padding: 10px 15px;
             margin-bottom: 15px;
-            background-color: var(--primary-color);
-            color: var(--header-color);
-            padding: 10px;
-            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .form-control {
-            border-radius: 8px;
-        }
-
-        .order-table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        .order-table th,
-        .order-table td {
-            text-align: center;
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .order-table th {
-            background-color: var(--primary-color);
-            color: var(--header-color);
-        }
-
-        .btn-primary,
-        .btn-danger {
-            width: 100%;
-            border-radius: 25px;
-            padding: 10px;
-            margin: 10px 0;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-        }
-
-        .btn-primary:hover {
-            background-color: var(--secondary-color);
-        }
-
-        .btn-danger {
-            background-color: #dc3545;
-        }
-
-        .btn-danger:hover {
-            background-color: #c82333;
+        .card-header i {
+            margin-right: 10px;
         }
 
         .input-group {
             margin-bottom: 15px;
         }
 
-        .order-summary {
-            margin-top: 20px;
-            text-align: right;
-            font-weight: bold;
-            font-size: 1.25rem;
+        .form-control {
+            border-radius: 8px;
+            padding: 10px;
         }
 
-        .input-label {
-            margin-bottom: 5px;
-        }
-
-        #resultadosBusqueda {
-            max-height: 150px;
+        .product-search-results {
+            max-height: 200px;
             overflow-y: auto;
+            border-radius: 8px;
         }
 
-        @media (max-width: 768px) {
-            .content-wrapper {
-                flex-direction: column;
+        .product-search-results .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .product-search-results .list-group-item:hover {
+            background-color: var(--hover-color);
+        }
+
+        .order-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        .order-table thead {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .order-table th, .order-table td {
+            padding: 12px;
+            text-align: center;
+        }
+
+        .order-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-primary, .btn-danger {
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .order-total {
+            text-align: right;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 10px;
+            background-color: var(--hover-color);
+            border-radius: 8px;
+        }
+
+        .modal-content {
+            border-radius: 12px;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 576px) {
+            .order-management {
+                grid-template-columns: 1fr;
             }
 
-            .order-summary {
-                text-align: center;
+            .order-actions {
+                grid-template-columns: 1fr;
             }
 
-            .btn-primary,
-            .btn-danger {
-                margin: 5px 0;
+            .order-table {
+                font-size: 0.9rem;
             }
         }
     </style>
 </head>
-
 <body>
-    <nav class="navbar navbar-expand-lg">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Distribuidora - Panel Vendedor</a>
-            <button class="btn btn-outline-light" id="logoutButton">Cerrar Sesión</button>
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-cart-check me-2"></i> Distribuidora
+            </a>
+            <button class="btn btn-outline-light" id="logoutButton">
+                <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+            </button>
         </div>
     </nav>
-    <div class="container my-4">
-        <h1 class="text-center mb-4">Panel de Gestión de Pedidos</h1>
 
-        <div class="content-wrapper">
-            <!-- Gestor de Pedidos -->
+    <div class="container app-container">
+        <h1 class="text-center my-4">Panel de Gestión de Pedidos</h1>
+
+        <div class="order-management">
+            <!-- Order Manager Card -->
             <div class="card">
-                <div class="card-header">Gestor de Pedidos</div>
-
-                <!-- Formulario para Cliente y Producto -->
-                <div class="input-group">
-                    <label for="clienteInput" class="form-label input-label">Cliente</label>
-                    <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
+                <div class="card-header">
+                    <div>
+                        <i class="bi bi-cart-plus"></i> Gestor de Pedidos
+                    </div>
                 </div>
 
+                <!-- Client Input -->
                 <div class="input-group">
-                    <label for="tipoPedido" class="form-label input-label">Tipo de Pedido</label>
+                    <label for="clienteInput" class="form-label">Cliente</label>
+                    <input type="text" class="form-control" id="clienteInput" 
+                           placeholder="Buscar cliente (2 letras mínimo)">
+                </div>
+
+                <!-- Order Type -->
+                <div class="input-group">
+                    <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
                     <select class="form-control" id="tipoPedido">
                         <option value="Caja">Caja</option>
                         <option value="Reparto">Reparto</option>
                     </select>
                 </div>
 
+                <!-- Product Search -->
                 <div class="input-group">
-                    <label for="productoInput" class="form-label input-label">Producto</label>
-                    <input type="text" class="form-control" id="productoInput" placeholder="Buscar producto (3 letras mínimo)">
+                    <label for="productoInput" class="form-label">Producto</label>
+                    <input type="text" class="form-control" id="productoInput" 
+                           placeholder="Buscar producto (3 letras mínimo)">
                 </div>
 
-                <div id="resultadosBusqueda" class="list-group mt-2"></div>
+                <!-- Search Results -->
+                <div id="resultadosBusqueda" class="product-search-results list-group mt-2"></div>
 
-                <!-- Tabla Pedido Actual -->
-                <table class="order-table mt-3">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Descripción</th>
-                            <th>Cantidad</th>
-                            <th>Precio Unitario</th>
-                            <th>Total</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pedidoActual">
-                        <tr>
-                            <td colspan="6">No hay productos en el pedido.</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <!-- Current Order Table -->
+                <div class="table-responsive">
+                    <table class="order-table mt-3">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Descripción</th>
+                                <th>Cantidad</th>
+                                <th>Precio</th>
+                                <th>Total</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pedidoActual">
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">
+                                    No hay productos en el pedido
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-                <!-- Botones de Acciones -->
-                <button class="btn btn-primary" id="confirmarPedido">Confirmar Pedido</button>
-                <button class="btn btn-danger" id="cancelarPedido">Cancelar Pedido</button>
-                <div class="order-summary" id="totalPedido">Total: $0</div>
+                <!-- Order Total -->
+                <div class="order-total" id="totalPedido">
+                    Total: $0
+                </div>
+
+                <!-- Order Actions -->
+                <div class="order-actions mt-3">
+                    <button class="btn btn-primary" id="confirmarPedido">
+                        <i class="bi bi-check-circle"></i> Confirmar Pedido
+                    </button>
+                    <button class="btn btn-danger" id="cancelarPedido">
+                        <i class="bi bi-x-circle"></i> Cancelar Pedido
+                    </button>
+                </div>
             </div>
 
-            <!-- Historial de Pedidos -->
+            <!-- Order History Card -->
             <div class="card">
-                <div class="card-header">Historial de Pedidos</div>
-                <button class="btn btn-outline-primary w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalHistorialPedidos">
-                    <span class="material-icons">history</span> Ver Historial de Pedidos
+                <div class="card-header">
+                    <div>
+                        <i class="bi bi-clock-history"></i> Historial de Pedidos
+                    </div>
+                </div>
+                <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#modalHistorialPedidos">
+                    <i class="bi bi-list-ul me-2"></i> Ver Historial
                 </button>
             </div>
         </div>
+    </div>
 
-        <!-- Modal de Mensaje -->
-        <div class="modal fade" id="modalMensaje" tabindex="-1" aria-labelledby="modalMensajeLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modalMensajeLabel">Mensaje</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body" id="modalMensajeCuerpo">
-                        <!-- Aquí se mostrará el mensaje -->
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
-                    </div>
+    <!-- Message Modal -->
+    <div class="modal fade" id="modalMensaje" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Mensaje</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalMensajeCuerpo">
+                    <!-- Message content -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
                 </div>
             </div>
         </div>
