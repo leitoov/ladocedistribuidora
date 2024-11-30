@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             FROM pedidos p
             LEFT JOIN detalle_pedido dp ON p.id = dp.id_pedido
             LEFT JOIN productos prod ON dp.id_producto = prod.id
-            WHERE p.id_cliente = :id_cliente AND p.estado = 'Pendiente' AND p.tipo_pedido = 'Caja'
+            WHERE p.id_cliente = 9999 AND p.estado = 'Pendiente' AND p.tipo_pedido = 'Caja'
         ");
         $stmt->execute(['id_cliente' => $id_cliente]);
         $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
