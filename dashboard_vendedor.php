@@ -277,81 +277,81 @@ $userId = $tokenData->user_id;
 
             // Función para generar PDF con jsPDF
             function generarPDF() {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-                // Definir una función auxiliar para generar la misma información en dos secciones de la página
-                function generarContenido(startY) {
-                    // Encabezado de la Distribuidora (Compacto)
-                    doc.setFontSize(12);
-                    doc.setFont("helvetica", "bold");
-                    doc.setTextColor(0, 0, 0);
-                    doc.text("LA DOCE", 10, startY);
-                    
-                    doc.setFontSize(8);
-                    doc.setFont("helvetica", "normal");
-                    doc.text("Necochea 1350 (CABA), LA BOCA", 10, startY + 5);
-                    doc.text("Tel: 1559092429", 10, startY + 10);
-                    doc.text("WhatsApp: 1557713277", 10, startY + 15);
-                    doc.text("ladocedistribuidora@hotmail.com", 10, startY + 20);
-                    doc.text("Documento no válido como factura", 10, startY + 25);
+    // Definir una función auxiliar para generar la misma información en dos secciones de la página
+    function generarContenido(startY) {
+        // Encabezado de la Distribuidora (Compacto y Organizado)
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0, 0, 0);
+        doc.text("LA DOCE", 10, startY);
 
-                    // Detalles del Pedido
-                    doc.setFontSize(10);
-                    doc.setFont("helvetica", "bold");
-                    doc.text("REMITO FICHA", 120, startY);
-                    doc.setFont("helvetica", "normal");
-                    doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 120, startY + 5);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("Necochea 1350 (CABA), LA BOCA", 10, startY + 6);
+        doc.text("Tel: 1559092429 - WhatsApp: 1557713277", 10, startY + 12);
+        doc.text("ladocedistribuidora@hotmail.com", 10, startY + 18);
+        doc.text("Documento no válido como factura", 10, startY + 24);
 
-                    // Información del Cliente
-                    doc.setFontSize(12);
-                    doc.setFont("helvetica", "bold");
-                    doc.text(`Sres.: ${$('#clienteInput').val()}`, 10, startY + 35);
+        // Detalles del Remito
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("REMITO FICHA", 140, startY);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 140, startY + 6);
 
-                    // Productos del Pedido (Sin Tabla)
-                    let yPosition = startY + 50;
-                    doc.setFontSize(10);
-                    doc.setFont("helvetica", "bold");
-                    doc.text("Productos:", 10, yPosition);
-                    yPosition += 5;
+        // Información del Cliente
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Sres.: ${$('#clienteInput').val()}`, 10, startY + 35);
 
-                    productosEnPedido.forEach((producto, index) => {
-                        // Imprimir cada producto en una línea
-                        const productoTexto = `${index + 1}. ${producto.nombre} - ${producto.cantidad} ${producto.unidades || ''} - $${producto.precio.toFixed(2)} - Total: $${(producto.precio * producto.cantidad).toFixed(2)}`;
-                        doc.setFontSize(8);
-                        doc.setFont("helvetica", "normal");
-                        doc.text(productoTexto, 10, yPosition);
+        // Productos del Pedido (Sin Tabla)
+        let yPosition = startY + 45;
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text("Productos:", 10, yPosition);
+        yPosition += 8;
 
-                        yPosition += 5;
+        productosEnPedido.forEach((producto, index) => {
+            // Imprimir cada producto en una línea
+            const productoTexto = `${index + 1}. ${producto.nombre} - ${producto.cantidad} ${producto.unidades || ''} - $${producto.precio.toFixed(2)} - Total: $${(producto.precio * producto.cantidad).toFixed(2)}`;
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text(productoTexto, 10, yPosition);
 
-                        // Si se acerca al borde inferior de la página, pasa a la siguiente sección
-                        if (yPosition > 260) {
-                            yPosition = startY + 10; // Reiniciar en la mitad inferior de la página para la segunda copia
-                        }
-                    });
+            yPosition += 6;
 
-                    // Total del Pedido
-                    const totalPedido = productosEnPedido.reduce((sum, producto) => sum + (producto.precio * producto.cantidad), 0);
-                    yPosition += 10;
-                    doc.setFontSize(10);
-                    doc.setFont("helvetica", "bold");
-                    doc.text(`Total: $${totalPedido.toFixed(2)}`, 10, yPosition);
-
-                    // Nota Final
-                    yPosition += 10;
-                    doc.setFontSize(8);
-                    doc.setFont("helvetica", "normal");
-                    doc.text("Una vez recibida la mercadería, no se aceptan devoluciones.", 10, yPosition);
-                    doc.text("Recibi de conformidad:", 120, yPosition);
-                }
-
-                // Generar el contenido dos veces, para la parte superior e inferior de la hoja
-                generarContenido(10); // Primera copia en la parte superior
-                generarContenido(150); // Segunda copia en la parte inferior
-
-                // Guardar el PDF con un nombre específico
-                doc.save("pedido.pdf");
+            // Si se acerca al borde inferior de la página, pasa a la siguiente sección
+            if (yPosition > 260) {
+                yPosition = startY + 10; // Reiniciar en la mitad inferior de la página para la segunda copia
             }
+        });
+
+        // Total del Pedido
+        const totalPedido = productosEnPedido.reduce((sum, producto) => sum + (producto.precio * producto.cantidad), 0);
+        yPosition += 10;
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Total: $${totalPedido.toFixed(2)}`, 10, yPosition);
+
+        // Nota Final y Recibi de Conformidad
+        yPosition += 15;
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("Una vez recibida la mercadería, no se aceptan devoluciones.", 10, yPosition);
+        doc.text("Recibi de conformidad:", 140, yPosition);
+    }
+
+    // Generar el contenido dos veces, para la parte superior e inferior de la hoja
+    generarContenido(10); // Primera copia en la parte superior
+    generarContenido(150); // Segunda copia en la parte inferior
+
+    // Guardar el PDF con un nombre específico
+    doc.save("pedido.pdf");
+}
 
             // Confirm order
             $('#confirmarPedido').on('click', function () {
