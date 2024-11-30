@@ -282,6 +282,10 @@ $userId = $tokenData->user_id;
                 <div class="modal-body" id="modalCobrarCuerpo">
                     <form id="formCobrarPedido">
                         <div class="mb-3">
+                            <label for="totalAPagar" class="form-label">Total a Pagar</label>
+                            <input type="text" class="form-control" id="totalAPagar" readonly>
+                        </div>
+                        <div class="mb-3">
                             <label for="montoEfectivo" class="form-label">Monto en Efectivo</label>
                             <input type="number" class="form-control" id="montoEfectivo" placeholder="0.00">
                         </div>
@@ -292,10 +296,6 @@ $userId = $tokenData->user_id;
                         <div class="mb-3">
                             <label for="totalConRecargo" class="form-label">Total con Recargo/Descuento</label>
                             <input type="text" class="form-control" id="totalConRecargo" readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label for="totalAPagar" class="form-label">Total a Pagar</label>
-                            <input type="text" class="form-control" id="totalAPagar" readonly>
                         </div>
                         <div class="mb-3">
                             <label for="vuelto" class="form-label">Vuelto</label>
@@ -410,7 +410,8 @@ $userId = $tokenData->user_id;
                 }
 
                 // Llenar la información del modal con los detalles del pedido
-                $('#modalCobrarCuerpo').find('#montoEfectivo, #montoTransferencia, #totalConRecargo, #totalAPagar, #vuelto').val('');
+                $('#totalAPagar').val(pedido.total.toFixed(2));
+                $('#modalCobrarCuerpo').find('#montoEfectivo, #montoTransferencia, #totalConRecargo, #vuelto').val('');
                 $('#modalCobrarPedido').modal('show');
 
                 // Calcular el total con recargo/ descuento en tiempo real
@@ -426,18 +427,13 @@ $userId = $tokenData->user_id;
                     if (montoEfectivo > 0 && montoTransferencia === 0) {
                         totalConRecargo -= (montoEfectivo * 0.05); // Descuento del 5% sobre efectivo solo si no hay transferencia
                     }
-                    $('#totalConRecargo').val(totalConRecargo.toFixed(2));
                     
-                    // Total a pagar
-                    let totalPagado = montoEfectivo + montoTransferencia;
-                    $('#totalAPagar').val(totalPagado.toFixed(2));
+                    $('#totalConRecargo').val(totalConRecargo.toFixed(2));
 
-                    // Calcular vuelto si hay exceso de pago en efectivo
-                    let vuelto = 0;
-                    if (montoEfectivo > totalConRecargo) {
-                        vuelto = montoEfectivo - totalConRecargo;
-                    }
-                    $('#vuelto').val(vuelto.toFixed(2));
+                    // Calcular vuelto
+                    let totalPagado = montoEfectivo + montoTransferencia;
+                    let vuelto = totalPagado - totalConRecargo;
+                    $('#vuelto').val(vuelto > 0 ? vuelto.toFixed(2) : '0.00');
                 });
 
                 // Confirmar cobro
