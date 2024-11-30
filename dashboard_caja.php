@@ -325,7 +325,7 @@ $userId = $tokenData->user_id;
                                         <td>${pedido.pedido_id}</td>
                                         <td>${pedido.cliente_nombre}</td>
                                         <td>${pedido.tipo_pedido}</td>
-                                        <td>$${pedido.total.toFixed(2)}</td>
+                                        <td>$${pedido.total}</td>
                                         <td>
                                             <button class="btn btn-primary btn-sm" onclick="procesarPedido(${pedido.pedido_id})">Procesar</button>
                                             <button class="btn btn-warning btn-sm" onclick="editarPedido(${pedido.pedido_id})">Editar</button>
