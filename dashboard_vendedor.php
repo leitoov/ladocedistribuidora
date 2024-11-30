@@ -277,81 +277,103 @@ $userId = $tokenData->user_id;
 
             // Función para generar PDF con jsPDF
             function generarPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
 
-    // Definir una función auxiliar para generar la misma información en dos secciones de la página
-    function generarContenido(startY) {
-        // Encabezado de la Distribuidora (Compacto y Organizado)
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(0, 0, 0);
-        doc.text("LA DOCE", 10, startY);
+                // Definir una función auxiliar para generar la misma información en dos secciones de la página
+                function generarContenido(startY) {
+                    // Encabezado de la Distribuidora (Compacto y Organizado)
+                    doc.setFontSize(14);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(0, 0, 0);
+                    doc.text("LA DOCE", 10, startY);
 
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.text("Necochea 1350 (CABA), LA BOCA", 10, startY + 6);
-        doc.text("Tel: 1559092429 - WhatsApp: 1557713277", 10, startY + 12);
-        doc.text("ladocedistribuidora@hotmail.com", 10, startY + 18);
-        doc.text("Documento no válido como factura", 10, startY + 24);
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.text("Necochea 1350 (CABA), LA BOCA", 10, startY + 6);
+                    doc.text("Tel: 1559092429 - WhatsApp: 1557713277", 10, startY + 12);
+                    doc.text("ladocedistribuidora@hotmail.com", 10, startY + 18);
+                    doc.text("Documento no válido como factura", 10, startY + 24);
 
-        // Detalles del Remito
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.text("REMITO FICHA", 140, startY);
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 140, startY + 6);
+                    // Detalles del Remito
+                    doc.setFontSize(14);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("REMITO FICHA", 140, startY);
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 140, startY + 6);
 
-        // Información del Cliente
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.text(`Sres.: ${$('#clienteInput').val()}`, 10, startY + 35);
+                    // Información del Cliente
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`Sres.: ${$('#clienteInput').val()}`, 10, startY + 35);
 
-        // Productos del Pedido (Sin Tabla)
-        let yPosition = startY + 45;
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        doc.text("Productos:", 10, yPosition);
-        yPosition += 8;
+                    // Productos del Pedido (en Columnas)
+                    let yPosition = startY + 45;
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("Productos:", 10, yPosition);
+                    yPosition += 8;
 
-        productosEnPedido.forEach((producto, index) => {
-            // Imprimir cada producto en una línea
-            const productoTexto = `${index + 1}. ${producto.nombre} - ${producto.cantidad} ${producto.unidades || ''} - $${producto.precio.toFixed(2)} - Total: $${(producto.precio * producto.cantidad).toFixed(2)}`;
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text(productoTexto, 10, yPosition);
+                    // Configuración de columnas
+                    const col1X = 10; // Primera columna
+                    const col2X = 110; // Segunda columna
+                    let col = 0; // Control de columna (0 para izquierda, 1 para derecha)
+                    let columnYPos = yPosition;
 
-            yPosition += 6;
+                    productosEnPedido.forEach((producto, index) => {
+                        // Preparar el texto del producto
+                        const productoTexto = `${index + 1}. ${producto.nombre} - ${producto.cantidad} ${producto.unidades || ''} - $${producto.precio.toFixed(2)} - Total: $${(producto.precio * producto.cantidad).toFixed(2)}`;
 
-            // Si se acerca al borde inferior de la página, pasa a la siguiente sección
-            if (yPosition > 260) {
-                yPosition = startY + 10; // Reiniciar en la mitad inferior de la página para la segunda copia
+                        // Colocar el texto en la columna correspondiente
+                        if (col === 0) {
+                            // Primera columna (izquierda)
+                            doc.setFontSize(10);
+                            doc.setFont("helvetica", "normal");
+                            doc.text(productoTexto, col1X, columnYPos);
+                            col = 1; // Cambiar a la siguiente columna
+                        } else {
+                            // Segunda columna (derecha)
+                            doc.setFontSize(10);
+                            doc.setFont("helvetica", "normal");
+                            doc.text(productoTexto, col2X, columnYPos);
+                            col = 0; // Volver a la columna izquierda
+                            columnYPos += 8; // Incrementar la posición Y solo cuando se termina una fila completa
+                        }
+
+                        // Si el producto está en la última columna pero no hay más productos para emparejar
+                        if (index === productosEnPedido.length - 1 && col === 1) {
+                            columnYPos += 8; // Incrementar para evitar superposición
+                        }
+
+                        // Si se acerca al borde inferior de la página, pasa a la siguiente sección
+                        if (columnYPos > 260) {
+                            columnYPos = startY + 10; // Reiniciar en la mitad inferior de la página para la segunda copia
+                            col = 0; // Reiniciar a la primera columna
+                        }
+                    });
+
+                    // Total del Pedido
+                    columnYPos += 10;
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`Total: $${productosEnPedido.reduce((sum, producto) => sum + (producto.precio * producto.cantidad), 0).toFixed(2)}`, 10, columnYPos);
+
+                    // Nota Final y Recibi de Conformidad
+                    columnYPos += 15;
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.text("Una vez recibida la mercadería, no se aceptan devoluciones.", 10, columnYPos);
+                    doc.text("Recibi de conformidad:", 140, columnYPos);
+                }
+
+                // Generar el contenido dos veces, para la parte superior e inferior de la hoja
+                generarContenido(10); // Primera copia en la parte superior
+                generarContenido(150); // Segunda copia en la parte inferior
+
+                // Guardar el PDF con un nombre específico
+                doc.save("pedido.pdf");
             }
-        });
-
-        // Total del Pedido
-        const totalPedido = productosEnPedido.reduce((sum, producto) => sum + (producto.precio * producto.cantidad), 0);
-        yPosition += 10;
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.text(`Total: $${totalPedido.toFixed(2)}`, 10, yPosition);
-
-        // Nota Final y Recibi de Conformidad
-        yPosition += 15;
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.text("Una vez recibida la mercadería, no se aceptan devoluciones.", 10, yPosition);
-        doc.text("Recibi de conformidad:", 140, yPosition);
-    }
-
-    // Generar el contenido dos veces, para la parte superior e inferior de la hoja
-    generarContenido(10); // Primera copia en la parte superior
-    generarContenido(150); // Segunda copia en la parte inferior
-
-    // Guardar el PDF con un nombre específico
-    doc.save("pedido.pdf");
-}
 
             // Confirm order
             $('#confirmarPedido').on('click', function () {
