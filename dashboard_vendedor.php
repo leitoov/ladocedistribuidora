@@ -29,7 +29,7 @@ try {
 
 // Extraer información del token
 $userId = $tokenData->user_id;
-?> 
+?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -40,47 +40,121 @@ $userId = $tokenData->user_id;
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
+        :root {
+            --primary-color: #00bfff;
+            --secondary-color: #007acc;
+            --background-color: #f8f9fa;
+            --text-color: #333;
+            --header-color: #ffffff;
+        }
+
+        body {
+            background-color: var(--background-color);
+            font-family: Arial, sans-serif;
+            color: var(--text-color);
+        }
+
         .navbar {
-            background-color: #00bfff;
+            background-color: var(--primary-color);
         }
 
         .navbar .navbar-brand,
         .navbar .btn {
-            color: #fff;
+            color: var(--header-color);
         }
 
         .navbar .btn:hover {
-            background-color: #007acc;
+            background-color: var(--secondary-color);
         }
 
-        .section-header {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-
-        .split {
+        .content-wrapper {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
+            margin-top: 30px;
         }
 
-        .split>div {
+        .card {
             flex: 1;
-            min-width: 100%;
+            min-width: 280px;
+            background-color: var(--header-color);
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .card-header {
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+        }
+
+        .order-table {
+            border-collapse: collapse;
+            width: 100%;
         }
 
         .order-table th,
         .order-table td {
             text-align: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
         }
 
-        .modal-body {
-            text-align: center;
+        .order-table th {
+            background-color: var(--primary-color);
+            color: var(--header-color);
+        }
+
+        .btn-primary,
+        .btn-danger {
+            width: 100%;
+            border-radius: 25px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .order-summary {
+            margin-top: 30px;
+            text-align: right;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .order-summary {
+                text-align: center;
+            }
+
+            .content-wrapper {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -95,19 +169,18 @@ $userId = $tokenData->user_id;
     <div class="container my-4">
         <h1 class="text-center mb-4">Panel de Gestión de Pedidos</h1>
 
-        <div class="split">
-            <!-- Gestión de Pedidos -->
-            <div class="card p-4">
-                <h2 class="section-header">Gestión de Pedidos</h2>
+        <div class="content-wrapper">
+            <!-- Gestor de Pedidos -->
+            <div class="card">
+                <div class="card-header">Gestor de Pedidos</div>
 
-                <!-- Cliente -->
-                <div class="mb-3">
+                <!-- Formulario para Cliente y Producto -->
+                <div class="input-group">
                     <label for="clienteInput" class="form-label">Cliente</label>
                     <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
                 </div>
 
-                <!-- Tipo de Pedido -->
-                <div class="mb-3">
+                <div class="input-group">
                     <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
                     <select class="form-control" id="tipoPedido">
                         <option value="Caja">Caja</option>
@@ -115,15 +188,14 @@ $userId = $tokenData->user_id;
                     </select>
                 </div>
 
-                <!-- Productos -->
-                <div class="mb-3">
+                <div class="input-group">
                     <label for="productoInput" class="form-label">Producto</label>
                     <input type="text" class="form-control" id="productoInput" placeholder="Buscar producto (3 letras mínimo)">
                     <div id="resultadosBusqueda" class="list-group mt-2"></div>
                 </div>
 
-                <!-- Pedido Actual -->
-                <table class="table table-striped order-table mt-3">
+                <!-- Tabla Pedido Actual -->
+                <table class="order-table mt-3">
                     <thead>
                         <tr>
                             <th>Producto</th>
@@ -141,16 +213,15 @@ $userId = $tokenData->user_id;
                     </tbody>
                 </table>
 
-                <button class="btn btn-primary w-100 mt-3" id="confirmarPedido">Confirmar Pedido</button>
-                <button class="btn btn-danger w-100 mt-3" id="cancelarPedido">Cancelar Pedido</button>
-                <h4 class="text-end mt-3" id="totalPedido">Total: $0</h4>
+                <!-- Botones de Acciones -->
+                <button class="btn btn-primary" id="confirmarPedido">Confirmar Pedido</button>
+                <button class="btn btn-danger" id="cancelarPedido">Cancelar Pedido</button>
+                <div class="order-summary" id="totalPedido">Total: $0</div>
             </div>
 
-            <!-- Funciones Complementarias -->
-            <div class="card p-4 mt-4">
-                <h2 class="section-header">Historial de Pedidos</h2>
-
                 <!-- Historial de Pedidos -->
+            <div class="card">
+                <div class="card-header">Historial de Pedidos</div>
                 <button class="btn btn-outline-primary w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalHistorialPedidos">
                     <span class="material-icons">history</span> Ver Historial de Pedidos
                 </button>
@@ -181,6 +252,7 @@ $userId = $tokenData->user_id;
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <!-- Incluye jsPDF-AutoTable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
             let productosEnPedido = [];
