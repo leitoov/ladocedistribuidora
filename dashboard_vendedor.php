@@ -95,6 +95,7 @@
                     <thead>
                         <tr>
                             <th>Producto</th>
+                            <th>Descripción</th>
                             <th>Cantidad</th>
                             <th>Precio Unitario</th>
                             <th>Total</th>
@@ -103,7 +104,7 @@
                     </thead>
                     <tbody id="pedidoActual">
                         <tr>
-                            <td colspan="5">No hay productos en el pedido.</td>
+                            <td colspan="6">No hay productos en el pedido.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -121,24 +122,6 @@
                 <button class="btn btn-outline-primary w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalHistorialPedidos">
                     <span class="material-icons">history</span> Ver Historial de Pedidos
                 </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para mostrar errores y mensajes -->
-    <div class="modal fade" id="modalMensaje" tabindex="-1" aria-labelledby="modalMensajeLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalMensajeLabel">Mensaje</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="modalMensajeCuerpo">
-                    <!-- Mensaje de error o información -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                </div>
             </div>
         </div>
     </div>
@@ -172,7 +155,7 @@
                             if (respuesta.length > 0) {
                                 respuesta.forEach(function (producto) {
                                     $('#resultadosBusqueda').append(
-                                        `<button class="list-group-item list-group-item-action" onclick="agregarProducto(${producto.id}, '${producto.nombre}', ${producto.precio}, ${producto.stock})">
+                                        `<button class="list-group-item list-group-item-action" onclick="agregarProducto(${producto.id}, '${producto.nombre}', '${producto.descripcion}', ${producto.precio}, ${producto.stock})">
                                             ${producto.nombre} - $${producto.precio}
                                         </button>`
                                     );
@@ -191,7 +174,7 @@
             });
 
             // Add product to the current order
-            window.agregarProducto = function (id, nombre, precio, stock) {
+            window.agregarProducto = function (id, nombre, descripcion, precio, stock) {
                 let productoExistente = productosEnPedido.find(p => p.id === id);
                 if (productoExistente) {
                     if (productoExistente.cantidad < stock) {
@@ -205,6 +188,7 @@
                         let nuevoProducto = {
                             id: id,
                             nombre: nombre,
+                            descripcion: descripcion,
                             precio: precio,
                             cantidad: 1,
                             stock: stock
@@ -228,6 +212,7 @@
                     tbody.append(`
                         <tr>
                             <td>${producto.nombre}</td>
+                            <td>${producto.descripcion}</td>
                             <td><input type="number" class="form-control text-center cantidadProducto" data-id="${producto.id}" value="${producto.cantidad}" min="1" max="${producto.stock}" onchange="actualizarCantidad(${producto.id}, this.value)"></td>
                             <td>${producto.precio}</td>
                             <td class="totalProducto">${totalProducto}</td>
@@ -236,37 +221,60 @@
                     `);
                 });
                 if (productosEnPedido.length === 0) {
-                    tbody.append('<tr><td colspan="5">No hay productos en el pedido.</td></tr>');
+                    tbody.append('<tr><td colspan="6">No hay productos en el pedido.</td></tr>');
                 }
                 $('#totalPedido').text(`Total: $${totalPedido}`);
             }
 
-            // Update the quantity of a product in the order
-            window.actualizarCantidad = function (id, nuevaCantidad) {
-                let producto = productosEnPedido.find(p => p.id === id);
-                if (producto) {
-                    nuevaCantidad = parseInt(nuevaCantidad);
-                    if (nuevaCantidad > producto.stock) {
-                        mostrarMensajeModal("No hay suficiente stock disponible.");
-                        $(`input.cantidadProducto[data-id="${id}"]`).val(1);
-                        producto.cantidad = 1;
-                        actualizarTablaPedido();
-                        return;
-                    }
-                    producto.cantidad = nuevaCantidad;
-                    if (producto.cantidad <= 0) {
-                        eliminarProducto(id);
-                    } else {
-                        actualizarTablaPedido();
-                    }
-                }
-            };
+            // Función para generar PDF con jsPDF
+            function generarPDF() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
 
-            // Remove product from the order
-            window.eliminarProducto = function (id) {
-                productosEnPedido = productosEnPedido.filter(p => p.id !== id);
-                actualizarTablaPedido();
-            };
+                // Encabezado del PDF
+                doc.setFontSize(16);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(0, 0, 0);
+                doc.text("Distribuidora - Pedido", 10, 10);
+
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "normal");
+                doc.text(`Cliente: ${$('#clienteInput').val()}`, 10, 20);
+                doc.text(`Tipo de Pedido: ${$('#tipoPedido').val()}`, 10, 25);
+                doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 10, 30);
+                doc.text(`Hora: ${new Date().toLocaleTimeString()}`, 10, 35);
+
+                // Tabla de Productos
+                let tableBody = productosEnPedido.map((producto, index) => [
+                    index + 1,
+                    producto.nombre,
+                    producto.descripcion,
+                    producto.cantidad,
+                    `$${producto.precio.toFixed(2)}`,
+                    `$${(producto.precio * producto.cantidad).toFixed(2)}`
+                ]);
+
+                doc.autoTable({
+                    head: [['#', 'Producto', 'Descripción', 'Cantidad', 'Precio Unitario', 'Total']],
+                    body: tableBody,
+                    startY: 40,
+                    styles: {
+                        fontSize: 8,
+                        cellPadding: 3,
+                        lineWidth: 0.1,
+                        valign: 'middle',
+                        halign: 'center',
+                    },
+                    headStyles: {
+                        fillColor: [200, 200, 200], // Gris claro para los encabezados
+                        textColor: [0, 0, 0],
+                        fontStyle: 'bold'
+                    },
+                });
+
+                // Guardar el PDF con un nombre específico
+                doc.save("pedido.pdf");
+            }
 
             // Confirm order
             $('#confirmarPedido').on('click', function () {
@@ -294,6 +302,7 @@
                     }),
                     success: function () {
                         mostrarMensajeModal("Pedido confirmado correctamente");
+                        generarPDF();
                         productosEnPedido = [];
                         actualizarTablaPedido();
                     },
@@ -301,14 +310,6 @@
                         mostrarMensajeModal("Error al confirmar el pedido.");
                     }
                 });
-            });
-
-            // Cancel order
-            $('#cancelarPedido').on('click', function () {
-                if (confirm("¿Está seguro de que desea cancelar el pedido? Todos los productos se eliminarán.")) {
-                    productosEnPedido = [];
-                    actualizarTablaPedido();
-                }
             });
         });
     </script>
