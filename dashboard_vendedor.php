@@ -421,40 +421,104 @@ $userId = $tokenData->user_id;
                 $('#totalPedido').text(`Total: $${totalPedido}`);
             }
 
-            // Función para generar e imprimir automáticamente el ticket
-            function imprimirTicket() {
-                let ventanaImpresion = window.open('', 'PRINT', 'height=400,width=600');
+            // Función para generar PDF con jsPDF
+            function generarPDF() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
 
-                ventanaImpresion.document.write('<html><head><title>Ticket de Pedido</title>');
-                ventanaImpresion.document.write('</head><body>');
-                ventanaImpresion.document.write('<h3>LA DOCE</h3>');
-                ventanaImpresion.document.write('<p>Necochea 1350 (CABA), LA BOCA</p>');
-                ventanaImpresion.document.write('<p>Tel: 1559092429 - WhatsApp: 1557713277</p>');
-                ventanaImpresion.document.write('<p>ladocedistribuidora@hotmail.com</p>');
-                ventanaImpresion.document.write('<p>Documento no válido como factura</p>');
-                ventanaImpresion.document.write('<hr>');
-                ventanaImpresion.document.write('<p><strong>Cliente: </strong>' + $('#clienteInput').val() + '</p>');
-                ventanaImpresion.document.write('<table>');
-                ventanaImpresion.document.write('<thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Total</th></tr></thead>');
-                ventanaImpresion.document.write('<tbody>');
+                // Definir una función auxiliar para generar la misma información en dos secciones de la página
+                function generarContenido(startY) {
+                    // Encabezado de la Distribuidora (Compacto y Organizado)
+                    doc.setFontSize(14);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(0, 0, 0);
+                    doc.text("LA DOCE", 10, startY);
 
-                productosEnPedido.forEach(function (producto) {
-                    let totalProducto = producto.precio * producto.cantidad;
-                    ventanaImpresion.document.write('<tr><td>' + producto.nombre + '</td><td>' + producto.cantidad + '</td><td>' + producto.precio.toFixed(2) + '</td><td>' + totalProducto.toFixed(2) + '</td></tr>');
-                });
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.text("Necochea 1350 (CABA), LA BOCA", 10, startY + 6);
+                    doc.text("Tel: 1559092429 - WhatsApp: 1557713277", 10, startY + 12);
+                    doc.text("ladocedistribuidora@hotmail.com", 10, startY + 18);
+                    doc.text("Documento no válido como factura", 10, startY + 24);
 
-                ventanaImpresion.document.write('</tbody>');
-                ventanaImpresion.document.write('</table>');
-                ventanaImpresion.document.write('<hr>');
-                ventanaImpresion.document.write('<p><strong>Total a Pagar: </strong>$' + productosEnPedido.reduce((sum, producto) => sum + (producto.precio * producto.cantidad), 0).toFixed(2) + '</p>');
-                ventanaImpresion.document.write('<p>Una vez recibida la mercadería, no se aceptan devoluciones.</p>');
-                ventanaImpresion.document.write('<p>Recibi de conformidad:</p>');
-                ventanaImpresion.document.write('</body></html>');
+                    // Detalles del Remito
+                    doc.setFontSize(14);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("REMITO FICHA", 140, startY);
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 140, startY + 6);
 
-                ventanaImpresion.document.close();
-                ventanaImpresion.focus();
-                ventanaImpresion.print();
-                ventanaImpresion.close();
+                    // Información del Cliente
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`Sres.: ${$('#clienteInput').val()}`, 10, startY + 35);
+
+                    // Productos del Pedido (en Columnas)
+                    let yPosition = startY + 45;
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("Productos:", 10, yPosition);
+                    yPosition += 8;
+
+                    // Configuración de columnas
+                    const col1X = 10; // Primera columna
+                    const col2X = 110; // Segunda columna
+                    let col = 0; // Control de columna (0 para izquierda, 1 para derecha)
+                    let columnYPos = yPosition;
+
+                    productosEnPedido.forEach((producto, index) => {
+                        // Preparar el texto del producto
+                        const productoTexto = `${index + 1}. ${producto.nombre} - ${producto.cantidad} ${producto.unidades || ''} - $${producto.precio.toFixed(2)} - Total: $${(producto.precio * producto.cantidad).toFixed(2)}`;
+
+                        // Colocar el texto en la columna correspondiente
+                        if (col === 0) {
+                            // Primera columna (izquierda)
+                            doc.setFontSize(10);
+                            doc.setFont("helvetica", "normal");
+                            doc.text(productoTexto, col1X, columnYPos);
+                            col = 1; // Cambiar a la siguiente columna
+                        } else {
+                            // Segunda columna (derecha)
+                            doc.setFontSize(10);
+                            doc.setFont("helvetica", "normal");
+                            doc.text(productoTexto, col2X, columnYPos);
+                            col = 0; // Volver a la columna izquierda
+                            columnYPos += 8; // Incrementar la posición Y solo cuando se termina una fila completa
+                        }
+
+                        // Si el producto está en la última columna pero no hay más productos para emparejar
+                        if (index === productosEnPedido.length - 1 && col === 1) {
+                            columnYPos += 8; // Incrementar para evitar superposición
+                        }
+
+                        // Si se acerca al borde inferior de la página, pasa a la siguiente sección
+                        if (columnYPos > 260) {
+                            columnYPos = startY + 10; // Reiniciar en la mitad inferior de la página para la segunda copia
+                            col = 0; // Reiniciar a la primera columna
+                        }
+                    });
+
+                    // Total del Pedido
+                    columnYPos += 10;
+                    doc.setFontSize(12);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`Total: $${productosEnPedido.reduce((sum, producto) => sum + (producto.precio * producto.cantidad), 0).toFixed(2)}`, 10, columnYPos);
+
+                    // Nota Final y Recibi de Conformidad
+                    columnYPos += 15;
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.text("Una vez recibida la mercadería, no se aceptan devoluciones.", 10, columnYPos);
+                    doc.text("Recibi de conformidad:", 140, columnYPos);
+                }
+
+                // Generar el contenido dos veces, para la parte superior e inferior de la hoja
+                generarContenido(10); // Primera copia en la parte superior
+                generarContenido(150); // Segunda copia en la parte inferior
+
+                // Guardar el PDF con un nombre específico
+                doc.save("pedido.pdf");
             }
 
             //Cerrar sesion
@@ -488,7 +552,7 @@ $userId = $tokenData->user_id;
                     }),
                     success: function () {
                         mostrarMensajeModal("Pedido confirmado correctamente");
-                        imprimirTicket();
+                        generarPDF();
                         productosEnPedido = [];
                         actualizarTablaPedido();
                     },
