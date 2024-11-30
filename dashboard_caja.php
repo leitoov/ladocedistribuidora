@@ -294,12 +294,12 @@ $userId = $tokenData->user_id;
                             <input type="number" class="form-control" id="montoTransferencia" placeholder="0.00">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Total con Descuento (Efectivo)</label>
-                            <p id="totalConDescuento" class="form-control-plaintext"></p>
+                            <label class="form-label">Descuento Aplicado (Efectivo)</label>
+                            <p id="descuentoAplicado" class="form-control-plaintext"></p>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Total con Recargo (Transferencia)</label>
-                            <p id="totalConRecargo" class="form-control-plaintext"></p>
+                            <label class="form-label">Recargo Aplicado (Transferencia)</label>
+                            <p id="recargoAplicado" class="form-control-plaintext"></p>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Vuelto</label>
@@ -337,7 +337,7 @@ $userId = $tokenData->user_id;
                     success: function (data) {
                         let tbody = $('#pedidosCaja');
                         tbody.empty();
-                        // Group orders by pedido_id
+                        // Agrupar pedidos por pedido_id
                         data.forEach(function(item) {
                             if (!pedidosAgrupados[item.pedido_id]) {
                                 pedidosAgrupados[item.pedido_id] = {
@@ -358,7 +358,7 @@ $userId = $tokenData->user_id;
                             });
                         });
 
-                        // Show orders
+                        // Mostrar pedidos
                         if (Object.keys(pedidosAgrupados).length > 0) {
                             Object.values(pedidosAgrupados).forEach(function (pedido) {
                                 tbody.append(`
@@ -395,7 +395,7 @@ $userId = $tokenData->user_id;
                 });
             }
 
-            // Function to show messages in a modal
+            // Función para mostrar mensajes en un modal
             function mostrarMensajeModal(mensaje) {
                 $('#modalMensajeCuerpo').text(mensaje);
                 $('#modalMensaje').modal('show');
@@ -424,26 +424,26 @@ $userId = $tokenData->user_id;
                     let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
                     let total = pedido.total;
 
-                    let totalConDescuento = total;
-                    let totalConRecargo = total;
+                    let descuentoAplicado = 0;
+                    let recargoAplicado = 0;
 
                     if (montoTransferencia > 0) {
-                        totalConRecargo = total + (montoTransferencia * 0.05); // Recargo del 5% sobre transferencia
-                        $('#totalConRecargo').text(`$${totalConRecargo.toFixed(2)} (con recargo por transferencia)`);
+                        recargoAplicado = montoTransferencia * 0.05; // Recargo del 5% sobre transferencia
+                        $('#recargoAplicado').text(`$${recargoAplicado.toFixed(2)} (recargo por transferencia)`);
                     } else {
-                        $('#totalConRecargo').text('$0.00');
+                        $('#recargoAplicado').text('$0.00');
                     }
 
                     if (montoEfectivo > 0 && montoTransferencia === 0) {
-                        totalConDescuento = total - (montoEfectivo * 0.05); // Descuento del 5% sobre efectivo solo si no hay transferencia
-                        $('#totalConDescuento').text(`$${totalConDescuento.toFixed(2)} (con descuento por pago en efectivo)`);
+                        descuentoAplicado = montoEfectivo * 0.05; // Descuento del 5% sobre efectivo solo si no hay transferencia
+                        $('#descuentoAplicado').text(`$${descuentoAplicado.toFixed(2)} (descuento por pago en efectivo)`);
                     } else {
-                        $('#totalConDescuento').text('$0.00');
+                        $('#descuentoAplicado').text('$0.00');
                     }
 
                     // Calcular el vuelto
-                    let totalPagado = montoEfectivo + montoTransferencia;
-                    let vuelto = totalPagado - total;
+                    let totalConRecargoDescuento = total + recargoAplicado - descuentoAplicado;
+                    let vuelto = montoEfectivo - totalConRecargoDescuento;
                     $('#vuelto').text(`$${vuelto.toFixed(2)}`);
                 });
 
@@ -451,10 +451,9 @@ $userId = $tokenData->user_id;
                 $('#confirmarCobro').off('click').on('click', function () {
                     let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
                     let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
-                    let totalConRecargo = parseFloat($('#totalConRecargo').text().replace(/[^0-9.-]+/g, "")) || 0;
+                    let totalConRecargoDescuento = parseFloat($('#totalConRecargoDescuento').val()) || 0;
 
-                    // Lógica para cobrar el pedido (esto puede involucrar una llamada AJAX para actualizar el pedido en el servidor)
-                    mostrarMensajeModal(`Pedido ${pedidoId} cobrado correctamente. Total pagado: $${totalConRecargo.toFixed(2)}`);
+                    mostrarMensajeModal(`Pedido ${pedidoId} cobrado correctamente. Total pagado: $${totalConRecargoDescuento.toFixed(2)}`);
                     $('#modalCobrarPedido').modal('hide');
                     cargarPedidosCaja();
                 });
@@ -477,6 +476,5 @@ $userId = $tokenData->user_id;
             });
         });
     </script>
-</body>
-
-</html>
+    </body>
+    </html>
