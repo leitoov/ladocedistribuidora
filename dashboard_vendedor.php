@@ -89,6 +89,10 @@ $userId = $tokenData->user_id;
             font-weight: bold;
             border-bottom: 1px solid #ddd;
             margin-bottom: 15px;
+            background-color: var(--primary-color);
+            color: var(--header-color);
+            padding: 10px;
+            border-radius: 8px;
         }
 
         .form-control {
@@ -137,23 +141,37 @@ $userId = $tokenData->user_id;
         }
 
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .order-summary {
-            margin-top: 30px;
+            margin-top: 20px;
             text-align: right;
             font-weight: bold;
             font-size: 1.25rem;
         }
 
+        .input-label {
+            margin-bottom: 5px;
+        }
+
+        #resultadosBusqueda {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
         @media (max-width: 768px) {
+            .content-wrapper {
+                flex-direction: column;
+            }
+
             .order-summary {
                 text-align: center;
             }
 
-            .content-wrapper {
-                flex-direction: column;
+            .btn-primary,
+            .btn-danger {
+                margin: 5px 0;
             }
         }
     </style>
@@ -176,12 +194,12 @@ $userId = $tokenData->user_id;
 
                 <!-- Formulario para Cliente y Producto -->
                 <div class="input-group">
-                    <label for="clienteInput" class="form-label">Cliente</label>
+                    <label for="clienteInput" class="form-label input-label">Cliente</label>
                     <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
                 </div>
 
                 <div class="input-group">
-                    <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
+                    <label for="tipoPedido" class="form-label input-label">Tipo de Pedido</label>
                     <select class="form-control" id="tipoPedido">
                         <option value="Caja">Caja</option>
                         <option value="Reparto">Reparto</option>
@@ -189,10 +207,11 @@ $userId = $tokenData->user_id;
                 </div>
 
                 <div class="input-group">
-                    <label for="productoInput" class="form-label">Producto</label>
+                    <label for="productoInput" class="form-label input-label">Producto</label>
                     <input type="text" class="form-control" id="productoInput" placeholder="Buscar producto (3 letras mínimo)">
-                    <div id="resultadosBusqueda" class="list-group mt-2"></div>
                 </div>
+
+                <div id="resultadosBusqueda" class="list-group mt-2"></div>
 
                 <!-- Tabla Pedido Actual -->
                 <table class="order-table mt-3">
@@ -219,7 +238,7 @@ $userId = $tokenData->user_id;
                 <div class="order-summary" id="totalPedido">Total: $0</div>
             </div>
 
-                <!-- Historial de Pedidos -->
+            <!-- Historial de Pedidos -->
             <div class="card">
                 <div class="card-header">Historial de Pedidos</div>
                 <button class="btn btn-outline-primary w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalHistorialPedidos">
@@ -227,6 +246,7 @@ $userId = $tokenData->user_id;
                 </button>
             </div>
         </div>
+
         <!-- Modal de Mensaje -->
         <div class="modal fade" id="modalMensaje" tabindex="-1" aria-labelledby="modalMensajeLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -246,11 +266,9 @@ $userId = $tokenData->user_id;
         </div>
     </div>
 
-    <!-- jQuery y Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <!-- Incluye jsPDF-AutoTable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
