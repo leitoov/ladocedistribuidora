@@ -416,15 +416,17 @@ $userId = $tokenData->user_id;
 
                 // Llenar la información del modal con los detalles del pedido
                 $('#totalAPagar').text(`$${pedido.total}`);
-                $('#modalCobrarCuerpo').find('#montoEfectivo, #montoTransferencia').val('');
-                $('#totalConDescuento, #totalConRecargo, #vuelto').text('');
+                $('#montoEfectivo, #montoTransferencia').val('');
+                $('#totalConDescuento').text('');
+                $('#totalConRecargo').text('');
+                $('#vuelto').text('');
                 $('#modalCobrarPedido').modal('show');
 
                 // Calcular el total con recargo/ descuento en tiempo real
-                $('#montoEfectivo, #montoTransferencia').on('input', function () {
+                $('#montoEfectivo, #montoTransferencia').off('input').on('input', function () {
                     let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
                     let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
-                    let total = pedido.total;
+                    let total = parseFloat(pedido.total);
 
                     let totalConRecargo = total;
                     let totalConDescuento = total;
@@ -436,12 +438,12 @@ $userId = $tokenData->user_id;
                         totalConDescuento -= (montoEfectivo * 0.05); // Descuento del 5% sobre efectivo solo si no hay transferencia
                     }
 
-                    $('#totalConRecargo').text(`$${totalConRecargo.toFixed(2)}`);
-                    $('#totalConDescuento').text(`$${totalConDescuento.toFixed(2)}`);
+                    $('#totalConDescuento').text(totalConDescuento.toFixed(2));
+                    $('#totalConRecargo').text(totalConRecargo.toFixed(2));
 
-                    // Calcular el vuelto
+                    // Calcular vuelto
                     let totalPagado = montoEfectivo + montoTransferencia;
-                    let vuelto = totalPagado - totalConRecargo;
+                    let vuelto = totalPagado - total;
                     $('#vuelto').text(vuelto > 0 ? `$${vuelto.toFixed(2)}` : '$0.00');
                 });
 
@@ -449,7 +451,7 @@ $userId = $tokenData->user_id;
                 $('#confirmarCobro').off('click').on('click', function () {
                     let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
                     let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
-                    let totalConRecargo = parseFloat($('#totalConRecargo').text().replace('$', '')) || 0;
+                    let totalConRecargo = parseFloat($('#totalConRecargo').text()) || total;
 
                     // Lógica para cobrar el pedido (esto puede involucrar una llamada AJAX para actualizar el pedido en el servidor)
                     mostrarMensajeModal(`Pedido ${pedidoId} cobrado correctamente. Total pagado: $${totalConRecargo}`);
