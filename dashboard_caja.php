@@ -293,7 +293,7 @@ $userId = $tokenData->user_id;
                                 tbody.append(`
                                     <tr>
                                         <td>${pedido.pedido_id}</td>
-                                        <td>${pedido.cliente}</td>
+                                        <td>${pedido.cliente_nombre}</td>
                                         <td>${pedido.tipo_pedido}</td>
                                         <td>$${pedido.total}</td>
                                         <td>
