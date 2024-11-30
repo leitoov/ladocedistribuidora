@@ -271,6 +271,37 @@ $userId = $tokenData->user_id;
         </div>
     </div>
 
+    <!-- Modal para Cobrar Pedido -->
+    <div class="modal fade" id="modalCobrarPedido" tabindex="-1" aria-labelledby="modalCobrarPedidoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalCobrarPedidoLabel">Cobrar Pedido</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="detallePedido">
+                        <!-- Aquí se mostrarán los detalles del pedido -->
+                    </div>
+                    <hr>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Monto en Efectivo:</span>
+                        <input type="number" class="form-control" id="montoEfectivo" min="0" value="0">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Monto en Transferencia:</span>
+                        <input type="number" class="form-control" id="montoTransferencia" min="0" value="0">
+                    </div>
+                    <h5 class="text-end" id="totalConDescuentoRecargo">Total: $0.00</h5>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" id="confirmarCobro">Confirmar Cobro</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
@@ -278,111 +309,154 @@ $userId = $tokenData->user_id;
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
-           
-            // Cargar los pedidos para la caja
-            function cargarPedidosCaja() {
-                $.ajax({
-                    url: 'api/orders.php',
-                    type: 'POST',
-                    dataType: 'json',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ 
-                        token: '<?php echo $_SESSION['token']; ?>', 
-                    }),
-                    success: function (data) {
-                        let tbody = $('#pedidosCaja');
-                        tbody.empty();
-                        console.log(data)
-                        // Group orders by pedido_id
-                        let pedidosAgrupados = {};
-                        data.forEach(function(item) {
-                            if (!pedidosAgrupados[item.pedido_id]) {
-                                pedidosAgrupados[item.pedido_id] = {
-                                    pedido_id: item.pedido_id,
-                                    fecha: item.fecha,
-                                    total: item.total,
-                                    estado: item.estado,
-                                    tipo_pedido: item.tipo_pedido,
-                                    cliente_nombre: item.cliente_nombre,
-                                    productos: []
-                                };
-                            }
-                            
-                            pedidosAgrupados[item.pedido_id].productos.push({
-                                id_producto: item.id_producto,
-                                producto_nombre: item.producto_nombre,
-                                cantidad: item.cantidad,
-                                precio_producto: item.precio_producto
-                            });
-                        });
+        let pedidoSeleccionado = null;
 
-                        // Show orders
-                        if (Object.keys(pedidosAgrupados).length > 0) {
-                            Object.values(pedidosAgrupados).forEach(function (pedido) {
-                                tbody.append(`
-                                    <tr>
-                                        <td>${pedido.pedido_id}</td>
-                                        <td>${pedido.cliente_nombre}</td>
-                                        <td>${pedido.tipo_pedido}</td>
-                                        <td>$${pedido.total}</td>
-                                        <td>
-                                            <div class="d-flex justify-content-center gap-2">
-                                                <button class="btn btn-primary btn-sm" onclick="cobrarPedido(${pedido.pedido_id})">
-                                                    <i class="bi bi-cash-coin me-1"></i>Cobrar
-                                                </button>
-                                                <button class="btn btn-warning btn-sm" onclick="editarPedido(${pedido.pedido_id})">
-                                                    <i class="bi bi-pencil me-1"></i>Editar
-                                                </button>
-                                                <button class="btn btn-danger btn-sm" onclick="anularPedido(${pedido.pedido_id})">
-                                                    <i class="bi bi-x-circle me-1"></i>Anular
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `);
-                            });
-                        } else {
-                            tbody.append('<tr><td colspan="5" class="text-center text-muted">No hay pedidos disponibles</td></tr>');
+        // Cargar los pedidos para la caja
+        function cargarPedidosCaja() {
+            $.ajax({
+                url: 'api/orders.php',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({ 
+                    token: '<?php echo $_SESSION['token']; ?>', 
+                }),
+                success: function (data) {
+                    let tbody = $('#pedidosCaja');
+                    tbody.empty();
+
+                    let pedidosAgrupados = {};
+                    data.forEach(function(item) {
+                        if (!pedidosAgrupados[item.pedido_id]) {
+                            pedidosAgrupados[item.pedido_id] = {
+                                pedido_id: item.pedido_id,
+                                fecha: item.fecha,
+                                total: item.total,
+                                estado: item.estado,
+                                tipo_pedido: item.tipo_pedido,
+                                cliente_nombre: item.cliente_nombre,
+                                productos: []
+                            };
                         }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error en la solicitud:", status, error);
-                        console.log("Respuesta del servidor:", xhr.responseText);
-                        mostrarMensajeModal("Error al cargar los pedidos de la caja: " + error);
+                        pedidosAgrupados[item.pedido_id].productos.push({
+                            id_producto: item.id_producto,
+                            producto_nombre: item.producto_nombre,
+                            cantidad: item.cantidad,
+                            precio_producto: item.precio_producto,
+                            aplica_descuento: item.aplica_descuento
+                        });
+                    });
+
+                    if (Object.keys(pedidosAgrupados).length > 0) {
+                        Object.values(pedidosAgrupados).forEach(function (pedido) {
+                            tbody.append(`
+                                <tr>
+                                    <td>${pedido.pedido_id}</td>
+                                    <td>${pedido.cliente_nombre}</td>
+                                    <td>${pedido.tipo_pedido}</td>
+                                    <td>$${pedido.total}</td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-primary btn-sm" onclick="cobrarPedido(${pedido.pedido_id})">
+                                                <i class="bi bi-cash-coin me-1"></i>Cobrar
+                                            </button>
+                                            <button class="btn btn-warning btn-sm" onclick="editarPedido(${pedido.pedido_id})">
+                                                <i class="bi bi-pencil me-1"></i>Editar
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" onclick="anularPedido(${pedido.pedido_id})">
+                                                <i class="bi bi-x-circle me-1"></i>Anular
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    } else {
+                        tbody.append('<tr><td colspan="5" class="text-center text-muted">No hay pedidos disponibles</td></tr>');
                     }
-                });
-            }
-            // Function to show messages in a modal
-            function mostrarMensajeModal(mensaje) {
-                $('#modalMensajeCuerpo').text(mensaje);
-                $('#modalMensaje').modal('show');
-            }
-
-            // Editar Pedido
-            window.editarPedido = function (pedidoId) {
-                window.location.href = `editar_pedido.php?pedidoId=${pedidoId}`;
-            }
-            //Cobrar pedido
-            window.cobrarPedido = function (pedidoId) {
-                mostrarMensajeModal(`Pedido ${pedidoId} cobrado correctamente.`);
-                cargarPedidosCaja();
-            }
-            //Anular pedido
-            window.anularPedido = function (pedidoId) {
-    if (confirm(`¿Estás seguro de que quieres anular el pedido ${pedidoId}?`)) {
-        mostrarMensajeModal(`Pedido ${pedidoId} anulado.`);
-        cargarPedidosCaja();
-    }
-}
-            // Cargar pedidos al cargar la página
-            cargarPedidosCaja();
-
-
-            //Cerrar sesión
-            $('#logoutButton').on('click', function () {
-                window.location.href = 'logout.php';
+                },
+                error: function (xhr, status, error) {
+                    mostrarMensajeModal("Error al cargar los pedidos de la caja: " + error);
+                }
             });
+        }
+
+        // Cobrar pedido
+        window.cobrarPedido = function (pedidoId) {
+            pedidoSeleccionado = pedidoId;
+
+            // Obtener detalles del pedido
+            let pedido = Object.values(pedidosAgrupados).find(p => p.pedido_id === pedidoId);
+            if (!pedido) {
+                mostrarMensajeModal("No se pudo encontrar el pedido seleccionado.");
+                return;
+            }
+
+            let detalleHtml = `
+                <h6>Cliente: ${pedido.cliente_nombre}</h6>
+                <h6>Fecha: ${pedido.fecha}</h6>
+                <h6>Productos:</h6>
+                <ul>
+            `;
+            pedido.productos.forEach(function (producto) {
+                detalleHtml += `<li>${producto.producto_nombre} - Cantidad: ${producto.cantidad} - Precio: $${producto.precio_producto} - Descuento aplicable: ${producto.aplica_descuento === 'si' ? 'Sí' : 'No'}</li>`;
+            });
+            detalleHtml += `</ul><h6>Total: $${pedido.total}</h6>`;
+
+            $('#detallePedido').html(detalleHtml);
+            $('#modalCobrarPedido').modal('show');
+        }
+
+        // Calcular total con descuento/recargo
+        function calcularTotal() {
+            let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
+            let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
+
+            let totalPedido = 0;
+            let recargoTransferencia = 0;
+            let descuentoEfectivo = 0;
+
+            let pedido = Object.values(pedidosAgrupados).find(p => p.pedido_id === pedidoSeleccionado);
+            if (!pedido) {
+                return;
+            }
+
+            pedido.productos.forEach(function (producto) {
+                let subtotal = producto.precio_producto * producto.cantidad;
+                totalPedido += subtotal;
+
+                if (producto.aplica_descuento === 'si') {
+                    if (montoTransferencia > 0) {
+                        recargoTransferencia += subtotal * 0.05 * (montoTransferencia / (montoEfectivo + montoTransferencia));
+                    }
+                    if (montoEfectivo > 0) {
+                        descuentoEfectivo += subtotal * 0.05 * (montoEfectivo / (montoEfectivo + montoTransferencia));
+                    }
+                }
+            });
+
+            let totalConDescuentoRecargo = totalPedido + recargoTransferencia - descuentoEfectivo;
+            $('#totalConDescuentoRecargo').text(`Total: $${totalConDescuentoRecargo.toFixed(2)}`);
+        }
+
+        // Confirmar cobro
+        $('#confirmarCobro').on('click', function () {
+            mostrarMensajeModal(`Pedido ${pedidoSeleccionado} cobrado correctamente.`);
+            $('#modalCobrarPedido').modal('hide');
+            cargarPedidosCaja();
         });
+
+        // Cargar pedidos al cargar la página
+        cargarPedidosCaja();
+
+        // Cerrar sesión
+        $('#logoutButton').on('click', function () {
+            window.location.href = 'logout.php';
+        });
+
+        // Actualizar el total cuando cambian los montos de efectivo o transferencia
+        $('#montoEfectivo, #montoTransferencia').on('input', calcularTotal);
+    });
     </script>
 </body>
 
