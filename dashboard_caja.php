@@ -162,6 +162,14 @@ $userId = $tokenData->user_id;
             width: 100%;
         }
 
+        .descuento {
+            color: red;
+        }
+
+        .recargo {
+            color: green;
+        }
+
         /* Responsive Adjustments */
         @media (max-width: 576px) {
             .order-management {
@@ -295,11 +303,11 @@ $userId = $tokenData->user_id;
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Descuento Aplicado (Efectivo)</label>
-                            <p id="descuentoAplicado" class="form-control-plaintext"></p>
+                            <p id="descuentoAplicado" class="form-control-plaintext descuento"></p>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Recargo Aplicado (Transferencia)</label>
-                            <p id="recargoAplicado" class="form-control-plaintext"></p>
+                            <p id="recargoAplicado" class="form-control-plaintext recargo"></p>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Vuelto</label>
@@ -337,7 +345,7 @@ $userId = $tokenData->user_id;
                     success: function (data) {
                         let tbody = $('#pedidosCaja');
                         tbody.empty();
-                        // Agrupar pedidos por pedido_id
+                        // Group orders by pedido_id
                         data.forEach(function(item) {
                             if (!pedidosAgrupados[item.pedido_id]) {
                                 pedidosAgrupados[item.pedido_id] = {
@@ -358,7 +366,7 @@ $userId = $tokenData->user_id;
                             });
                         });
 
-                        // Mostrar pedidos
+                        // Show orders
                         if (Object.keys(pedidosAgrupados).length > 0) {
                             Object.values(pedidosAgrupados).forEach(function (pedido) {
                                 tbody.append(`
@@ -395,7 +403,7 @@ $userId = $tokenData->user_id;
                 });
             }
 
-            // Función para mostrar mensajes en un modal
+            // Function to show messages in a modal
             function mostrarMensajeModal(mensaje) {
                 $('#modalMensajeCuerpo').text(mensaje);
                 $('#modalMensaje').modal('show');
@@ -429,16 +437,16 @@ $userId = $tokenData->user_id;
 
                     if (montoTransferencia > 0) {
                         recargoAplicado = montoTransferencia * 0.05; // Recargo del 5% sobre transferencia
-                        $('#recargoAplicado').text(`$${recargoAplicado.toFixed(2)} (recargo por transferencia)`);
+                        $('#recargoAplicado').text(`$${recargoAplicado.toFixed(2)} (recargo por transferencia)`).addClass('recargo');
                     } else {
-                        $('#recargoAplicado').text('$0.00');
+                        $('#recargoAplicado').text('$0.00').removeClass('recargo');
                     }
 
                     if (montoEfectivo > 0 && montoTransferencia === 0) {
                         descuentoAplicado = montoEfectivo * 0.05; // Descuento del 5% sobre efectivo solo si no hay transferencia
-                        $('#descuentoAplicado').text(`$${descuentoAplicado.toFixed(2)} (descuento por pago en efectivo)`);
+                        $('#descuentoAplicado').text(`$${descuentoAplicado.toFixed(2)} (descuento por pago en efectivo)`).addClass('descuento');
                     } else {
-                        $('#descuentoAplicado').text('$0.00');
+                        $('#descuentoAplicado').text('$0.00').removeClass('descuento');
                     }
 
                     // Calcular el vuelto
