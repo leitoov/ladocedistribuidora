@@ -271,6 +271,37 @@ $userId = $tokenData->user_id;
         </div>
     </div>
 
+    <!-- Payment Modal -->
+    <div class="modal fade" id="modalCobrarPedido" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cobrar Pedido</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalCobrarCuerpo">
+                    <form id="formCobrarPedido">
+                        <div class="mb-3">
+                            <label for="montoEfectivo" class="form-label">Monto en Efectivo</label>
+                            <input type="number" class="form-control" id="montoEfectivo" placeholder="0.00">
+                        </div>
+                        <div class="mb-3">
+                            <label for="montoTransferencia" class="form-label">Monto en Transferencia</label>
+                            <input type="number" class="form-control" id="montoTransferencia" placeholder="0.00">
+                        </div>
+                        <div class="mb-3">
+                            <label for="totalConRecargo" class="form-label">Total con Recargo/Descuento</label>
+                            <input type="text" class="form-control" id="totalConRecargo" readonly>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="confirmarCobro">Confirmar Cobro</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
@@ -278,7 +309,7 @@ $userId = $tokenData->user_id;
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
-            let pedidosAgrupados = {}; // Define pedidosAgrupados globally so it can be accessed in other functions
+            let pedidosAgrupados = {};
 
             // Cargar los pedidos para la caja
             function cargarPedidosCaja() {
@@ -287,15 +318,13 @@ $userId = $tokenData->user_id;
                     type: 'POST',
                     dataType: 'json',
                     contentType: 'application/json',
-                    data: JSON.stringify({ 
-                        token: '<?php echo $_SESSION['token']; ?>', 
+                    data: JSON.stringify({
+                        token: '<?php echo $_SESSION['token']; ?>',
                     }),
                     success: function (data) {
                         let tbody = $('#pedidosCaja');
                         tbody.empty();
-
                         // Group orders by pedido_id
-                        pedidosAgrupados = {}; // Initialize pedidosAgrupados here
                         data.forEach(function(item) {
                             if (!pedidosAgrupados[item.pedido_id]) {
                                 pedidosAgrupados[item.pedido_id] = {
@@ -364,10 +393,46 @@ $userId = $tokenData->user_id;
                 window.location.href = `editar_pedido.php?pedidoId=${pedidoId}`;
             }
 
-            // Cobrar pedido
+            // Cobrar pedido - Mostrar Modal
             window.cobrarPedido = function (pedidoId) {
-                mostrarMensajeModal(`Pedido ${pedidoId} cobrado correctamente.`);
-                cargarPedidosCaja();
+                let pedido = pedidosAgrupados[pedidoId];
+                if (!pedido) {
+                    mostrarMensajeModal("Pedido no encontrado");
+                    return;
+                }
+
+                // Llenar la información del modal con los detalles del pedido
+                $('#modalCobrarCuerpo').find('#montoEfectivo, #montoTransferencia, #totalConRecargo').val('');
+                $('#modalCobrarPedido').modal('show');
+
+                // Calcular el total con recargo/ descuento en tiempo real
+                $('#montoEfectivo, #montoTransferencia').on('input', function () {
+                    let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
+                    let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
+                    let total = pedido.total;
+
+                    let totalConRecargo = total;
+                    if (montoTransferencia > 0) {
+                        totalConRecargo += (montoTransferencia * 0.05); // Recargo del 5% sobre transferencia
+                    }
+                    if (montoEfectivo > 0 && montoTransferencia === 0) {
+                        totalConRecargo -= (montoEfectivo * 0.05); // Descuento del 5% sobre efectivo solo si no hay transferencia
+                    }
+                    
+                    $('#totalConRecargo').val(totalConRecargo.toFixed(2));
+                });
+
+                // Confirmar cobro
+                $('#confirmarCobro').off('click').on('click', function () {
+                    let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
+                    let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
+                    let totalConRecargo = parseFloat($('#totalConRecargo').val()) || 0;
+
+                    // Lógica para cobrar el pedido (esto puede involucrar una llamada AJAX para actualizar el pedido en el servidor)
+                    mostrarMensajeModal(`Pedido ${pedidoId} cobrado correctamente. Total pagado: $${totalConRecargo}`);
+                    $('#modalCobrarPedido').modal('hide');
+                    cargarPedidosCaja();
+                });
             }
 
             // Anular pedido
