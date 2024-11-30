@@ -348,12 +348,15 @@ $userId = $tokenData->user_id;
                     mostrarMensajeModal("No hay productos para cancelar.");
                     return;
                 }
-
                 // Vaciar la lista de productos
                 productosEnPedido = [];
-
                 // Actualizar la tabla para reflejar que el pedido ha sido cancelado
                 actualizarTablaPedido();
+                // Limpiar los inputs
+                $('#clienteInput').val('');
+                $('#tipoPedido').val('Caja'); // Restablecer al valor por defecto
+                $('#productoInput').val('');
+                $('#resultadosBusqueda').empty(); // Limpiar los resultados de búsqueda del producto
 
                 mostrarMensajeModal("Pedido cancelado correctamente.");
             });
