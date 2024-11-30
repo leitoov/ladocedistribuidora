@@ -410,7 +410,7 @@ $userId = $tokenData->user_id;
                 }
 
                 // Llenar la información del modal con los detalles del pedido
-                $('#totalAPagar').val(pedido.total.toFixed(2));
+                $('#totalAPagar').val(pedido.total);
                 $('#modalCobrarCuerpo').find('#montoEfectivo, #montoTransferencia, #totalConRecargo, #vuelto').val('');
                 $('#modalCobrarPedido').modal('show');
 
@@ -428,12 +428,12 @@ $userId = $tokenData->user_id;
                         totalConRecargo -= (montoEfectivo * 0.05); // Descuento del 5% sobre efectivo solo si no hay transferencia
                     }
                     
-                    $('#totalConRecargo').val(totalConRecargo.toFixed(2));
+                    $('#totalConRecargo').val(totalConRecargo);
 
                     // Calcular vuelto
                     let totalPagado = montoEfectivo + montoTransferencia;
                     let vuelto = totalPagado - totalConRecargo;
-                    $('#vuelto').val(vuelto > 0 ? vuelto.toFixed(2) : '0.00');
+                    $('#vuelto').val(vuelto > 0 ? vuelto : '0.00');
                 });
 
                 // Confirmar cobro
