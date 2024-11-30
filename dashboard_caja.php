@@ -288,7 +288,7 @@ $userId = $tokenData->user_id;
                     contentType: 'application/json',
                     data: JSON.stringify({ 
                         token: '<?php echo $_SESSION['token']; ?>', 
-                        id_cliente: <?php echo $userId; ?> 
+                        
                     }),
                     success: function (data) {
                         let tbody = $('#pedidosCaja');

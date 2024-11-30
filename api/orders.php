@@ -28,7 +28,7 @@ try {
 
 // Procesar solicitudes POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_cliente = isset($data['id_cliente']) ? (int)$data['id_cliente'] : 9999;
+    $id_cliente = 9999;
 
     try {
         // Consulta de pedidos
