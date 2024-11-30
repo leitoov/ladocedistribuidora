@@ -231,7 +231,7 @@ $userId = $tokenData->user_id;
                         <i class="bi bi-box-seam"></i> Gestión de Productos
                     </div>
                 </div>
-                <button class="btn btn-primary w-100 mb-3" onclick="window.location.href='anadir_producto.php'">
+                <button class="btn btn-primary w-100 mb-3" onclick="window.location.href='añadir_producto.php'">
                     <i class="bi bi-plus-circle me-2"></i> Añadir Producto
                 </button>
                 <button class="btn btn-warning w-100" onclick="window.location.href='modificar_producto.php'">
@@ -282,8 +282,9 @@ $userId = $tokenData->user_id;
             function cargarPedidosCaja() {
                 $.ajax({
                     url: 'api/orders.php',
-                    type: 'GET',
-                    dataType: 'json',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ token: '<?php echo $_SESSION['token']; ?>', id_cliente: <?php echo $userId; ?> }),
                     success: function (data) {
                         let tbody = $('#pedidosCaja');
                         tbody.empty();
@@ -291,13 +292,13 @@ $userId = $tokenData->user_id;
                             data.forEach(function (pedido) {
                                 tbody.append(`
                                     <tr>
-                                        <td>${pedido.id}</td>
+                                        <td>${pedido.pedido_id}</td>
                                         <td>${pedido.cliente}</td>
                                         <td>${pedido.tipo_pedido}</td>
                                         <td>$${pedido.total}</td>
                                         <td>
-                                            <button class="btn btn-primary btn-sm" onclick="procesarPedido(${pedido.id})">Procesar</button>
-                                            <button class="btn btn-warning btn-sm" onclick="editarPedido(${pedido.id})">Editar</button>
+                                            <button class="btn btn-primary btn-sm" onclick="procesarPedido(${pedido.pedido_id})">Procesar</button>
+                                            <button class="btn btn-warning btn-sm" onclick="editarPedido(${pedido.pedido_id})">Editar</button>
                                         </td>
                                     </tr>
                                 `);
