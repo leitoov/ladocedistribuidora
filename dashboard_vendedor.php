@@ -343,15 +343,19 @@ $userId = $tokenData->user_id;
                     }
                 });
             });
+            // Cancel order
             $('#cancelarPedido').on('click', function () {
                 if (productosEnPedido.length === 0) {
                     mostrarMensajeModal("No hay productos para cancelar.");
                     return;
                 }
+
                 // Vaciar la lista de productos
                 productosEnPedido = [];
+
                 // Actualizar la tabla para reflejar que el pedido ha sido cancelado
                 actualizarTablaPedido();
+
                 // Limpiar los inputs
                 $('#clienteInput').val('');
                 $('#tipoPedido').val('Caja'); // Restablecer al valor por defecto
@@ -360,6 +364,7 @@ $userId = $tokenData->user_id;
 
                 mostrarMensajeModal("Pedido cancelado correctamente.");
             });
+
         });
     </script>
 </body>
