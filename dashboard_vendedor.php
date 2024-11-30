@@ -224,14 +224,14 @@ $userId = $tokenData->user_id;
 
                 <!-- Client Input -->
                 <div class="input-group">
-                    <label for="clienteInput" class="form-label">Cliente</label>
+                    <label for="clienteInput" class="form-label">Cliente</label><br>
                     <input type="text" class="form-control" id="clienteInput" 
                            placeholder="Buscar cliente (2 letras mínimo)">
                 </div>
 
                 <!-- Order Type -->
                 <div class="input-group">
-                    <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
+                    <label for="tipoPedido" class="form-label">Tipo de Pedido</label><br>
                     <select class="form-control" id="tipoPedido">
                         <option value="Caja">Caja</option>
                         <option value="Reparto">Reparto</option>
@@ -240,7 +240,7 @@ $userId = $tokenData->user_id;
 
                 <!-- Product Search -->
                 <div class="input-group">
-                    <label for="productoInput" class="form-label">Producto</label>
+                    <label for="productoInput" class="form-label">Producto</label><br>
                     <input type="text" class="form-control" id="productoInput" 
                            placeholder="Buscar producto (3 letras mínimo)">
                 </div>
