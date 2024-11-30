@@ -293,7 +293,7 @@ $userId = $tokenData->user_id;
                     success: function (data) {
                         let tbody = $('#pedidosCaja');
                         tbody.empty();
-                        
+                        console.log(data)
                         // Agrupar pedidos por pedido_id
                         let pedidosAgrupados = {};
                         data.forEach(function(item) {
