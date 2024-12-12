@@ -1,6 +1,7 @@
 <?php
-require '../config.php';  // Archivo de conexión a la base de datos
-require '../verify_token.php';  // Archivo con la función de verificación del token
+// Modificación de `products.php` para la búsqueda de productos
+require '../config.php';
+require '../verify_token.php';
 
 header('Content-Type: application/json');
 session_start();
@@ -12,7 +13,6 @@ if (!isset($_SESSION['token'])) {
     exit();
 }
 
-$jwt_secret = 'Adeleteamo1988@';
 try {
     $tokenData = verifyJWT($_SESSION['token'], $jwt_secret);
     if (!$tokenData) {
@@ -29,93 +29,26 @@ global $pdo;
 
 switch ($_SERVER['REQUEST_METHOD']) {
     case 'GET':
-        // Buscar productos (puede incluir filtro de búsqueda)
+        // Buscar productos a partir de un término (al menos 3 letras)
         $termino = isset($_GET['termino']) ? trim($_GET['termino']) : '';
-        try {
-            if ($termino) {
-                $stmt = $pdo->prepare("SELECT * FROM productos WHERE nombre LIKE :termino AND stock > 0");
-                $stmt->execute(['termino' => "%$termino%"]);
-            } else {
-                $stmt = $pdo->prepare("SELECT * FROM productos");
-                $stmt->execute();
-            }
+        if (strlen($termino) < 3) {
+            http_response_code(400);
+            echo json_encode(["message" => "El término de búsqueda debe tener al menos 3 caracteres"]);
+            exit();
+        }
 
+        try {
+            $stmt = $pdo->prepare("SELECT id, nombre, precio, stock, estado FROM productos WHERE nombre LIKE :termino LIMIT 10");
+            $stmt->execute(['termino' => "%$termino%"]);
             $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if (empty($productos)) {
+                echo json_encode(["message" => "No se encontraron productos con el término especificado"]);
+                exit();
+            }
             echo json_encode($productos);
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             http_response_code(500);
-            echo json_encode(["message" => "Error al obtener productos", "error" => $e->getMessage()]);
-        }
-        break;
-
-    case 'POST':
-        // Añadir un nuevo producto
-        $data = json_decode(file_get_contents("php://input"));
-        if (!isset($data->nombre, $data->descripcion, $data->precio, $data->stock)) {
-            http_response_code(400);
-            echo json_encode(["message" => "Datos incompletos"]);
-            exit();
-        }
-
-        try {
-            $stmt = $pdo->prepare("INSERT INTO productos (nombre, descripcion, precio, stock) VALUES (:nombre, :descripcion, :precio, :stock)");
-            $stmt->execute([
-                'nombre' => $data->nombre,
-                'descripcion' => $data->descripcion,
-                'precio' => $data->precio,
-                'stock' => $data->stock
-            ]);
-
-            echo json_encode(["message" => "Producto añadido correctamente"]);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(["message" => "Error al añadir producto", "error" => $e->getMessage()]);
-        }
-        break;
-
-    case 'PUT':
-        // Modificar un producto existente
-        $data = json_decode(file_get_contents("php://input"));
-        if (!isset($data->id, $data->nombre, $data->descripcion, $data->precio, $data->stock)) {
-            http_response_code(400);
-            echo json_encode(["message" => "Datos incompletos"]);
-            exit();
-        }
-
-        try {
-            $stmt = $pdo->prepare("UPDATE productos SET nombre = :nombre, descripcion = :descripcion, precio = :precio, stock = :stock WHERE id = :id");
-            $stmt->execute([
-                'nombre' => $data->nombre,
-                'descripcion' => $data->descripcion,
-                'precio' => $data->precio,
-                'stock' => $data->stock,
-                'id' => $data->id
-            ]);
-
-            echo json_encode(["message" => "Producto modificado correctamente"]);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(["message" => "Error al modificar producto", "error" => $e->getMessage()]);
-        }
-        break;
-
-    case 'DELETE':
-        // Eliminar un producto
-        $data = json_decode(file_get_contents("php://input"));
-        if (!isset($data->id)) {
-            http_response_code(400);
-            echo json_encode(["message" => "ID del producto no proporcionado"]);
-            exit();
-        }
-
-        try {
-            $stmt = $pdo->prepare("DELETE FROM productos WHERE id = :id");
-            $stmt->execute(['id' => $data->id]);
-
-            echo json_encode(["message" => "Producto eliminado correctamente"]);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(["message" => "Error al eliminar producto", "error" => $e->getMessage()]);
+            echo json_encode(["message" => "Error al buscar productos", "error" => $e->getMessage()]);
         }
         break;
 
