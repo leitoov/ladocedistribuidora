@@ -38,7 +38,8 @@ switch ($_SERVER['REQUEST_METHOD']) {
         }
 
         try {
-            $stmt = $pdo->prepare("SELECT id, nombre, precio, stock, estado FROM productos WHERE nombre LIKE :termino LIMIT 10");
+            // Seleccionar todas las columnas de productos
+            $stmt = $pdo->prepare("SELECT * FROM productos WHERE nombre LIKE :termino OR descripcion LIKE :termino LIMIT 10");
             $stmt->execute(['termino' => "%$termino%"]);
             $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if (empty($productos)) {
