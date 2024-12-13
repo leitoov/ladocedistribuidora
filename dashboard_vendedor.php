@@ -149,8 +149,9 @@ $userId = $tokenData->user_id;
         .product-search-results {
             max-height: 200px;
             overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            /*border: 1px solid #ddd;
+            border-radius: 8px;*/
+            text-align: left;
         }
 
         .product-search-results .list-group-item {
@@ -210,16 +211,16 @@ $userId = $tokenData->user_id;
             </div>
 
             <!-- Inputs for Client and Order Type -->
-            <div class="row g-3">
+            <div class="row g-3 pt-2">
                 <div class="col-md-6">
                     <div class="input-group">
-                        <label for="clienteInput" class="form-label">Cliente</label>
+                        <label for="clienteInput" class="form-label w-100 text-start">Cliente</label>
                         <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="input-group">
-                        <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
+                        <label for="tipoPedido" class="form-label w-100 text-start">Tipo de Pedido</label>
                         <select class="form-control" id="tipoPedido">
                             <option value="Caja">Caja</option>
                             <option value="Reparto">Reparto</option>
@@ -231,7 +232,7 @@ $userId = $tokenData->user_id;
             <!-- Product Search -->
             <div class="mt-4">
                 <div class="input-group">
-                    <label for="productoInput" class="form-label">Producto</label>
+                    <label for="productoInput" class="form-label w-100 text-start">Producto</label>
                     <input type="text" class="form-control" id="productoInput" placeholder="Buscar producto (3 letras mínimo)">
                 </div>
                 <div id="resultadosBusqueda" class="product-search-results mt-3"></div>
