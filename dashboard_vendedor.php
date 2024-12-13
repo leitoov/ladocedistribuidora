@@ -100,6 +100,7 @@ $userId = $tokenData->user_id;
             grid-template-columns: repeat(auto-fit, minmax(250px, 0fr));
             gap: 20px;
             margin-top: 20px;
+            margin-bottom: 4%;
         }
 
         .product-card {
