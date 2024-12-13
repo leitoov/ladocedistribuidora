@@ -74,6 +74,9 @@ $userId = $tokenData->user_id;
             font-weight: bold;
             color: white !important;
         }
+        p{
+            margin-bottom: 0px;
+        }
 
         .card {
             background-color: var(--card-background);
@@ -94,7 +97,7 @@ $userId = $tokenData->user_id;
 
         .product-columns {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 0fr));
             gap: 20px;
             margin-top: 20px;
             margin-bottom: 4%;
@@ -122,7 +125,7 @@ $userId = $tokenData->user_id;
             font-size: 1rem;
             font-weight: bold;
             color: #007acc;
-            margin-bottom: 10px;
+            /*margin-bottom: 10px;*/
         }
 
         .product-card-details {
@@ -135,12 +138,10 @@ $userId = $tokenData->user_id;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
         }
 
         .product-card-actions input {
-            width: 80px;
+            width: 60%;
             text-align: center;
         }
 
@@ -149,37 +150,18 @@ $userId = $tokenData->user_id;
             font-size: 0.9rem;
         }
 
-        .price-type {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .price-type label {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-color);
-            cursor: pointer;
-        }
-
         .product-search-results {
             max-height: 200px;
             overflow-y: auto;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 0fr));
             text-align: left;
-            gap: 10px;
         }
 
         .product-search-results .list-group-item {
             cursor: pointer;
             padding: 15px;
             border-bottom: 1px solid #bfbfbf40;
-            transition: background-color 0.2s ease;
-        }
-
-        .product-search-results .list-group-item:hover {
-            background-color: var(--hover-color);
         }
 
         .order-summary {
@@ -196,50 +178,11 @@ $userId = $tokenData->user_id;
             z-index: 10;
         }
 
-        .order-summary div {
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .order-summary .btn {
-            padding: 10px 20px;
-            font-size: 1rem;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--secondary-color);
-        }
-
-        .btn-danger {
-            background-color: #dc3545;
-        }
-
-        .btn-danger:hover {
-            background-color: #c82333;
-        }
-
-        /* Responsive Styles */
         @media (max-width: 768px) {
             .product-columns {
                 grid-template-columns: 1fr;
             }
-
-            .order-summary {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .order-summary .btn {
-                width: 100%;
-            }
         }
-
 
     </style>
 </head>
@@ -358,12 +301,12 @@ $userId = $tokenData->user_id;
         // Búsqueda de productos con AJAX
         $('#productoInput').on('keyup', function () {
             let termino = $(this).val();
-            let filtro = $('#filtroPrecio').val(); // Obtener el filtro seleccionado (unidad o pack)
+            let filtroTipo = $('#filtroTipo').val(); // Captura el valor del filtro (pack/unidad/todos)
             if (termino.length >= 3) {
                 $.ajax({
                     url: 'api/products.php',
                     type: 'GET',
-                    data: { termino: termino, filtro: filtro },
+                    data: { termino: termino, tipo: filtroTipo },
                     success: function (respuesta) {
                         $('#resultadosBusqueda').empty();
                         if (respuesta.length > 0) {
@@ -371,10 +314,11 @@ $userId = $tokenData->user_id;
                                 $('#resultadosBusqueda').append(
                                     `<button class="list-group-item list-group-item-action" 
                                         onclick="agregarProducto(${producto.id}, '${producto.nombre}', 
-                                        '${producto.descripcion}', ${producto.precio_unidad}, 
-                                        ${producto.precio_pack}, ${producto.stock})">
-                                        ${producto.nombre} - ${producto.descripcion} 
-                                        (Unidad: $${producto.precio_unidad} / Pack: $${producto.precio_pack})
+                                        '${producto.descripcion}', ${producto.precioUnidad || 0}, 
+                                        ${producto.precioPack || 0}, ${producto.stock})">
+                                        ${producto.nombre} ${producto.descripcion} 
+                                        - ${producto.precioUnidad > 0 ? `Unidad: $${producto.precioUnidad}` : ''} 
+                                        ${producto.precioPack > 0 ? `Pack: $${producto.precioPack}` : ''}
                                     </button>`
                                 );
                             });
@@ -392,25 +336,34 @@ $userId = $tokenData->user_id;
         });
 
         // Agregar producto al pedido
-        window.agregarProducto = function (id, nombre, descripcion, precio_unidad, precio_pack, stock) {
+        window.agregarProducto = function (id, nombre, descripcion, precioUnidad, precioPack, stock) {
             let productoExistente = productosEnPedido.find(p => p.id === id);
-            if (!productoExistente) {
-                let nuevoProducto = {
-                    id: id,
-                    nombre: nombre,
-                    descripcion: descripcion,
-                    precio_unidad: precio_unidad,
-                    precio_pack: precio_pack,
-                    precio_seleccionado: precio_pack, // Por defecto, precio por pack
-                    cantidad: 1,
-                    stock: stock
-                };
-                productosEnPedido.push(nuevoProducto);
+            if (productoExistente) {
+                if (productoExistente.cantidad < stock) {
+                    productoExistente.cantidad++;
+                    actualizarTablaPedido();
+                } else {
+                    mostrarMensajeModal("No hay suficiente stock disponible.");
+                }
+            } else {
+                if (stock > 0) {
+                    let nuevoProducto = {
+                        id: id,
+                        nombre: nombre,
+                        descripcion: descripcion,
+                        precioUnidad: precioUnidad || 0,
+                        precioPack: precioPack || 0,
+                        cantidad: 1,
+                        stock: stock,
+                        tipo: precioUnidad > 0 && precioPack > 0 ? "pack" : precioUnidad > 0 ? "unidad" : "pack"
+                    };
+                    productosEnPedido.push(nuevoProducto);
+                    actualizarTablaPedido();
+                } else {
+                    mostrarMensajeModal("No hay suficiente stock disponible.");
+                }
             }
-            actualizarTablaPedido();
-            // Vaciar buscador
-            $('#productoInput').val('');
-            $('#resultadosBusqueda').empty();
+            $('#productoInput').val(''); // Limpiar el campo de búsqueda
         };
 
         // Actualizar la tabla del pedido
@@ -421,44 +374,33 @@ $userId = $tokenData->user_id;
 
             if (productosEnPedido.length > 0) {
                 productosEnPedido.forEach((producto) => {
-                    const totalProducto = producto.precio_seleccionado * producto.cantidad;
+                    const precioSeleccionado = producto.tipo === "unidad" ? producto.precioUnidad : producto.precioPack;
+                    const totalProducto = precioSeleccionado * producto.cantidad;
                     totalPedido += totalProducto;
 
                     // Crear tarjeta para el producto
                     const cardHtml = `
                         <div class="product-card">
-                            <div class="product-card-title">${producto.nombre} - ${producto.descripcion}</div>
+                            <div class="product-card-title">${producto.nombre} ${producto.descripcion}</div>
                             <div class="product-card-details">
-                                <p><strong>Precio Seleccionado:</strong> $${producto.precio_seleccionado}</p>
-                                <p><strong>Total:</strong> $${totalProducto.toFixed(2)}</p>
+                                <p><strong>Precio:</strong> $${precioSeleccionado}</p>
+                                <p><strong>Total:</strong> $${totalProducto}</p>
                             </div>
                             <div class="product-card-actions">
-                                <div class="price-type">
-                                    <label>
-                                        <input type="radio" name="precio_${producto.id}" 
-                                            value="${producto.precio_unidad}" 
-                                            ${producto.precio_seleccionado === producto.precio_unidad ? 'checked' : ''} 
-                                            onchange="cambiarTipoPrecio(${producto.id}, ${producto.precio_unidad})">
-                                        Unidad
-                                    </label>
-                                    <label>
-                                        <input type="radio" name="precio_${producto.id}" 
-                                            value="${producto.precio_pack}" 
-                                            ${producto.precio_seleccionado === producto.precio_pack ? 'checked' : ''} 
-                                            onchange="cambiarTipoPrecio(${producto.id}, ${producto.precio_pack})">
-                                        Pack
-                                    </label>
-                                </div>
-                                <div>
-                                    <input type="number" 
-                                        class="form-control cantidadProducto" 
-                                        data-id="${producto.id}" 
-                                        value="${producto.cantidad}" 
-                                        min="1" 
-                                        max="${producto.stock}" 
-                                        onchange="actualizarCantidad(${producto.id}, this.value)">
-                                    <button class="btn btn-danger btn-sm mt-2" onclick="eliminarProducto(${producto.id})">Eliminar</button>
-                                </div>
+                                ${producto.precioUnidad > 0 && producto.precioPack > 0 ? `
+                                    <select class="form-select form-select-sm mb-2" onchange="cambiarTipoProducto(${producto.id}, this.value)">
+                                        <option value="unidad" ${producto.tipo === 'unidad' ? 'selected' : ''}>Unidad</option>
+                                        <option value="pack" ${producto.tipo === 'pack' ? 'selected' : ''}>Pack</option>
+                                    </select>
+                                ` : `<p class="text-muted">Tipo: ${producto.precioUnidad > 0 ? 'Unidad' : 'Pack'}</p>`}
+                                <input type="number" 
+                                    class="form-control cantidadProducto" 
+                                    data-id="${producto.id}" 
+                                    value="${producto.cantidad}" 
+                                    min="1" 
+                                    max="${producto.stock}" 
+                                    onchange="actualizarCantidad(${producto.id}, this.value)">
+                                <button class="btn btn-danger btn-sm mt-2" onclick="eliminarProducto(${producto.id})">Eliminar</button>
                             </div>
                         </div>
                     `;
@@ -471,11 +413,11 @@ $userId = $tokenData->user_id;
             // Actualizar el total del pedido
             $('#totalPedido').text(totalPedido.toFixed(2));
         }
-        // Cambiar tipo de precio (unidad o pack)
-        window.cambiarTipoPrecio = function (id, nuevoPrecio) {
+        // Cambiar el tipo de precio del producto (unidad/pack)
+        window.cambiarTipoProducto = function (id, nuevoTipo) {
             let producto = productosEnPedido.find(p => p.id === id);
             if (producto) {
-                producto.precio_seleccionado = nuevoPrecio;
+                producto.tipo = nuevoTipo;
                 actualizarTablaPedido();
             }
         };
@@ -488,6 +430,8 @@ $userId = $tokenData->user_id;
                 if (nuevaCantidad >= 1 && nuevaCantidad <= producto.stock) {
                     producto.cantidad = nuevaCantidad;
                     actualizarTablaPedido();
+                } else if (nuevaCantidad < 1) {
+                    eliminarProducto(id); // Eliminar si la cantidad es menor a 1
                 } else {
                     mostrarMensajeModal("Cantidad inválida o fuera de stock.");
                 }
@@ -580,6 +524,9 @@ $userId = $tokenData->user_id;
             window.location.href = 'logout.php';
         });
     });
+
+   
+   
     </script>
 
 </body>
