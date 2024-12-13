@@ -120,83 +120,30 @@ $userId = $tokenData->user_id;
             }
         }
 
-        .card-header {
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: 8px;
-            padding: 10px 15px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .card-header i {
-            margin-right: 10px;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        .form-control {
-            border-radius: 8px;
-            padding: 10px;
-        }
-
-        .product-search-results {
-            max-height: 200px;
-            overflow-y: auto;
-            border-radius: 8px;
-        }
-
-        .product-search-results .list-group-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .product-search-results .list-group-item:hover {
-            background-color: var(--hover-color);
-        }
-
-        .order-table-container {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid var(--hover-color);
+        .product-item {
+            background-color: var(--card-background);
             padding: 10px;
             border-radius: 8px;
-        }
-
-        .order-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 10px;
-        }
-
-        .order-table thead {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .order-table th, .order-table td {
-            padding: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             text-align: center;
         }
 
-        .order-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+        .product-item strong {
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            margin-bottom: 5px;
         }
 
-        .btn-primary, .btn-danger {
-            border-radius: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+        .product-item span {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .product-item button {
+            margin-top: 10px;
         }
 
         .order-summary {
@@ -228,9 +175,18 @@ $userId = $tokenData->user_id;
             <a class="navbar-brand" href="#">
                 <i class="bi bi-cart-check me-2"></i> Distribuidora
             </a>
-            <button class="btn btn-outline-light" id="logoutButton">
-                <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
-            </button>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#modalHistorialPedidos">
+                        <i class="bi bi-clock-history me-2"></i> Historial de Pedidos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <button class="btn btn-outline-light" id="logoutButton">
+                        <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+                    </button>
+                </li>
+            </ul>
         </div>
     </nav>
 
@@ -307,7 +263,7 @@ $userId = $tokenData->user_id;
                                 <i class="bi bi-check-circle"></i> Confirmar Pedido
                             </button>
                             <button class="btn btn-danger" id="cancelarPedido">
-                                <i class="bi bi-x-circle"></i> Cancelar
+                                <i class="bi bi-x-circle"></i> Cancelar Pedido
                             </button>
                         </div>
                     </div>
@@ -598,5 +554,4 @@ $userId = $tokenData->user_id;
         });
     </script>
 </body>
-
 </html>
