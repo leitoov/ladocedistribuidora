@@ -75,14 +75,6 @@ $userId = $tokenData->user_id;
             color: white !important;
         }
 
-        .navbar-nav {
-            margin-left: auto;
-        }
-
-        .navbar-nav .nav-item {
-            margin-left: 15px;
-        }
-
         .card {
             background-color: var(--card-background);
             border-radius: 12px;
@@ -103,11 +95,11 @@ $userId = $tokenData->user_id;
         .product-columns {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
+            gap: 20px;
             margin-top: 20px;
         }
 
-        .product-item {
+        .product-card {
             background: var(--card-background);
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -117,83 +109,41 @@ $userId = $tokenData->user_id;
             flex-direction: column;
             justify-content: space-between;
             text-align: left;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .product-item div {
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #007acc;
             margin-bottom: 10px;
         }
 
-        .product-item strong {
-            font-size: 1.1rem;
-            color: var(--primary-color);
-        }
-
-        .product-item button {
-            align-self: flex-end;
+        .product-card-details {
+            margin-bottom: 15px;
             font-size: 0.9rem;
-            padding: 8px 15px;
-            border-radius: 5px;
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+            color: #333;
         }
 
-        .product-item button:hover {
-            background-color: #c82333;
-        }
-
-        .order-summary {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: var(--card-background);
-            border-top: 1px solid var(--hover-color);
-            padding: 15px 20px;
-            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+        .product-card-actions {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 10;
         }
 
-        .order-summary div {
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .order-summary button {
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 1rem;
-            border: none;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--secondary-color);
-        }
-
-        .btn-danger {
-            background-color: #dc3545;
-        }
-
-        .btn-danger:hover {
-            background-color: #c82333;
-        }
-
-        .text-center {
+        .product-card-actions input {
+            width: 50px;
             text-align: center;
         }
 
-        .text-muted {
-            color: #6c757d;
+        .product-card-actions .btn {
+            padding: 5px 10px;
+            font-size: 0.9rem;
         }
 
         .product-search-results {
@@ -204,63 +154,32 @@ $userId = $tokenData->user_id;
         }
 
         .product-search-results .list-group-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             cursor: pointer;
         }
 
-        .product-search-results .list-group-item:hover {
-            background-color: var(--hover-color);
+        .order-summary {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--card-background);
+            border-top: 1px solid var(--hover-color);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
         }
 
-        .table th,
-        .table td {
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .form-control, .form-select {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 12px;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 8px rgba(0, 191, 255, 0.4);
-        }
-
-        small.text-danger {
-            font-size: 0.8rem;
-            display: block;
-            margin-top: 5px;
-        }
-
-        small.text-danger.d-none {
-            display: none;
-        }
-
-        /* Responsive Design */
         @media (max-width: 768px) {
             .product-columns {
                 grid-template-columns: 1fr;
             }
-
-            .order-summary {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .order-summary button {
-                width: 100%;
-            }
         }
-
 
     </style>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
@@ -293,29 +212,27 @@ $userId = $tokenData->user_id;
             <!-- Inputs for Client and Order Type -->
             <div class="row g-3">
                 <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control cliente-input" id="clienteInput" placeholder="Cliente">
-                        <label for="clienteInput">Buscar cliente (2 letras mínimo)</label>
-                        <small id="clienteError" class="text-danger d-none">El nombre del cliente es obligatorio.</small>
+                    <div class="input-group">
+                        <label for="clienteInput" class="form-label">Cliente</label>
+                        <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="form-floating">
-                        <select class="form-select tipo-pedido-input" id="tipoPedido">
+                    <div class="input-group">
+                        <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
+                        <select class="form-control" id="tipoPedido">
                             <option value="Caja">Caja</option>
                             <option value="Reparto">Reparto</option>
                         </select>
-                        <label for="tipoPedido">Tipo de Pedido</label>
                     </div>
                 </div>
             </div>
 
             <!-- Product Search -->
             <div class="mt-4">
-                <div class="form-floating">
-                    <input type="text" class="form-control producto-input" id="productoInput" placeholder="Producto">
-                    <label for="productoInput">Buscar producto (3 letras mínimo)</label>
-                    <small id="productoError" class="text-danger d-none">Por favor, ingrese al menos 3 letras para buscar productos.</small>
+                <div class="input-group">
+                    <label for="productoInput" class="form-label">Producto</label>
+                    <input type="text" class="form-control" id="productoInput" placeholder="Buscar producto (3 letras mínimo)">
                 </div>
                 <div id="resultadosBusqueda" class="product-search-results mt-3"></div>
             </div>
@@ -360,13 +277,10 @@ $userId = $tokenData->user_id;
         </div>
     </div>
 
-
-
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
     $(document).ready(function () {
         let productosEnPedido = [];
@@ -440,39 +354,43 @@ $userId = $tokenData->user_id;
 
         // Actualizar la tabla del pedido
         function actualizarTablaPedido() {
-            let container = $('#pedidoActual');
-            container.empty();
+            const container = $('#pedidoActual');
+            container.empty(); // Limpiar contenido previo
             let totalPedido = 0;
 
             if (productosEnPedido.length > 0) {
-                let html = '<div class="product-columns">';
-                productosEnPedido.forEach(function (producto) {
-                    let totalProducto = producto.precio * producto.cantidad;
+                productosEnPedido.forEach((producto) => {
+                    const totalProducto = producto.precio * producto.cantidad;
                     totalPedido += totalProducto;
 
-                    html += `
-                        <div class="product-item">
-                            <div><strong>${producto.nombre}</strong></div>
-                            <div>${producto.descripcion}</div>
-                            <div>Cantidad: 
-                                <input type="number" class="form-control text-center cantidadProducto" 
+                    // Crear tarjeta para el producto
+                    const cardHtml = `
+                        <div class="product-card">
+                            <div class="product-card-title">${producto.nombre}</div>
+                            <div class="product-card-details">
+                                <p><strong>Descripción:</strong> ${producto.descripcion}</p>
+                                <p><strong>Precio:</strong> $${producto.precio}</p>
+                                <p><strong>Total:</strong> $${totalProducto}</p>
+                            </div>
+                            <div class="product-card-actions">
+                                <input type="number" 
+                                    class="form-control cantidadProducto" 
                                     data-id="${producto.id}" 
                                     value="${producto.cantidad}" 
-                                    min="1" max="${producto.stock}" 
+                                    min="1" 
+                                    max="${producto.stock}" 
                                     onchange="actualizarCantidad(${producto.id}, this.value)">
+                                <button class="btn btn-danger btn-sm" onclick="eliminarProducto(${producto.id})">Eliminar</button>
                             </div>
-                            <div>Precio: $${producto.precio}</div>
-                            <div>Total: $${totalProducto}</div>
-                            <button class="btn btn-danger btn-sm" onclick="eliminarProducto(${producto.id})">Eliminar</button>
                         </div>
                     `;
+                    container.append(cardHtml);
                 });
-                html += '</div>';
-                container.append(html);
             } else {
                 container.append('<div class="text-center text-muted">No hay productos en el pedido.</div>');
             }
 
+            // Actualizar el total del pedido
             $('#totalPedido').text(totalPedido.toFixed(2));
         }
 
