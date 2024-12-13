@@ -139,6 +139,14 @@ $userId = $tokenData->user_id;
             background-color: var(--hover-color);
         }
 
+        .order-table-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--hover-color);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
         .order-table {
             width: 100%;
             border-collapse: separate;
@@ -169,34 +177,25 @@ $userId = $tokenData->user_id;
             gap: 10px;
         }
 
-        .order-total {
-            text-align: right;
-            font-size: 1.2rem;
-            font-weight: bold;
-            padding: 10px;
-            background-color: var(--hover-color);
-            border-radius: 8px;
-        }
-
-        .modal-content {
-            border-radius: 12px;
-        }
-        .form-label{
+        .order-summary {
+            position: fixed;
+            bottom: 0;
+            left: 0;
             width: 100%;
+            background-color: var(--card-background);
+            border-top: 1px solid var(--hover-color);
+            padding: 15px 20px;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+            z-index: 10;
         }
 
-        /* Responsive Adjustments */
         @media (max-width: 576px) {
-            .order-management {
-                grid-template-columns: 1fr;
-            }
-
             .order-actions {
                 grid-template-columns: 1fr;
             }
 
-            .order-table {
-                font-size: 0.9rem;
+            .order-table-container {
+                max-height: 200px;
             }
         }
     </style>
@@ -252,7 +251,7 @@ $userId = $tokenData->user_id;
                 <div id="resultadosBusqueda" class="product-search-results list-group mt-2"></div>
 
                 <!-- Current Order Table -->
-                <div class="table-responsive">
+                <div class="table-responsive order-table-container">
                     <table class="order-table mt-3">
                         <thead>
                             <tr>
@@ -275,18 +274,18 @@ $userId = $tokenData->user_id;
                 </div>
 
                 <!-- Order Total -->
-                <div class="order-total" id="totalPedido">
-                    Total: $0
-                </div>
-
-                <!-- Order Actions -->
-                <div class="order-actions mt-3">
-                    <button class="btn btn-primary" id="confirmarPedido">
-                        <i class="bi bi-check-circle"></i> Confirmar Pedido
-                    </button>
-                    <button class="btn btn-danger" id="cancelarPedido">
-                        <i class="bi bi-x-circle"></i> Cancelar Pedido
-                    </button>
+                <div class="order-summary">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div id="totalPedido">Total: $0</div>
+                        <div>
+                            <button class="btn btn-primary me-2" id="confirmarPedido">
+                                <i class="bi bi-check-circle"></i> Confirmar Pedido
+                            </button>
+                            <button class="btn btn-danger" id="cancelarPedido">
+                                <i class="bi bi-x-circle"></i> Cancelar Pedido
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
