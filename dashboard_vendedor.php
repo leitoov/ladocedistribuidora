@@ -214,24 +214,38 @@ $userId = $tokenData->user_id;
             background-color: var(--hover-color);
         }
 
-        .order-table-container {
-            margin-top: 20px;
-        }
-
-        .table-responsive {
-            border-radius: 8px;
-        }
-
         .table th,
         .table td {
             text-align: center;
             vertical-align: middle;
         }
 
+        .form-control, .form-select {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(0, 191, 255, 0.4);
+        }
+
+        small.text-danger {
+            font-size: 0.8rem;
+            display: block;
+            margin-top: 5px;
+        }
+
+        small.text-danger.d-none {
+            display: none;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .product-columns {
-                grid-template-columns: 1fr; /* Una columna en móviles */
+                grid-template-columns: 1fr;
             }
 
             .order-summary {
@@ -244,13 +258,6 @@ $userId = $tokenData->user_id;
             }
         }
 
-        .text-center {
-            text-align: center;
-        }
-
-        .text-muted {
-            color: #6c757d;
-        }
 
     </style>
 </head>
@@ -286,27 +293,29 @@ $userId = $tokenData->user_id;
             <!-- Inputs for Client and Order Type -->
             <div class="row g-3">
                 <div class="col-md-6">
-                    <div class="input-group">
-                        <label for="clienteInput" class="form-label">Cliente</label>
-                        <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
+                    <div class="form-floating">
+                        <input type="text" class="form-control cliente-input" id="clienteInput" placeholder="Cliente">
+                        <label for="clienteInput">Buscar cliente (2 letras mínimo)</label>
+                        <small id="clienteError" class="text-danger d-none">El nombre del cliente es obligatorio.</small>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="input-group">
-                        <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
-                        <select class="form-control" id="tipoPedido">
+                    <div class="form-floating">
+                        <select class="form-select tipo-pedido-input" id="tipoPedido">
                             <option value="Caja">Caja</option>
                             <option value="Reparto">Reparto</option>
                         </select>
+                        <label for="tipoPedido">Tipo de Pedido</label>
                     </div>
                 </div>
             </div>
 
             <!-- Product Search -->
             <div class="mt-4">
-                <div class="input-group">
-                    <label for="productoInput" class="form-label">Producto</label>
-                    <input type="text" class="form-control" id="productoInput" placeholder="Buscar producto (3 letras mínimo)">
+                <div class="form-floating">
+                    <input type="text" class="form-control producto-input" id="productoInput" placeholder="Producto">
+                    <label for="productoInput">Buscar producto (3 letras mínimo)</label>
+                    <small id="productoError" class="text-danger d-none">Por favor, ingrese al menos 3 letras para buscar productos.</small>
                 </div>
                 <div id="resultadosBusqueda" class="product-search-results mt-3"></div>
             </div>
@@ -352,283 +361,222 @@ $userId = $tokenData->user_id;
     </div>
 
 
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function () {
-            let productosEnPedido = [];
+    $(document).ready(function () {
+        let productosEnPedido = [];
 
-            // Function to show messages in a modal
-            function mostrarMensajeModal(mensaje) {
-                $('#modalMensajeCuerpo').text(mensaje);
-                $('#modalMensaje').modal('show');
-            }
+        // Mostrar mensaje en un modal
+        function mostrarMensajeModal(mensaje) {
+            $('#modalMensajeCuerpo').text(mensaje);
+            $('#modalMensaje').modal('show');
+        }
 
-            // Search for products with AJAX
-            $('#productoInput').on('keyup', function () {
-                let termino = $(this).val();
-                if (termino.length >= 3) {
-                    $.ajax({
-                        url: 'api/products.php',
-                        type: 'GET',
-                        data: { termino: termino },
-                        success: function (respuesta) {
-                            $('#resultadosBusqueda').empty();
-                            if (respuesta.length > 0) {
-                                respuesta.forEach(function (producto) {
-                                    $('#resultadosBusqueda').append(
-                                        `<button class="list-group-item list-group-item-action" onclick="agregarProducto(${producto.id}, '${producto.nombre}', '${producto.descripcion}', ${producto.precio}, ${producto.stock})">
-                                            ${producto.nombre} - $${producto.precio}
-                                        </button>`
-                                    );
-                                });
-                            } else {
-                                $('#resultadosBusqueda').append('<div class="list-group-item">No se encontraron productos.</div>');
-                            }
-                        },
-                        error: function () {
-                            mostrarMensajeModal("Error al realizar la búsqueda.");
-                        }
-                    });
-                } else {
-                    $('#resultadosBusqueda').empty();
-                }
-            });
-
-            // Add product to the current order
-            window.agregarProducto = function (id, nombre, descripcion, precio, stock) {
-                let productoExistente = productosEnPedido.find(p => p.id === id);
-                if (productoExistente) {
-                    if (productoExistente.cantidad < stock) {
-                        productoExistente.cantidad++;
-                        actualizarTablaPedido();
-                    } else {
-                        mostrarMensajeModal("No hay suficiente stock disponible.");
-                    }
-                } else {
-                    if (stock > 0) {
-                        let nuevoProducto = {
-                            id: id,
-                            nombre: nombre,
-                            descripcion: descripcion,
-                            precio: precio,
-                            cantidad: 1,
-                            stock: stock
-                        };
-                        productosEnPedido.push(nuevoProducto);
-                        actualizarTablaPedido();
-                    } else {
-                        mostrarMensajeModal("No hay suficiente stock disponible.");
-                    }
-                }
-            };
-
-            // Update the current order table
-            function actualizarTablaPedido() {
-                let container = $('#pedidoActual'); // Cambia 'tbody' a un contenedor genérico
-                container.empty();
-                let totalPedido = 0;
-
-                // Si hay productos en el pedido, mostrarlos
-                if (productosEnPedido.length > 0) {
-                    let html = '<div class="product-columns">';
-                    productosEnPedido.forEach(function (producto) {
-                        let totalProducto = producto.precio * producto.cantidad;
-                        totalPedido += totalProducto;
-
-                        html += `
-                            <div class="product-item">
-                                <div><strong>${producto.nombre}</strong></div>
-                                <div>${producto.descripcion}</div>
-                                <div>Cantidad: 
-                                    <input type="number" class="form-control text-center cantidadProducto" 
-                                        data-id="${producto.id}" 
-                                        value="${producto.cantidad}" 
-                                        min="1" max="${producto.stock}" 
-                                        onchange="actualizarCantidad(${producto.id}, this.value)">
-                                </div>
-                                <div>Precio: $${producto.precio}</div>
-                                <div>Total: $${totalProducto}</div>
-                                <button class="btn btn-danger btn-sm" onclick="eliminarProducto(${producto.id})">Eliminar</button>
-                            </div>
-                        `;
-                    });
-                    html += '</div>';
-                    container.append(html);
-                } else {
-                    container.append('<div class="text-center text-muted">No hay productos en el pedido.</div>');
-                }
-
-                // Actualizar el total del pedido
-                $('#totalPedido').text(`Total: $${totalPedido}`);
-            }
-
-            // Función para generar PDF con jsPDF
-            function generarPDF() {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-
-                // Definir una función auxiliar para generar la misma información en dos secciones de la página
-                function generarContenido(startY) {
-                    // Encabezado de la Distribuidora (Compacto y Organizado)
-                    doc.setFontSize(14);
-                    doc.setFont("helvetica", "bold");
-                    doc.setTextColor(0, 0, 0);
-                    doc.text("LA DOCE", 10, startY);
-
-                    doc.setFontSize(10);
-                    doc.setFont("helvetica", "normal");
-                    doc.text("Necochea 1350 (CABA), LA BOCA", 10, startY + 6);
-                    doc.text("Tel: 1559092429 - WhatsApp: 1557713277", 10, startY + 12);
-                    doc.text("ladocedistribuidora@hotmail.com", 10, startY + 18);
-                    doc.text("Documento no válido como factura", 10, startY + 24);
-
-                    // Detalles del Remito
-                    doc.setFontSize(14);
-                    doc.setFont("helvetica", "bold");
-                    doc.text("REMITO FICHA", 140, startY);
-                    doc.setFontSize(10);
-                    doc.setFont("helvetica", "normal");
-                    doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 140, startY + 6);
-
-                    // Información del Cliente
-                    doc.setFontSize(12);
-                    doc.setFont("helvetica", "bold");
-                    doc.text(`Sres.: ${$('#clienteInput').val()}`, 10, startY + 35);
-
-                    // Productos del Pedido (en Columnas)
-                    let yPosition = startY + 45;
-                    doc.setFontSize(10);
-                    doc.setFont("helvetica", "bold");
-                    doc.text("Productos:", 10, yPosition);
-                    yPosition += 8;
-
-                    // Configuración de columnas
-                    const col1X = 10; // Primera columna
-                    const col2X = 110; // Segunda columna
-                    let col = 0; // Control de columna (0 para izquierda, 1 para derecha)
-                    let columnYPos = yPosition;
-
-                    productosEnPedido.forEach((producto, index) => {
-                        // Preparar el texto del producto
-                        const productoTexto = `${index + 1}. ${producto.nombre} - ${producto.cantidad} ${producto.unidades || ''} - $${producto.precio.toFixed(2)} - Total: $${(producto.precio * producto.cantidad).toFixed(2)}`;
-
-                        // Colocar el texto en la columna correspondiente
-                        if (col === 0) {
-                            // Primera columna (izquierda)
-                            doc.setFontSize(10);
-                            doc.setFont("helvetica", "normal");
-                            doc.text(productoTexto, col1X, columnYPos);
-                            col = 1; // Cambiar a la siguiente columna
-                        } else {
-                            // Segunda columna (derecha)
-                            doc.setFontSize(10);
-                            doc.setFont("helvetica", "normal");
-                            doc.text(productoTexto, col2X, columnYPos);
-                            col = 0; // Volver a la columna izquierda
-                            columnYPos += 8; // Incrementar la posición Y solo cuando se termina una fila completa
-                        }
-
-                        // Si el producto está en la última columna pero no hay más productos para emparejar
-                        if (index === productosEnPedido.length - 1 && col === 1) {
-                            columnYPos += 8; // Incrementar para evitar superposición
-                        }
-
-                        // Si se acerca al borde inferior de la página, pasa a la siguiente sección
-                        if (columnYPos > 260) {
-                            columnYPos = startY + 10; // Reiniciar en la mitad inferior de la página para la segunda copia
-                            col = 0; // Reiniciar a la primera columna
-                        }
-                    });
-
-                    // Total del Pedido
-                    columnYPos += 10;
-                    doc.setFontSize(12);
-                    doc.setFont("helvetica", "bold");
-                    doc.text(`Total: $${productosEnPedido.reduce((sum, producto) => sum + (producto.precio * producto.cantidad), 0).toFixed(2)}`, 10, columnYPos);
-
-                    // Nota Final y Recibi de Conformidad
-                    columnYPos += 15;
-                    doc.setFontSize(10);
-                    doc.setFont("helvetica", "normal");
-                    doc.text("Una vez recibida la mercadería, no se aceptan devoluciones.", 10, columnYPos);
-                    doc.text("Recibi de conformidad:", 140, columnYPos);
-                }
-
-                // Generar el contenido dos veces, para la parte superior e inferior de la hoja
-                generarContenido(10); // Primera copia en la parte superior
-                generarContenido(150); // Segunda copia en la parte inferior
-
-                // Guardar el PDF con un nombre específico
-                doc.save("pedido.pdf");
-            }
-
-            //Cerrar sesion
-            $('#logoutButton').on('click', function () {
-                window.location.href = 'logout.php';
-            });
-            // Confirm order
-
-            $('#confirmarPedido').on('click', function () {
-                if (productosEnPedido.length === 0) {
-                    mostrarMensajeModal("No hay productos en el pedido para confirmar.");
-                    return;
-                }
-
-                let tipoPedido = $('#tipoPedido').val();
-                let cliente = $('#clienteInput').val().trim();
-
-                if (!cliente) {
-                    mostrarMensajeModal("Debe ingresar un cliente para confirmar el pedido.");
-                    return;
-                }
-
+        // Búsqueda de productos con AJAX
+        $('#productoInput').on('keyup', function () {
+            let termino = $(this).val();
+            if (termino.length >= 3) {
                 $.ajax({
-                    url: 'api/pedido.php',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        cliente: cliente,
-                        tipoPedido: tipoPedido,
-                        productos: productosEnPedido
-                    }),
-                    success: function () {
-                        mostrarMensajeModal("Pedido confirmado correctamente");
-                        generarPDF();
-                        productosEnPedido = [];
-                        actualizarTablaPedido();
+                    url: 'api/products.php',
+                    type: 'GET',
+                    data: { termino: termino },
+                    success: function (respuesta) {
+                        $('#resultadosBusqueda').empty();
+                        if (respuesta.length > 0) {
+                            respuesta.forEach(function (producto) {
+                                $('#resultadosBusqueda').append(
+                                    `<button class="list-group-item list-group-item-action" 
+                                        onclick="agregarProducto(${producto.id}, '${producto.nombre}', 
+                                        '${producto.descripcion}', ${producto.precio}, ${producto.stock})">
+                                        ${producto.nombre} - $${producto.precio}
+                                    </button>`
+                                );
+                            });
+                        } else {
+                            $('#resultadosBusqueda').append('<div class="list-group-item">No se encontraron productos.</div>');
+                        }
                     },
                     error: function () {
-                        mostrarMensajeModal("Error al confirmar el pedido.");
+                        mostrarMensajeModal("Error al realizar la búsqueda.");
                     }
                 });
-            });
-            // Cancel order
-            $('#cancelarPedido').on('click', function () {
-                if (productosEnPedido.length === 0) {
-                    mostrarMensajeModal("No hay productos para cancelar.");
-                    return;
-                }
-
-                // Vaciar la lista de productos
-                productosEnPedido = [];
-
-                // Actualizar la tabla para reflejar que el pedido ha sido cancelado
-                actualizarTablaPedido();
-
-                // Limpiar los inputs
-                $('#clienteInput').val('');
-                $('#tipoPedido').val('Caja'); // Restablecer al valor por defecto
-                $('#productoInput').val('');
-                $('#resultadosBusqueda').empty(); // Limpiar los resultados de búsqueda del producto
-
-                mostrarMensajeModal("Pedido cancelado correctamente.");
-            });
-
+            } else {
+                $('#resultadosBusqueda').empty();
+            }
         });
+
+        // Agregar producto al pedido
+        window.agregarProducto = function (id, nombre, descripcion, precio, stock) {
+            let productoExistente = productosEnPedido.find(p => p.id === id);
+            if (productoExistente) {
+                if (productoExistente.cantidad < stock) {
+                    productoExistente.cantidad++;
+                    actualizarTablaPedido();
+                } else {
+                    mostrarMensajeModal("No hay suficiente stock disponible.");
+                }
+            } else {
+                if (stock > 0) {
+                    let nuevoProducto = {
+                        id: id,
+                        nombre: nombre,
+                        descripcion: descripcion,
+                        precio: precio,
+                        cantidad: 1,
+                        stock: stock
+                    };
+                    productosEnPedido.push(nuevoProducto);
+                    actualizarTablaPedido();
+                } else {
+                    mostrarMensajeModal("No hay suficiente stock disponible.");
+                }
+            }
+        };
+
+        // Actualizar la tabla del pedido
+        function actualizarTablaPedido() {
+            let container = $('#pedidoActual');
+            container.empty();
+            let totalPedido = 0;
+
+            if (productosEnPedido.length > 0) {
+                let html = '<div class="product-columns">';
+                productosEnPedido.forEach(function (producto) {
+                    let totalProducto = producto.precio * producto.cantidad;
+                    totalPedido += totalProducto;
+
+                    html += `
+                        <div class="product-item">
+                            <div><strong>${producto.nombre}</strong></div>
+                            <div>${producto.descripcion}</div>
+                            <div>Cantidad: 
+                                <input type="number" class="form-control text-center cantidadProducto" 
+                                    data-id="${producto.id}" 
+                                    value="${producto.cantidad}" 
+                                    min="1" max="${producto.stock}" 
+                                    onchange="actualizarCantidad(${producto.id}, this.value)">
+                            </div>
+                            <div>Precio: $${producto.precio}</div>
+                            <div>Total: $${totalProducto}</div>
+                            <button class="btn btn-danger btn-sm" onclick="eliminarProducto(${producto.id})">Eliminar</button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.append(html);
+            } else {
+                container.append('<div class="text-center text-muted">No hay productos en el pedido.</div>');
+            }
+
+            $('#totalPedido').text(totalPedido.toFixed(2));
+        }
+
+        // Actualizar cantidad de un producto
+        window.actualizarCantidad = function (id, nuevaCantidad) {
+            let producto = productosEnPedido.find(p => p.id === id);
+            if (producto) {
+                nuevaCantidad = parseInt(nuevaCantidad);
+                if (nuevaCantidad >= 1 && nuevaCantidad <= producto.stock) {
+                    producto.cantidad = nuevaCantidad;
+                    actualizarTablaPedido();
+                } else {
+                    mostrarMensajeModal("Cantidad inválida o fuera de stock.");
+                }
+            }
+        };
+
+        // Eliminar un producto del pedido
+        window.eliminarProducto = function (id) {
+            productosEnPedido = productosEnPedido.filter(p => p.id !== id);
+            actualizarTablaPedido();
+        };
+
+        // Confirmar pedido
+        $('#confirmarPedido').on('click', function () {
+            if (productosEnPedido.length === 0) {
+                mostrarMensajeModal("No hay productos en el pedido para confirmar.");
+                return;
+            }
+
+            const cliente = $('#clienteInput').val().trim();
+            if (!cliente) {
+                mostrarMensajeModal("Debe ingresar un cliente para confirmar el pedido.");
+                return;
+            }
+
+            $.ajax({
+                url: 'api/pedido.php',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    cliente: cliente,
+                    tipoPedido: $('#tipoPedido').val(),
+                    productos: productosEnPedido
+                }),
+                success: function () {
+                    mostrarMensajeModal("Pedido confirmado correctamente.");
+                    generarPDF();
+                    productosEnPedido = [];
+                    actualizarTablaPedido();
+                },
+                error: function () {
+                    mostrarMensajeModal("Error al confirmar el pedido.");
+                }
+            });
+        });
+
+        // Cancelar pedido
+        $('#cancelarPedido').on('click', function () {
+            if (productosEnPedido.length === 0) {
+                mostrarMensajeModal("No hay productos para cancelar.");
+                return;
+            }
+
+            productosEnPedido = [];
+            actualizarTablaPedido();
+            $('#clienteInput').val('');
+            $('#tipoPedido').val('Caja');
+            $('#productoInput').val('');
+        });
+
+        // Generar PDF del pedido
+        function generarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.text("Distribuidora", 10, 10);
+            doc.text(`Cliente: ${$('#clienteInput').val()}`, 10, 20);
+            doc.text(`Tipo de Pedido: ${$('#tipoPedido').val()}`, 10, 30);
+
+            let inicioY = 40;
+            doc.text("Productos:", 10, inicioY);
+
+            productosEnPedido.forEach((producto, index) => {
+                inicioY += 10;
+                doc.text(
+                    `${index + 1}. ${producto.nombre} - Cantidad: ${producto.cantidad} - Total: $${(producto.precio * producto.cantidad).toFixed(2)}`,
+                    10,
+                    inicioY
+                );
+            });
+
+            inicioY += 10;
+            doc.text(`Total del Pedido: $${productosEnPedido.reduce((acc, p) => acc + (p.precio * p.cantidad), 0).toFixed(2)}`, 10, inicioY);
+
+            doc.save("pedido.pdf");
+        }
+
+        // Cerrar sesión
+        $('#logoutButton').on('click', function () {
+            window.location.href = 'logout.php';
+        });
+    });
+
     </script>
 </body>
 </html>
