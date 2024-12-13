@@ -56,7 +56,13 @@ $userId = $tokenData->user_id;
             color: var(--text-color);
             margin: 0;
             padding: 0;
-            line-height: 1.6;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
         }
 
         .navbar {
@@ -77,12 +83,6 @@ $userId = $tokenData->user_id;
             margin-left: 15px;
         }
 
-        .app-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
         .card {
             background-color: var(--card-background);
             border-radius: 12px;
@@ -92,26 +92,27 @@ $userId = $tokenData->user_id;
         }
 
         .card-header {
+            font-weight: bold;
             background-color: var(--primary-color);
             color: white;
-            border-radius: 8px;
-            padding: 10px 15px;
-            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
             text-transform: uppercase;
-            margin-bottom: 15px;
         }
 
         .product-columns {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* Dos columnas en pantallas grandes */
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
+            margin-top: 20px;
         }
 
         .product-item {
-            background-color: var(--card-background);
-            padding: 15px;
+            background: var(--card-background);
+            border: 1px solid #ddd;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -167,12 +168,12 @@ $userId = $tokenData->user_id;
             padding: 10px 20px;
             border-radius: 5px;
             font-size: 1rem;
+            border: none;
         }
 
         .btn-primary {
             background-color: var(--primary-color);
             color: white;
-            border: none;
         }
 
         .btn-primary:hover {
@@ -181,17 +182,56 @@ $userId = $tokenData->user_id;
 
         .btn-danger {
             background-color: #dc3545;
-            border: none;
         }
 
         .btn-danger:hover {
             background-color: #c82333;
         }
 
-        /* Responsive Adjustments */
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: #6c757d;
+        }
+
+        .product-search-results {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .product-search-results .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .product-search-results .list-group-item:hover {
+            background-color: var(--hover-color);
+        }
+
+        .order-table-container {
+            margin-top: 20px;
+        }
+
+        .table-responsive {
+            border-radius: 8px;
+        }
+
+        .table th,
+        .table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
             .product-columns {
-                grid-template-columns: 1fr; /* Una columna en dispositivos móviles */
+                grid-template-columns: 1fr; /* Una columna en móviles */
             }
 
             .order-summary {
@@ -239,53 +279,43 @@ $userId = $tokenData->user_id;
         <h1 class="text-center my-4">Panel de Gestión de Pedidos</h1>
 
         <div class="card">
-            <div class="card-header">
+            <div class="card-header text-center">
                 <i class="bi bi-cart-plus"></i> Gestor de Pedidos
             </div>
 
             <!-- Inputs for Client and Order Type -->
-            <div class="product-columns">
-                <div class="input-group">
-                    <label for="clienteInput" class="form-label">Cliente</label>
-                    <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <label for="clienteInput" class="form-label">Cliente</label>
+                        <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
-                    <select class="form-control" id="tipoPedido">
-                        <option value="Caja">Caja</option>
-                        <option value="Reparto">Reparto</option>
-                    </select>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
+                        <select class="form-control" id="tipoPedido">
+                            <option value="Caja">Caja</option>
+                            <option value="Reparto">Reparto</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
             <!-- Product Search -->
-            <div class="input-group mt-3">
-                <label for="productoInput" class="form-label">Producto</label>
-                <input type="text" class="form-control" id="productoInput" placeholder="Buscar producto (3 letras mínimo)">
-            </div>
-            <div id="resultadosBusqueda" class="product-search-results mt-2">
-                <!-- Search results will appear here -->
+            <div class="mt-4">
+                <div class="input-group">
+                    <label for="productoInput" class="form-label">Producto</label>
+                    <input type="text" class="form-control" id="productoInput" placeholder="Buscar producto (3 letras mínimo)">
+                </div>
+                <div id="resultadosBusqueda" class="product-search-results mt-3"></div>
             </div>
 
-            <!-- Current Order Table -->
-            <div class="table-responsive order-table-container mt-4">
-                <table class="order-table">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Descripción</th>
-                            <th>Cantidad</th>
-                            <th>Precio</th>
-                            <th>Total</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pedidoActual">
-                        <tr>
-                            <td colspan="6" class="text-center text-muted">No hay productos en el pedido</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- Current Order -->
+            <div class="mt-4">
+                <div id="pedidoActual" class="product-columns">
+                    <!-- Products will be dynamically loaded here -->
+                </div>
             </div>
         </div>
     </div>
