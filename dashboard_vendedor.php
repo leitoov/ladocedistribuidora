@@ -357,6 +357,9 @@ $userId = $tokenData->user_id;
                     mostrarMensajeModal("No hay suficiente stock disponible.");
                 }
             }
+            // Vaciar el buscador
+            $('#productoInput').val('');
+            $('#resultadosBusqueda').empty();
         };
 
         // Actualizar la tabla del pedido
@@ -383,7 +386,7 @@ $userId = $tokenData->user_id;
                                     class="form-control cantidadProducto" 
                                     data-id="${producto.id}" 
                                     value="${producto.cantidad}" 
-                                    min="1" 
+                                    min="0" 
                                     max="${producto.stock}" 
                                     onchange="actualizarCantidad(${producto.id}, this.value)">
                                 <button class="btn btn-danger btn-sm" onclick="eliminarProducto(${producto.id})">Eliminar</button>
@@ -405,7 +408,9 @@ $userId = $tokenData->user_id;
             let producto = productosEnPedido.find(p => p.id === id);
             if (producto) {
                 nuevaCantidad = parseInt(nuevaCantidad);
-                if (nuevaCantidad >= 1 && nuevaCantidad <= producto.stock) {
+                if (nuevaCantidad === 0) {
+                    eliminarProducto(id);
+                } else if (nuevaCantidad >= 1 && nuevaCantidad <= producto.stock) {
                     producto.cantidad = nuevaCantidad;
                     actualizarTablaPedido();
                 } else {
@@ -500,7 +505,7 @@ $userId = $tokenData->user_id;
             window.location.href = 'logout.php';
         });
     });
-
     </script>
+
 </body>
 </html>
