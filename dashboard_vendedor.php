@@ -50,33 +50,18 @@ $userId = $tokenData->user_id;
             --hover-color: #e6f2ff;
         }
 
-        * {
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-        }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--background-color);
             color: var(--text-color);
-            line-height: 1.6;
             margin: 0;
             padding: 0;
-        }
-
-        .card {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: var(--card-background);
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--hover-color);
+            line-height: 1.6;
         }
 
         .navbar {
             background-color: var(--primary-color);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         .navbar-brand {
@@ -84,64 +69,78 @@ $userId = $tokenData->user_id;
             color: white !important;
         }
 
+        .navbar-nav {
+            margin-left: auto;
+        }
+
         .navbar-nav .nav-item {
             margin-left: 15px;
         }
 
-        .order-table-container {
-            max-height: 300px;
-            overflow-y: auto;
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
 
-        .order-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
+        .card {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
         }
 
-        .order-table th, .order-table td {
-            padding: 10px;
-            text-align: left;
-        }
-
-        .order-table th {
+        .card-header {
             background-color: var(--primary-color);
             color: white;
-            text-transform: uppercase;
+            border-radius: 8px;
+            padding: 10px 15px;
             font-weight: bold;
-        }
-
-        .order-table tbody tr:nth-child(even) {
-            background-color: var(--hover-color);
-        }
-
-        .order-table tbody tr:hover {
-            background-color: #d9f2ff;
-        }
-
-        .input-group {
+            text-transform: uppercase;
             margin-bottom: 15px;
         }
 
-        .product-search-results .list-group-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border: 1px solid var(--hover-color);
-            border-radius: 5px;
-            margin-bottom: 5px;
+        .product-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Dos columnas en pantallas grandes */
+            gap: 15px;
+        }
+
+        .product-item {
             background-color: var(--card-background);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: left;
         }
 
-        .product-search-results .list-group-item:hover {
-            background-color: var(--hover-color);
+        .product-item div {
+            margin-bottom: 10px;
         }
 
-        .product-search-results .btn {
-            font-size: 0.8rem;
-            padding: 5px 10px;
-            border-radius: 20px;
+        .product-item strong {
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .product-item button {
+            align-self: flex-end;
+            font-size: 0.9rem;
+            padding: 8px 15px;
+            border-radius: 5px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .product-item button:hover {
+            background-color: #c82333;
         }
 
         .order-summary {
@@ -159,19 +158,40 @@ $userId = $tokenData->user_id;
             z-index: 10;
         }
 
+        .order-summary div {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
         .order-summary button {
             padding: 10px 20px;
             border-radius: 5px;
             font-size: 1rem;
         }
 
-        @media (max-width: 768px) {
-            .order-management {
-                grid-template-columns: 1fr;
-            }
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
 
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
             .product-columns {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr; /* Una columna en dispositivos móviles */
             }
 
             .order-summary {
@@ -183,6 +203,15 @@ $userId = $tokenData->user_id;
                 width: 100%;
             }
         }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: #6c757d;
+        }
+
     </style>
 </head>
 <body>
@@ -292,6 +321,7 @@ $userId = $tokenData->user_id;
         </div>
     </div>
 
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
@@ -368,26 +398,41 @@ $userId = $tokenData->user_id;
 
             // Update the current order table
             function actualizarTablaPedido() {
-                let tbody = $('#pedidoActual');
-                tbody.empty();
+                let container = $('#pedidoActual'); // Cambia 'tbody' a un contenedor genérico
+                container.empty();
                 let totalPedido = 0;
-                productosEnPedido.forEach(function (producto) {
-                    let totalProducto = producto.precio * producto.cantidad;
-                    totalPedido += totalProducto;
-                    tbody.append(`
-                        <tr>
-                            <td>${producto.nombre}</td>
-                            <td>${producto.descripcion}</td>
-                            <td><input type="number" class="form-control text-center cantidadProducto" data-id="${producto.id}" value="${producto.cantidad}" min="1" max="${producto.stock}" onchange="actualizarCantidad(${producto.id}, this.value)"></td>
-                            <td>${producto.precio}</td>
-                            <td class="totalProducto">${totalProducto}</td>
-                            <td><button class="btn btn-danger btn-sm" onclick="eliminarProducto(${producto.id})">Eliminar</button></td>
-                        </tr>
-                    `);
-                });
-                if (productosEnPedido.length === 0) {
-                    tbody.append('<tr><td colspan="6">No hay productos en el pedido.</td></tr>');
+
+                // Si hay productos en el pedido, mostrarlos
+                if (productosEnPedido.length > 0) {
+                    let html = '<div class="product-columns">';
+                    productosEnPedido.forEach(function (producto) {
+                        let totalProducto = producto.precio * producto.cantidad;
+                        totalPedido += totalProducto;
+
+                        html += `
+                            <div class="product-item">
+                                <div><strong>${producto.nombre}</strong></div>
+                                <div>${producto.descripcion}</div>
+                                <div>Cantidad: 
+                                    <input type="number" class="form-control text-center cantidadProducto" 
+                                        data-id="${producto.id}" 
+                                        value="${producto.cantidad}" 
+                                        min="1" max="${producto.stock}" 
+                                        onchange="actualizarCantidad(${producto.id}, this.value)">
+                                </div>
+                                <div>Precio: $${producto.precio}</div>
+                                <div>Total: $${totalProducto}</div>
+                                <button class="btn btn-danger btn-sm" onclick="eliminarProducto(${producto.id})">Eliminar</button>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    container.append(html);
+                } else {
+                    container.append('<div class="text-center text-muted">No hay productos en el pedido.</div>');
                 }
+
+                // Actualizar el total del pedido
                 $('#totalPedido').text(`Total: $${totalPedido}`);
             }
 
