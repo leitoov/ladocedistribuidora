@@ -78,10 +78,19 @@ $userId = $tokenData->user_id;
             color: white !important;
         }
 
+        .navbar-nav {
+            margin-left: auto;
+        }
+
+        .navbar-nav .nav-item {
+            margin-left: 15px;
+        }
+
         .order-management {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
+            place-items: center;
         }
 
         @media (max-width: 768px) {
@@ -96,6 +105,19 @@ $userId = $tokenData->user_id;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             padding: 20px;
             margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .product-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .product-columns {
+                grid-template-columns: 1fr;
+            }
         }
 
         .card-header {
@@ -216,7 +238,6 @@ $userId = $tokenData->user_id;
         <h1 class="text-center my-4">Panel de Gestión de Pedidos</h1>
 
         <div class="order-management">
-            <!-- Order Manager Card -->
             <div class="card">
                 <div class="card-header">
                     <div>
@@ -224,31 +245,35 @@ $userId = $tokenData->user_id;
                     </div>
                 </div>
 
-                <!-- Client Input -->
-                <div class="input-group">
-                    <label for="clienteInput" class="form-label">Cliente</label><br>
-                    <input type="text" class="form-control" id="clienteInput" 
-                           placeholder="Buscar cliente (2 letras mínimo)">
+                <div class="product-columns">
+                    <!-- Client Input -->
+                    <div class="input-group">
+                        <label for="clienteInput" class="form-label">Cliente</label><br>
+                        <input type="text" class="form-control" id="clienteInput" 
+                               placeholder="Buscar cliente (2 letras mínimo)">
+                    </div>
+
+                    <!-- Order Type -->
+                    <div class="input-group">
+                        <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
+                        <select class="form-control" id="tipoPedido">
+                            <option value="Caja">Caja</option>
+                            <option value="Reparto">Reparto</option>
+                        </select>
+                    </div>
                 </div>
 
-                <!-- Order Type -->
-                <div class="input-group">
-                    <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
-                    <select class="form-control" id="tipoPedido">
-                        <option value="Caja">Caja</option>
-                        <option value="Reparto">Reparto</option>
-                    </select>
-                </div>
+                <div class="product-columns">
+                    <!-- Product Search -->
+                    <div class="input-group">
+                        <label for="productoInput" class="form-label">Producto</label><br>
+                        <input type="text" class="form-control" id="productoInput" 
+                               placeholder="Buscar producto (3 letras mínimo)">
+                    </div>
 
-                <!-- Product Search -->
-                <div class="input-group">
-                    <label for="productoInput" class="form-label">Producto</label><br>
-                    <input type="text" class="form-control" id="productoInput" 
-                           placeholder="Buscar producto (3 letras mínimo)">
+                    <!-- Search Results -->
+                    <div id="resultadosBusqueda" class="product-search-results list-group mt-2"></div>
                 </div>
-
-                <!-- Search Results -->
-                <div id="resultadosBusqueda" class="product-search-results list-group mt-2"></div>
 
                 <!-- Current Order Table -->
                 <div class="table-responsive order-table-container">
@@ -282,40 +307,28 @@ $userId = $tokenData->user_id;
                                 <i class="bi bi-check-circle"></i> Confirmar Pedido
                             </button>
                             <button class="btn btn-danger" id="cancelarPedido">
-                                <i class="bi bi-x-circle"></i> Cancelar Pedido
+                                <i class="bi bi-x-circle"></i> Cancelar
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Order History Card -->
-            <div class="card">
-                <div class="card-header">
-                    <div>
-                        <i class="bi bi-clock-history"></i> Historial de Pedidos
-                    </div>
-                </div>
-                <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#modalHistorialPedidos">
-                    <i class="bi bi-list-ul me-2"></i> Ver Historial
-                </button>
-            </div>
         </div>
     </div>
 
-    <!-- Message Modal -->
-    <div class="modal fade" id="modalMensaje" tabindex="-1">
+    <!-- Modal for Order History -->
+    <div class="modal fade" id="modalHistorialPedidos" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Mensaje</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title">Historial de Pedidos</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body" id="modalMensajeCuerpo">
-                    <!-- Message content -->
+                <div class="modal-body">
+                    <p>Contenido del historial de pedidos...</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
