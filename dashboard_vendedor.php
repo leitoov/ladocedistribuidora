@@ -152,8 +152,8 @@ $userId = $tokenData->user_id;
         .product-search-results {
             max-height: 200px;
             overflow-y: auto;
-            /*border: 1px solid #ddd;
-            border-radius: 8px;*/
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 0fr));
             text-align: left;
         }
 
