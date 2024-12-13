@@ -60,12 +60,18 @@ $userId = $tokenData->user_id;
             background-color: var(--background-color);
             color: var(--text-color);
             line-height: 1.6;
+            margin: 0;
+            padding: 0;
         }
 
-        .app-container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .card {
+            max-width: 800px;
+            margin: 20px auto;
             padding: 20px;
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--hover-color);
         }
 
         .navbar {
@@ -78,72 +84,64 @@ $userId = $tokenData->user_id;
             color: white !important;
         }
 
-        .navbar-nav {
-            margin-left: auto;
-        }
-
         .navbar-nav .nav-item {
             margin-left: 15px;
         }
 
-        .order-management {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            place-items: center;
+        .order-table-container {
+            max-height: 300px;
+            overflow-y: auto;
         }
 
-        @media (max-width: 768px) {
-            .order-management {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .card {
-            background-color: var(--card-background);
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-bottom: 20px;
+        .order-table {
             width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
         }
 
-        .product-columns {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        @media (max-width: 768px) {
-            .product-columns {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .product-item {
-            background-color: var(--card-background);
+        .order-table th, .order-table td {
             padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+
+        .order-table th {
+            background-color: var(--primary-color);
+            color: white;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .order-table tbody tr:nth-child(even) {
+            background-color: var(--hover-color);
+        }
+
+        .order-table tbody tr:hover {
+            background-color: #d9f2ff;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .product-search-results .list-group-item {
             display: flex;
-            flex-direction: column;
             justify-content: space-between;
-            text-align: center;
-        }
-
-        .product-item strong {
-            font-size: 1.1rem;
-            color: var(--primary-color);
+            align-items: center;
+            padding: 10px;
+            border: 1px solid var(--hover-color);
+            border-radius: 5px;
             margin-bottom: 5px;
+            background-color: var(--card-background);
         }
 
-        .product-item span {
-            font-size: 0.9rem;
-            margin-bottom: 8px;
+        .product-search-results .list-group-item:hover {
+            background-color: var(--hover-color);
         }
 
-        .product-item button {
-            margin-top: 10px;
+        .product-search-results .btn {
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            border-radius: 20px;
         }
 
         .order-summary {
@@ -155,16 +153,34 @@ $userId = $tokenData->user_id;
             border-top: 1px solid var(--hover-color);
             padding: 15px 20px;
             box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             z-index: 10;
         }
 
-        @media (max-width: 576px) {
-            .order-actions {
+        .order-summary button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .order-management {
                 grid-template-columns: 1fr;
             }
 
-            .order-table-container {
-                max-height: 200px;
+            .product-columns {
+                grid-template-columns: 1fr;
+            }
+
+            .order-summary {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .order-summary button {
+                width: 100%;
             }
         }
     </style>
@@ -193,82 +209,68 @@ $userId = $tokenData->user_id;
     <div class="container app-container">
         <h1 class="text-center my-4">Panel de Gestión de Pedidos</h1>
 
-        <div class="order-management">
-            <div class="card">
-                <div class="card-header">
-                    <div>
-                        <i class="bi bi-cart-plus"></i> Gestor de Pedidos
-                    </div>
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-cart-plus"></i> Gestor de Pedidos
+            </div>
+
+            <!-- Inputs for Client and Order Type -->
+            <div class="product-columns">
+                <div class="input-group">
+                    <label for="clienteInput" class="form-label">Cliente</label>
+                    <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
                 </div>
-
-                <div class="product-columns">
-                    <!-- Client Input -->
-                    <div class="input-group">
-                        <label for="clienteInput" class="form-label">Cliente</label><br>
-                        <input type="text" class="form-control" id="clienteInput" 
-                               placeholder="Buscar cliente (2 letras mínimo)">
-                    </div>
-
-                    <!-- Order Type -->
-                    <div class="input-group">
-                        <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
-                        <select class="form-control" id="tipoPedido">
-                            <option value="Caja">Caja</option>
-                            <option value="Reparto">Reparto</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="product-columns">
-                    <!-- Product Search -->
-                    <div class="input-group">
-                        <label for="productoInput" class="form-label">Producto</label><br>
-                        <input type="text" class="form-control" id="productoInput" 
-                               placeholder="Buscar producto (3 letras mínimo)">
-                    </div>
-
-                    <!-- Search Results -->
-                    <div id="resultadosBusqueda" class="product-search-results list-group mt-2"></div>
-                </div>
-
-                <!-- Current Order Table -->
-                <div class="table-responsive order-table-container">
-                    <table class="order-table mt-3">
-                        <thead>
-                            <tr>
-                                <th>Producto</th>
-                                <th>Descripción</th>
-                                <th>Cantidad</th>
-                                <th>Precio</th>
-                                <th>Total</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pedidoActual">
-                            <tr>
-                                <td colspan="6" class="text-center text-muted">
-                                    No hay productos en el pedido
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Order Total -->
-                <div class="order-summary">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div id="totalPedido">Total: $0</div>
-                        <div>
-                            <button class="btn btn-primary me-2" id="confirmarPedido">
-                                <i class="bi bi-check-circle"></i> Confirmar Pedido
-                            </button>
-                            <button class="btn btn-danger" id="cancelarPedido">
-                                <i class="bi bi-x-circle"></i> Cancelar Pedido
-                            </button>
-                        </div>
-                    </div>
+                <div class="input-group">
+                    <label for="tipoPedido" class="form-label">Tipo de Pedido</label>
+                    <select class="form-control" id="tipoPedido">
+                        <option value="Caja">Caja</option>
+                        <option value="Reparto">Reparto</option>
+                    </select>
                 </div>
             </div>
+
+            <!-- Product Search -->
+            <div class="input-group mt-3">
+                <label for="productoInput" class="form-label">Producto</label>
+                <input type="text" class="form-control" id="productoInput" placeholder="Buscar producto (3 letras mínimo)">
+            </div>
+            <div id="resultadosBusqueda" class="product-search-results mt-2">
+                <!-- Search results will appear here -->
+            </div>
+
+            <!-- Current Order Table -->
+            <div class="table-responsive order-table-container mt-4">
+                <table class="order-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Descripción</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Total</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidoActual">
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">No hay productos en el pedido</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="order-summary">
+        <div>Total: $<span id="totalPedido">0</span></div>
+        <div>
+            <button class="btn btn-primary me-2" id="confirmarPedido">
+                <i class="bi bi-check-circle"></i> Confirmar Pedido
+            </button>
+            <button class="btn btn-danger" id="cancelarPedido">
+                <i class="bi bi-x-circle"></i> Cancelar Pedido
+            </button>
         </div>
     </div>
 
