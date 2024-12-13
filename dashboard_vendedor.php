@@ -314,11 +314,11 @@ $userId = $tokenData->user_id;
                                 $('#resultadosBusqueda').append(
                                     `<button class="list-group-item list-group-item-action" 
                                         onclick="agregarProducto(${producto.id}, '${producto.nombre}', 
-                                        '${producto.descripcion}', ${producto.precioUnidad || 0}, 
-                                        ${producto.precioPack || 0}, ${producto.stock})">
+                                        '${producto.descripcion}', ${producto.precio_unitario || 0}, 
+                                        ${producto.precio_pack || 0}, ${producto.stock})">
                                         ${producto.nombre} ${producto.descripcion} 
-                                        - ${producto.precioUnidad > 0 ? `Unidad: $${producto.precioUnidad}` : ''} 
-                                        ${producto.precioPack > 0 ? `Pack: $${producto.precioPack}` : ''}
+                                        - ${producto.precio_unitario > 0 ? `Unidad: $${producto.precio_unitario}` : ''} 
+                                        ${producto.precio_pack > 0 ? `Pack: $${producto.precio_pack}` : ''}
                                     </button>`
                                 );
                             });
@@ -336,7 +336,7 @@ $userId = $tokenData->user_id;
         });
 
         // Agregar producto al pedido
-        window.agregarProducto = function (id, nombre, descripcion, precioUnidad, precioPack, stock) {
+        window.agregarProducto = function (id, nombre, descripcion, precio_unitario, precio_pack, stock) {
             let productoExistente = productosEnPedido.find(p => p.id === id);
             if (productoExistente) {
                 if (productoExistente.cantidad < stock) {
@@ -351,11 +351,11 @@ $userId = $tokenData->user_id;
                         id: id,
                         nombre: nombre,
                         descripcion: descripcion,
-                        precioUnidad: precioUnidad || 0,
-                        precioPack: precioPack || 0,
+                        precio_unitario: precio_unitario || 0,
+                        precio_pack: precio_pack || 0,
                         cantidad: 1,
                         stock: stock,
-                        tipo: precioUnidad > 0 && precioPack > 0 ? "pack" : precioUnidad > 0 ? "unidad" : "pack"
+                        tipo: precio_pack > 0 ? "pack" : "unidad" // Por defecto Pack si está disponible
                     };
                     productosEnPedido.push(nuevoProducto);
                     actualizarTablaPedido();
@@ -374,7 +374,7 @@ $userId = $tokenData->user_id;
 
             if (productosEnPedido.length > 0) {
                 productosEnPedido.forEach((producto) => {
-                    const precioSeleccionado = producto.tipo === "unidad" ? producto.precioUnidad : producto.precioPack;
+                    const precioSeleccionado = producto.tipo === "unidad" ? producto.precio_unitario : producto.precio_pack;
                     const totalProducto = precioSeleccionado * producto.cantidad;
                     totalPedido += totalProducto;
 
@@ -387,12 +387,12 @@ $userId = $tokenData->user_id;
                                 <p><strong>Total:</strong> $${totalProducto}</p>
                             </div>
                             <div class="product-card-actions">
-                                ${producto.precioUnidad > 0 && producto.precioPack > 0 ? `
+                                ${producto.precio_unitario > 0 && producto.precio_pack > 0 ? `
                                     <select class="form-select form-select-sm mb-2" onchange="cambiarTipoProducto(${producto.id}, this.value)">
                                         <option value="unidad" ${producto.tipo === 'unidad' ? 'selected' : ''}>Unidad</option>
                                         <option value="pack" ${producto.tipo === 'pack' ? 'selected' : ''}>Pack</option>
                                     </select>
-                                ` : `<p class="text-muted">Tipo: ${producto.precioUnidad > 0 ? 'Unidad' : 'Pack'}</p>`}
+                                ` : `<p class="text-muted">Tipo: ${producto.precio_unitario > 0 ? 'Unidad' : 'Pack'}</p>`}
                                 <input type="number" 
                                     class="form-control cantidadProducto" 
                                     data-id="${producto.id}" 
@@ -413,6 +413,7 @@ $userId = $tokenData->user_id;
             // Actualizar el total del pedido
             $('#totalPedido').text(totalPedido.toFixed(2));
         }
+
         // Cambiar el tipo de precio del producto (unidad/pack)
         window.cambiarTipoProducto = function (id, nuevoTipo) {
             let producto = productosEnPedido.find(p => p.id === id);
