@@ -60,7 +60,7 @@ $userId = $tokenData->user_id;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 90%;
             margin: auto;
             padding: 20px;
         }
@@ -73,6 +73,9 @@ $userId = $tokenData->user_id;
         .navbar-brand {
             font-weight: bold;
             color: white !important;
+        }
+        p{
+            margin-bottom: 0px;
         }
 
         .card {
@@ -94,7 +97,7 @@ $userId = $tokenData->user_id;
 
         .product-columns {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 0fr));
             gap: 20px;
             margin-top: 20px;
         }
@@ -118,10 +121,10 @@ $userId = $tokenData->user_id;
         }
 
         .product-card-title {
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: bold;
             color: #007acc;
-            margin-bottom: 10px;
+            /*margin-bottom: 10px;*/
         }
 
         .product-card-details {
@@ -137,7 +140,7 @@ $userId = $tokenData->user_id;
         }
 
         .product-card-actions input {
-            width: 50px;
+            width: 150px;
             text-align: center;
         }
 
