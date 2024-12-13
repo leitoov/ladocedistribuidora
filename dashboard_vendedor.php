@@ -367,9 +367,8 @@ $userId = $tokenData->user_id;
                     // Crear tarjeta para el producto
                     const cardHtml = `
                         <div class="product-card">
-                            <div class="product-card-title">${producto.nombre}</div>
+                            <div class="product-card-title">${producto.nombre} ${producto.descripcion}</div>
                             <div class="product-card-details">
-                                <p><strong>Descripción:</strong> ${producto.descripcion}</p>
                                 <p><strong>Precio:</strong> $${producto.precio}</p>
                                 <p><strong>Total:</strong> $${totalProducto}</p>
                             </div>
