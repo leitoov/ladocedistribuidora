@@ -308,7 +308,7 @@ $userId = $tokenData->user_id;
                                     `<button class="list-group-item list-group-item-action" 
                                         onclick="agregarProducto(${producto.id}, '${producto.nombre}', 
                                         '${producto.descripcion}', ${producto.precio}, ${producto.stock})">
-                                        ${producto.nombre} - $${producto.precio}
+                                        ${producto.nombre} ${producto.descripcion} - $${producto.precio}
                                     </button>`
                                 );
                             });
