@@ -140,7 +140,7 @@ $userId = $tokenData->user_id;
         }
 
         .product-card-actions input {
-            width: 150px;
+            width: 60%;
             text-align: center;
         }
 
