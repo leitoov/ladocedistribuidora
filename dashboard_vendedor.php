@@ -159,6 +159,8 @@ $userId = $tokenData->user_id;
 
         .product-search-results .list-group-item {
             cursor: pointer;
+            padding: 15px;
+            border-bottom: 1px solid #bfbfbf40;
         }
 
         .order-summary {
