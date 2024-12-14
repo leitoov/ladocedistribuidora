@@ -303,6 +303,7 @@ $userId = $tokenData->user_id;
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
@@ -487,10 +488,11 @@ $userId = $tokenData->user_id;
                 }),
                 success: function (response) {
                     mostrarMensajeModal(response.message);
+                    limpiarDatos(); // Limpiar todos los datos
+
                     generarPDF();
                     productosEnPedido = [];
-                    actualizarTablaPedido();
-                    limpiarDatos(); // Limpiar todos los datos
+                    //actualizarTablaPedido();
                 },
                 error: function () {
                     mostrarMensajeModal("Error al confirmar el pedido.");
@@ -516,8 +518,7 @@ $userId = $tokenData->user_id;
 
         // Generar PDF del pedido
         function generarPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            const doc = new window.jspdf.jsPDF();
 
             doc.text("Distribuidora", 10, 10);
             doc.text(`Cliente: ${$('#clienteInput').val()}`, 10, 20);
