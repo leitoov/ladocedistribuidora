@@ -24,160 +24,25 @@ try {
     exit();
 }
 
-// Obtener los datos del pedido
-$data = json_decode(file_get_contents("php://input"), true);
-$cliente = $data['cliente'] ?? null;
-$tipoPedido = $data['tipoPedido'] ?? null;
-$productos = $data['productos'] ?? [];
-
-// Verificar que los datos sean válidos
-if (empty($productos) || empty($cliente)) {
-    http_response_code(400);
-    echo json_encode(["message" => "Datos del pedido incompletos"]);
-    exit();
-}
-
+// Obtener solo los pedidos pendientes de tipo "Caja"
 try {
-    // Verificar stock disponible antes de iniciar la transacción
-    foreach ($productos as $producto) {
-        if ($producto['tipo'] === 'unidad') {
-            $stmtCheckStock = $pdo->prepare("SELECT stock_unidad FROM productos WHERE id = :id");
-            $stmtCheckStock->execute(['id' => $producto['id']]);
-            $stockDisponible = $stmtCheckStock->fetchColumn();
+    $stmt = $pdo->prepare("
+        SELECT p.id AS pedido_id, p.nombre_cliente, p.total, p.estado, p.tipo_pedido, p.fecha_creacion, 
+               u.nombre AS vendedor
+        FROM pedidos p
+        LEFT JOIN usuarios u ON p.id_usuario = u.id
+        WHERE p.tipo_pedido = 'Caja' AND p.estado = 'Pendiente'
+        ORDER BY p.fecha_creacion DESC
+    ");
+    $stmt->execute();
+    $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            if ($stockDisponible === false || $stockDisponible < $producto['cantidad']) {
-                throw new Exception("Stock insuficiente para el producto (unidad) con ID: {$producto['id']}");
-            }
-        } elseif ($producto['tipo'] === 'pack') {
-            $stmtCheckStock = $pdo->prepare("SELECT stock_pack FROM productos WHERE id = :id");
-            $stmtCheckStock->execute(['id' => $producto['id']]);
-            $stockDisponible = $stmtCheckStock->fetchColumn();
-
-            if ($stockDisponible === false || $stockDisponible < $producto['cantidad']) {
-                throw new Exception("Stock insuficiente para el producto (pack) con ID: {$producto['id']}");
-            }
-        }
-    }
-
-    // Iniciar transacción para asegurar la consistencia del pedido y el stock
-    $pdo->beginTransaction();
-
-    // Verificar si el cliente existe
-    $stmtCliente = $pdo->prepare("SELECT id, nombre FROM clientes WHERE nombre = :nombre LIMIT 1");
-    $stmtCliente->execute(['nombre' => $cliente]);
-    $clienteData = $stmtCliente->fetch(PDO::FETCH_ASSOC);
-
-    if ($clienteData) {
-        $idCliente = $clienteData['id'];
-        $nombreCliente = $clienteData['nombre'];
+    if ($pedidos) {
+        echo json_encode($pedidos);
     } else {
-        // Verificar si el cliente genérico ya existe, si no, insertarlo
-        $stmtGenCliente = $pdo->prepare("SELECT id FROM clientes WHERE id = 9999 LIMIT 1");
-        $stmtGenCliente->execute();
-        $genClienteData = $stmtGenCliente->fetch(PDO::FETCH_ASSOC);
-
-        if (!$genClienteData) {
-            // Insertar cliente genérico si no existe
-            $stmtInsertGen = $pdo->prepare("INSERT INTO clientes (id, nombre) VALUES (9999, 'Cliente Genérico')");
-            $stmtInsertGen->execute();
-        }
-
-        // Usar el ID genérico para clientes no registrados
-        $idCliente = 9999; // ID genérico para cliente no registrado
-        $nombreCliente = $cliente; // Guardar el nombre ingresado del cliente
+        echo json_encode(["message" => "No hay pedidos pendientes de tipo 'Caja'."]);
     }
-
-    // Determinar el estado del pedido
-    $estadoPedido = ($tipoPedido === 'Reparto') ? 'Confirmado' : 'Pendiente';
-
-    // Insertar el pedido en la tabla `pedidos`
-    $stmt = $pdo->prepare("INSERT INTO pedidos (id_cliente, nombre_cliente, id_usuario, total, estado, tipo_pedido) 
-        VALUES (:cliente, :nombre_cliente, :usuario_id, :total, :estado, :tipo_pedido)");
-
-    $total = array_reduce($productos, function ($acc, $producto) {
-        $precio = $producto['tipo'] === 'unidad' ? $producto['precio_unitario'] : $producto['precio_pack'];
-        return $acc + ($precio * $producto['cantidad']);
-    }, 0);
-
-    $stmt->execute([
-        'cliente' => $idCliente,
-        'nombre_cliente' => $nombreCliente,
-        'usuario_id' => $tokenData->user_id, // ID del vendedor que genera el pedido
-        'total' => $total,
-        'estado' => $estadoPedido,
-        'tipo_pedido' => $tipoPedido
-    ]);
-
-    $pedidoId = $pdo->lastInsertId();
-
-    // Preparar consultas para actualizar el stock según el tipo
-    $stmtDetalle = $pdo->prepare("
-        INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad, precio, tipo) 
-        VALUES (:pedido_id, :producto_id, :cantidad, :precio, :tipo)
-    ");
-    $stmtUpdateStockUnidad = $pdo->prepare("
-        UPDATE productos SET stock_unidad = stock_unidad - :cantidad 
-        WHERE id = :producto_id AND stock_unidad >= :cantidad
-    ");
-    $stmtUpdateStockPack = $pdo->prepare("
-        UPDATE productos SET stock_pack = stock_pack - :cantidad 
-        WHERE id = :producto_id AND stock_pack >= :cantidad
-    ");
-
-    // Procesar cada producto
-    foreach ($productos as $producto) {
-        $precio = $producto['tipo'] === 'unidad' ? $producto['precio_unitario'] : $producto['precio_pack'];
-
-        // Insertar detalle del pedido
-        $stmtDetalle->execute([
-            'pedido_id' => $pedidoId,
-            'producto_id' => $producto['id'],
-            'cantidad' => $producto['cantidad'],
-            'precio' => $precio,
-            'tipo' => $producto['tipo'] // unidad o pack
-        ]);
-
-        // Actualizar el stock solo si el tipo de pedido es Reparto
-        if ($tipoPedido === 'Reparto') {
-            if ($producto['tipo'] === 'unidad') {
-                $stmtUpdateStockUnidad->execute([
-                    'producto_id' => $producto['id'],
-                    'cantidad' => $producto['cantidad']
-                ]);
-
-                if ($stmtUpdateStockUnidad->rowCount() === 0) {
-                    throw new Exception('Stock insuficiente para el producto (unidad) con ID: ' . $producto['id']);
-                }
-            } elseif ($producto['tipo'] === 'pack') {
-                $stmtUpdateStockPack->execute([
-                    'producto_id' => $producto['id'],
-                    'cantidad' => $producto['cantidad']
-                ]);
-
-                if ($stmtUpdateStockPack->rowCount() === 0) {
-                    throw new Exception('Stock insuficiente para el producto (pack) con ID: ' . $producto['id']);
-                }
-            }
-        }
-    }
-
-    // Confirmar la transacción
-    $pdo->commit();
-
-    // Respuesta según el tipo de pedido
-    $response = [
-        "message" => "Pedido generado correctamente",
-        "pedido_id" => $pedidoId,
-        "total" => $total
-    ];
-    if ($tipoPedido === 'Reparto') {
-        $response['estado'] = 'Confirmado';
-        $response['print'] = true; // Señal para impresión automática
-    }
-
-    echo json_encode($response);
 } catch (Exception $e) {
-    $pdo->rollBack();
     http_response_code(500);
-    echo json_encode(["message" => "Error al generar el pedido", "error" => $e->getMessage()]);
+    echo json_encode(["message" => "Error al obtener los pedidos pendientes", "error" => $e->getMessage()]);
 }
