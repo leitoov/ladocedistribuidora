@@ -24,15 +24,13 @@ try {
     exit();
 }
 
-// Obtener el id_usuario del token
-$idUsuario = $tokenData->user_id;
-
 // Obtener los datos del pedido
 $data = json_decode(file_get_contents("php://input"), true);
 $cliente = $data['cliente'] ?? null;
 $tipoPedido = $data['tipoPedido'] ?? null;
 $productos = $data['productos'] ?? [];
 
+// Verificar que los datos sean válidos
 if (empty($productos) || empty($cliente)) {
     http_response_code(400);
     echo json_encode(["message" => "Datos del pedido incompletos"]);
@@ -63,13 +61,6 @@ try {
             $stmtInsertGen->execute();
         }
 
-        // Después de intentar insertar, verificar que el cliente genérico ahora exista
-        $stmtGenCliente->execute(); // Volver a ejecutar para verificar
-        $genClienteData = $stmtGenCliente->fetch(PDO::FETCH_ASSOC);
-        if (!$genClienteData) {
-            throw new Exception('No se pudo insertar el cliente genérico.');
-        }
-
         // Usar el ID genérico para clientes no registrados
         $idCliente = 9999; // ID genérico para cliente no registrado
         $nombreCliente = $cliente; // Guardar el nombre ingresado del cliente
@@ -78,18 +69,19 @@ try {
     // Determinar el estado del pedido
     $estadoPedido = ($tipoPedido === 'Reparto') ? 'Confirmado' : 'Pendiente';
 
-    // Insertar el pedido (incluyendo id_usuario)
-    $stmt = $pdo->prepare("
-        INSERT INTO pedidos (id_cliente, id_usuario, nombre_cliente, total, estado, tipo_pedido) 
-        VALUES (:cliente, :usuario, :nombre_cliente, :total, :estado, :tipo_pedido)
-    ");
+    // Insertar el pedido en la tabla `pedidos`
+    $stmt = $pdo->prepare("INSERT INTO pedidos (id_cliente, nombre_cliente, id_usuario, total, estado, tipo_pedido) 
+        VALUES (:cliente, :nombre_cliente, :usuario_id, :total, :estado, :tipo_pedido)");
+
     $total = array_reduce($productos, function ($acc, $producto) {
-        return $acc + (($producto['tipo'] === 'unidad' ? $producto['precio_unitario'] : $producto['precio_pack']) * $producto['cantidad']);
+        $precio = $producto['tipo'] === 'unidad' ? $producto['precio_unitario'] : $producto['precio_pack'];
+        return $acc + ($precio * $producto['cantidad']);
     }, 0);
+
     $stmt->execute([
         'cliente' => $idCliente,
-        'usuario' => $idUsuario,
         'nombre_cliente' => $nombreCliente,
+        'usuario_id' => $tokenData->user_id, // ID del vendedor que genera el pedido
         'total' => $total,
         'estado' => $estadoPedido,
         'tipo_pedido' => $tipoPedido
@@ -97,12 +89,17 @@ try {
 
     $pedidoId = $pdo->lastInsertId();
 
-    // Insertar los productos en detalle_pedido y actualizar el stock
-    $stmtDetalle = $pdo->prepare("INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad, precio) VALUES (:pedido_id, :producto_id, :cantidad, :precio)");
-    $stmtUpdateStock = $pdo->prepare("UPDATE productos SET stock = stock - :cantidad WHERE id = :producto_id AND stock >= :cantidad");
+    // Insertar los productos en `detalle_pedido` y actualizar el stock
+    $stmtDetalle = $pdo->prepare("
+        INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad, precio, tipo) 
+        VALUES (:pedido_id, :producto_id, :cantidad, :precio, :tipo)
+    ");
+    $stmtUpdateStock = $pdo->prepare("
+        UPDATE productos SET stock = stock - :cantidad 
+        WHERE id = :producto_id AND stock >= :cantidad
+    ");
 
     foreach ($productos as $producto) {
-        // Determinar el precio según el tipo
         $precio = $producto['tipo'] === 'unidad' ? $producto['precio_unitario'] : $producto['precio_pack'];
 
         // Insertar detalle del pedido
@@ -110,7 +107,8 @@ try {
             'pedido_id' => $pedidoId,
             'producto_id' => $producto['id'],
             'cantidad' => $producto['cantidad'],
-            'precio' => $precio
+            'precio' => $precio,
+            'tipo' => $producto['tipo'] // unidad o pack
         ]);
 
         // Actualizar el stock del producto
@@ -128,15 +126,18 @@ try {
     // Confirmar la transacción
     $pdo->commit();
 
-    // Imprimir automáticamente el pedido si es de tipo "Reparto"
+    // Respuesta según el tipo de pedido
+    $response = [
+        "message" => "Pedido generado correctamente",
+        "pedido_id" => $pedidoId,
+        "total" => $total
+    ];
     if ($tipoPedido === 'Reparto') {
-        echo json_encode([
-            "message" => "Pedido generado correctamente. Tipo: Reparto. Estado: Confirmado. Imprimiendo pedido...",
-            "print" => true
-        ]);
-    } else {
-        echo json_encode(["message" => "Pedido generado correctamente"]);
+        $response['estado'] = 'Confirmado';
+        $response['print'] = true; // Señal para impresión automática
     }
+
+    echo json_encode($response);
 } catch (Exception $e) {
     $pdo->rollBack();
     http_response_code(500);
