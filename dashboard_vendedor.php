@@ -396,6 +396,13 @@ $userId = $tokenData->user_id;
             $('#modalMensajeCuerpo').text(mensaje);
             $('#modalMensaje').modal('show');
         }
+        function formatearNumero(numero) {
+            return new Intl.NumberFormat('es-AR', {
+                style: 'decimal',
+                minimumFractionDigits: 2, // Siempre muestra 2 decimales
+                maximumFractionDigits: 2
+            }).format(numero);
+        }
 
         // Búsqueda de productos con AJAX
         $('#productoInput').on('keyup', function () {
@@ -416,8 +423,8 @@ $userId = $tokenData->user_id;
                                         '${producto.descripcion}', ${producto.precio_unitario || 0}, 
                                         ${producto.precio_pack || 0}, ${producto.stock})">
                                         ${producto.nombre} ${producto.descripcion} 
-                                        - ${producto.precio_unitario > 0 ? `Unidad: $${producto.precio_unitario}` : ''} 
-                                        ${producto.precio_pack > 0 ? `Pack: $${producto.precio_pack}` : ''}
+                                        - ${producto.precio_unitario > 0 ? `Unidad: $${formatearNumero(producto.precio_unitario)}` : ''} 
+                                        ${producto.precio_pack > 0 ? `Pack: $${formatearNumero(producto.precio_pack)}` : ''}
                                     </button>`
                                 );
                             });
@@ -483,8 +490,8 @@ $userId = $tokenData->user_id;
                         <div class="product-card">
                             <div class="product-card-title">${producto.nombre} ${producto.descripcion}</div>
                             <div class="product-card-details">
-                                <p><strong>Precio:</strong> $${precioSeleccionado}</p>
-                                <p><strong>Total:</strong> $${totalProducto}</p>
+                                <p><strong>Precio:</strong> $${formatearNumero(precioSeleccionado)}</p>
+                                <p><strong>Total:</strong> $${formatearNumero(totalProducto)}</p>
                             </div>
                             <div class="product-card-actions">
                                 ${producto.precio_unitario > 0 && producto.precio_pack > 0 ? `
@@ -511,7 +518,8 @@ $userId = $tokenData->user_id;
             }
 
             // Actualizar el total del pedido
-            $('#totalPedido').text(totalPedido.toFixed(2));
+            $('#totalPedido').text(`$ ${formatearNumero(totalPedido)}`);
+
         }
 
         // Cambiar el tipo de precio del producto (unidad/pack)
