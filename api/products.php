@@ -38,15 +38,59 @@ switch ($_SERVER['REQUEST_METHOD']) {
         }
 
         try {
-            // Seleccionar todas las columnas de productos
-            $stmt = $pdo->prepare("SELECT * FROM productos WHERE nombre LIKE :termino OR descripcion LIKE :termino LIMIT 10");
+            // Seleccionar todas las columnas de productos que coincidan con el término
+            $stmt = $pdo->prepare("SELECT * FROM productos WHERE nombre LIKE :termino OR descripcion LIKE :termino");
             $stmt->execute(['termino' => "%$termino%"]);
             $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            if (empty($productos)) {
-                echo json_encode(["message" => "No se encontraron productos con el término especificado"]);
-                exit();
+
+            $productosValidos = [];
+            $exclusiones = [];
+
+            foreach ($productos as $producto) {
+                $tienePrecioUnitario = $producto['precio_unitario'] > 0;
+                $tieneStockUnitario = $producto['stock_unidad'] > 0;
+
+                $tienePrecioPack = $producto['precio_pack'] > 0;
+                $tieneStockPack = $producto['stock_pack'] > 0;
+
+                // Verificar si el producto tiene al menos una opción válida (unitario o pack)
+                if (($tienePrecioUnitario && $tieneStockUnitario) || ($tienePrecioPack && $tieneStockPack)) {
+                    // El producto es válido, se incluye en la lista
+                    $productosValidos[] = [
+                        "id" => $producto['id'],
+                        "nombre" => $producto['nombre'],
+                        "descripcion" => $producto['descripcion'],
+                        "precio_unitario" => $tienePrecioUnitario ? $producto['precio_unitario'] : null,
+                        "stock_unidad" => $tieneStockUnitario ? $producto['stock_unidad'] : null,
+                        "precio_pack" => $tienePrecioPack ? $producto['precio_pack'] : null,
+                        "stock_pack" => $tieneStockPack ? $producto['stock_pack'] : null,
+                        "estado" => $producto['estado'],
+                        "categoria" => $producto['categoria'],
+                        "aplica_descuento" => $producto['aplica_descuento']
+                    ];
+                } else {
+                    // El producto no cumple con las reglas, se incluye en las exclusiones
+                    $razonExclusion = [];
+
+                    if (!$tienePrecioUnitario && !$tienePrecioPack) {
+                        $razonExclusion[] = "No tiene precios válidos";
+                    }
+                    if (!$tieneStockUnitario && !$tieneStockPack) {
+                        $razonExclusion[] = "No tiene stock disponible";
+                    }
+
+                    $exclusiones[] = [
+                        "id" => $producto['id'],
+                        "nombre" => $producto['nombre'],
+                        "razones" => $razonExclusion
+                    ];
+                }
             }
-            echo json_encode($productos);
+
+            echo json_encode([
+                "productos" => $productosValidos,
+                "exclusiones" => $exclusiones
+            ]);
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(["message" => "Error al buscar productos", "error" => $e->getMessage()]);
