@@ -411,8 +411,7 @@ $userId = $tokenData->user_id;
                 respuesta.productos.forEach(function (producto) {
                     let tieneUnidad = producto.stock_unidad > 0 && producto.precio_unitario > 0;
                     let tienePack = producto.stock_pack > 0 && producto.precio_pack > 0;
-                    console.log(producto)
-                    console.log(producto.stock_pack)
+
                     if (tieneUnidad || tienePack) {
                         // Mostrar con select si ambos están disponibles
                         if (tieneUnidad && tienePack) {
@@ -474,6 +473,7 @@ $userId = $tokenData->user_id;
                         $('#resultadosBusqueda').empty();
                         if (respuesta.productos.length > 0) {
                             respuesta.productos.forEach(function (producto) {
+                                console.log(producto)
                                 $('#resultadosBusqueda').append(
                                     `<button class="list-group-item list-group-item-action" 
                                         onclick="agregarProducto(${producto.id}, '${producto.nombre}', 
@@ -501,6 +501,8 @@ $userId = $tokenData->user_id;
         // Agregar producto al pedido
         window.agregarProducto = function (id, nombre, descripcion, precio_unitario, precio_pack, stock_unidad, stock_pack) {
             let productoExistente = productosEnPedido.find(p => p.id === id);
+            console.log(precio_unitario)
+            console.log(precio_pack.stock_pack)
 
             // Lógica para determinar qué tipo (pack o unidad) agregar inicialmente
             let tipoSeleccionado = '';
