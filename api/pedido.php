@@ -162,7 +162,8 @@ try {
         "pedido_id" => $pedidoId,
         "historial_id" => $historialId, // Incluir ID del historial
         "total" => $total,
-        "estado" => $estadoPedido
+        "estado" => $estadoPedido,
+        "id_cliente" => $idCliente // Incluir ID del cliente en la respuesta
     ]);
 } catch (Exception $e) {
     $pdo->rollBack();

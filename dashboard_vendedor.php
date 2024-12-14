@@ -645,7 +645,6 @@ $userId = $tokenData->user_id;
             $('#modalMensaje').modal('show');
         }
 
-        // Confirmar pedido
         $('#confirmarPedido').on('click', function () {
             if (productosEnPedido.length === 0) {
                 mostrarMensajeModal("No hay productos en el pedido para confirmar.");
@@ -671,32 +670,21 @@ $userId = $tokenData->user_id;
                 }),
                 success: function (response) {
                     if (response.estado === "Confirmado" || response.estado === "Pendiente") {
-                        // Llamada para obtener los datos del cliente
+                        // Llamada para obtener los datos del cliente por ID
                         $.ajax({
-                            url: 'api/clientes.php',
+                            url: `api/clientes.php?id=${response.id_cliente}`, // Usar el ID del cliente
                             type: 'GET',
-                            data: { termino: cliente },
-                            success: function (clientes) {
-                                console.log(clientes);
-                                const clienteData = clientes.length > 0 ? clientes[0] : null; // Toma el primer cliente encontrado
-                                if (clienteData && clienteData.id === response.id_cliente) {
-                                    // Validación exitosa
-                                    if (response.estado === "Confirmado") {
-                                        generarPDF(response, clienteData); // Generar PDF con los datos completos del cliente
-                                    }
-                                    mostrarMensajeModal(response.message); // Mostrar mensaje de éxito
+                            success: function (clienteData) {
+                                if (clienteData) {
+                                    generarPDF(response, clienteData); // Generar PDF con los datos completos del cliente
                                 } else {
-                                    // IDs no coinciden
-                                    mostrarMensajeModal(
-                                        "Error: el cliente registrado no coincide con el cliente devuelto por la API."
-                                    );
+                                    mostrarMensajeModal("Error: no se encontraron datos del cliente.");
                                 }
+                                mostrarMensajeModal(response.message); // Mostrar mensaje de éxito
                                 limpiarDatos(); // Limpiar los campos
                             },
                             error: function () {
-                                if (response.estado === "Confirmado") {
-                                    generarPDF(response, $('#clienteInput').val().trim()); // Generar PDF sin datos del cliente si hay error
-                                }
+                                generarPDF(response, null); // Generar PDF sin datos del cliente si hay error
                                 mostrarMensajeModal("Pedido confirmado correctamente.");
                                 limpiarDatos();
                             }
@@ -708,8 +696,6 @@ $userId = $tokenData->user_id;
                 }
             });
         });
-
-        // Generar PDF duplicando la información para partir la hoja
         // Generar PDF y enviarlo a imprimir
         function generarPDF(pedidoData, clienteData) {
             const doc = new window.jspdf.jsPDF();
