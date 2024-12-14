@@ -122,7 +122,7 @@ $userId = $tokenData->user_id;
         }
 
         .product-card-title {
-            font-size: 1rem;
+            font-size: 0.75rem;
             font-weight: bold;
             color: #007acc;
             /*margin-bottom: 10px;*/
@@ -400,8 +400,8 @@ $userId = $tokenData->user_id;
                                     min="1" 
                                     max="${producto.stock}" 
                                     onchange="actualizarCantidad(${producto.id}, this.value)">
-                                <button class="btn btn-danger btn-sm mt-2" onclick="eliminarProducto(${producto.id})">Eliminar</button>
                             </div>
+                            <button class="btn btn-danger btn-sm mt-2" onclick="eliminarProducto(${producto.id})">Eliminar</button>
                         </div>
                     `;
                     container.append(cardHtml);
