@@ -419,8 +419,8 @@ $userId = $tokenData->user_id;
                     data: { termino: termino, tipo: filtroTipo },
                     success: function (respuesta) {
                         $('#resultadosBusqueda').empty();
-                        if (respuesta.length > 0) {
-                            respuesta.forEach(function (producto) {
+                        if (respuesta.productos.length > 0) {
+                            respuesta.productos.forEach(function (producto) {
                                 $('#resultadosBusqueda').append(
                                     `<button class="list-group-item list-group-item-action" 
                                         onclick="agregarProducto(${producto.id}, '${producto.nombre}', 
