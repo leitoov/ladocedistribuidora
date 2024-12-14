@@ -669,12 +669,13 @@ $userId = $tokenData->user_id;
                     productos: productosEnPedido
                 }),
                 success: function (response) {
-                    if (response.estado === "Confirmado" || response.estado === "Pendiente") {
+                    if (response.estado === "Confirmado") {
                         // Llamada para obtener los datos del cliente por ID
                         $.ajax({
                             url: `api/clientes.php?id=${response.id_cliente}`, // Usar el ID del cliente
                             type: 'GET',
                             success: function (clienteData) {
+                                console.log(clienteData)
                                 if (clienteData) {
                                     generarPDF(response, clienteData); // Generar PDF con los datos completos del cliente
                                 } else {
@@ -689,7 +690,11 @@ $userId = $tokenData->user_id;
                                 limpiarDatos();
                             }
                         });
+                    }else if(response.estado === "Pendiente"){
+                        mostrarMensajeModal(response.message); // Mostrar mensaje de éxito
+                        limpiarDatos(); // Limpiar los campos
                     }
+
                 },
                 error: function () {
                     mostrarMensajeModal("Error al confirmar el pedido. Por favor, inténtalo de nuevo.");
