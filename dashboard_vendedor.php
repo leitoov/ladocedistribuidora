@@ -675,7 +675,6 @@ $userId = $tokenData->user_id;
                             url: `api/clientes.php?id=${response.id_cliente}`, // Usar el ID del cliente
                             type: 'GET',
                             success: function (clienteData) {
-                                console.log(clienteData)
                                 if (clienteData) {
                                     generarPDF(response, clienteData); // Generar PDF con los datos completos del cliente
                                 } else {
@@ -710,7 +709,9 @@ $userId = $tokenData->user_id;
                 doc.text(`Pedido ID: ${pedidoData.pedido_id}`, 10, inicioY + 10);
                 doc.text(`Estado: ${pedidoData.estado}`, 10, inicioY + 20);
                 doc.text(`Cliente: ${clienteData ? clienteData.nombre : 'No especificado'}`, 10, inicioY + 30);
+                console.log(clienteData)
                 if (clienteData) {
+                    console.log('aca')
                     doc.text(`Dirección: ${clienteData.direccion}`, 10, inicioY + 40);
                     doc.text(`Teléfono: ${clienteData.telefono}`, 10, inicioY + 50);
                 }
