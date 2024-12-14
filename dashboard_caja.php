@@ -358,7 +358,7 @@ $userId = $tokenData->user_id;
                                     total: parseFloat(item.total),
                                     estado: item.estado,
                                     tipo_pedido: item.tipo_pedido,
-                                    cliente_nombre: item.cliente_nombre,
+                                    nombre_cliente: item.nombre_cliente,
                                     productos: []
                                 };
                             }
@@ -376,7 +376,7 @@ $userId = $tokenData->user_id;
                                 tbody.append(`
                                     <tr>
                                         <td>${pedido.pedido_id}</td>
-                                        <td>${pedido.cliente_nombre}</td>
+                                        <td>${pedido.nombre_cliente}</td>
                                         <td>${pedido.tipo_pedido}</td>
                                         <td>$${pedido.total.toFixed(2)}</td>
                                         <td>
@@ -509,7 +509,7 @@ $userId = $tokenData->user_id;
                 ventana.document.write(`<div class="header">
                                             <p><strong>Distribuidora XYZ</strong><br>
                                             Fecha: ${pedido.fecha}<br>
-                                            Cliente: ${pedido.cliente_nombre}<br>
+                                            Cliente: ${pedido.nombre_cliente}<br>
                                             Nº de Ticket: ${pedido.pedido_id}</p>
                                         </div>`);
                 pedido.productos.forEach(producto => {
