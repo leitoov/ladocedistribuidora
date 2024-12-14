@@ -87,7 +87,7 @@ try {
         $nombreCliente = $cliente; // Guardar el nombre ingresado del cliente
     }
 
-    // Determinar el estado del pedido
+    // Determinar el estado del pedido según el tipo
     $estadoPedido = ($tipoPedido === 'Reparto') ? 'Confirmado' : 'Pendiente';
 
     // Insertar el pedido en la tabla `pedidos`
@@ -104,13 +104,13 @@ try {
         'nombre_cliente' => $nombreCliente,
         'usuario_id' => $tokenData->user_id, // ID del vendedor que genera el pedido
         'total' => $total,
-        'estado' => $estadoPedido,
+        'estado' => $estadoPedido, // Asignar estado según el tipo de pedido
         'tipo_pedido' => $tipoPedido
     ]);
 
     $pedidoId = $pdo->lastInsertId();
 
-    // Insertar los productos en `detalle_pedido` y actualizar el stock
+    // Preparar consultas para actualizar el stock según el tipo
     $stmtDetalle = $pdo->prepare("
         INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad, precio, tipo) 
         VALUES (:pedido_id, :producto_id, :cantidad, :precio, :tipo)
@@ -162,21 +162,15 @@ try {
     // Confirmar la transacción
     $pdo->commit();
 
-    // Respuesta según el tipo de pedido
-    $response = [
+    // Respuesta exitosa
+    echo json_encode([
         "message" => "Pedido generado correctamente",
         "pedido_id" => $pedidoId,
-        "total" => $total
-    ];
-    if ($tipoPedido === 'Reparto') {
-        $response['estado'] = 'Confirmado';
-        $response['print'] = true; // Señal para impresión automática
-    }
-
-    echo json_encode($response);
+        "total" => $total,
+        "estado" => $estadoPedido // Devolver estado del pedido
+    ]);
 } catch (Exception $e) {
     $pdo->rollBack();
     http_response_code(500);
     echo json_encode(["message" => "Error al generar el pedido", "error" => $e->getMessage()]);
 }
-?>
