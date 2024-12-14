@@ -670,7 +670,7 @@ $userId = $tokenData->user_id;
                     productos: productosEnPedido
                 }),
                 success: function (response) {
-                    if (response.estado === "Confirmado") {
+                    if (response.estado === "Confirmado" || response.estado === "Pendiente") {
                         $.ajax({
                             url: 'api/clientes.php', // Ruta para obtener datos del cliente
                             type: 'GET',
