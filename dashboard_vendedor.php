@@ -670,7 +670,6 @@ $userId = $tokenData->user_id;
                     productos: productosEnPedido
                 }),
                 success: function (response) {
-                    // Generar PDF si el pedido fue exitoso
                     if (response.estado === "Confirmado") {
                         $.ajax({
                             url: 'api/clientes.php', // Ruta para obtener datos del cliente
@@ -679,12 +678,12 @@ $userId = $tokenData->user_id;
                             success: function (clientes) {
                                 const clienteData = clientes.length > 0 ? clientes[0] : null; // Toma el primer cliente encontrado
                                 generarPDF(response, clienteData); // Genera el PDF con los datos del pedido y del cliente
-                                mostrarMensajeModal(response.message); // Muestra el mensaje de confirmación
-                                limpiarDatos(); // Limpiar todos los datos después de confirmar el pedido
+                                mostrarMensajeModal(response.message); // Mostrar mensaje de éxito
+                                limpiarDatos(); // Limpiar los campos
                             },
                             error: function () {
                                 generarPDF(response, null); // Generar PDF sin datos del cliente si hay error
-                                mostrarMensajeModal("Pedido confirmado, pero no se pudo obtener datos del cliente.");
+                                mostrarMensajeModal("Pedido confirmado correctamente, pero no se pudo obtener datos del cliente.");
                                 limpiarDatos();
                             }
                         });
