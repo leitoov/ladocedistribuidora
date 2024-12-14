@@ -181,6 +181,10 @@ $userId = $tokenData->user_id;
             font-size: 25px;
             font-weight: 500;
         }
+        .h-38{
+            height: 38px;
+        }
+
 
         @media (max-width: 768px) {
             .product-columns {
@@ -574,7 +578,7 @@ $userId = $tokenData->user_id;
                                 <p><strong>Total:</strong> $${formatearNumero(totalProducto)}</p>
                             </div>
                             <div class="product-card-actions">
-                                <select class="form-select form-select-sm mb-2 w-50 mx-3" onchange="cambiarTipoProducto(${producto.id}, this.value)">
+                                <select class="form-select form-select-sm h-38 w-50 mx-3" onchange="cambiarTipoProducto(${producto.id}, this.value)">
                                     <option value="unidad" ${producto.tipo === 'unidad' ? 'selected' : ''} ${producto.stock_unidad > 0 ? '' : 'disabled'}>
                                         Unidad
                                     </option>

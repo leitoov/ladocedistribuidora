@@ -38,6 +38,27 @@ if (empty($productos) || empty($cliente)) {
 }
 
 try {
+    // Verificar stock disponible antes de iniciar la transacción
+    foreach ($productos as $producto) {
+        if ($producto['tipo'] === 'unidad') {
+            $stmtCheckStock = $pdo->prepare("SELECT stock_unidad FROM productos WHERE id = :id");
+            $stmtCheckStock->execute(['id' => $producto['id']]);
+            $stockDisponible = $stmtCheckStock->fetchColumn();
+
+            if ($stockDisponible === false || $stockDisponible < $producto['cantidad']) {
+                throw new Exception("Stock insuficiente para el producto (unidad) con ID: {$producto['id']}");
+            }
+        } elseif ($producto['tipo'] === 'pack') {
+            $stmtCheckStock = $pdo->prepare("SELECT stock_pack FROM productos WHERE id = :id");
+            $stmtCheckStock->execute(['id' => $producto['id']]);
+            $stockDisponible = $stmtCheckStock->fetchColumn();
+
+            if ($stockDisponible === false || $stockDisponible < $producto['cantidad']) {
+                throw new Exception("Stock insuficiente para el producto (pack) con ID: {$producto['id']}");
+            }
+        }
+    }
+
     // Iniciar transacción para asegurar la consistencia del pedido y el stock
     $pdo->beginTransaction();
 
@@ -94,11 +115,16 @@ try {
         INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad, precio, tipo) 
         VALUES (:pedido_id, :producto_id, :cantidad, :precio, :tipo)
     ");
-    $stmtUpdateStock = $pdo->prepare("
-        UPDATE productos SET stock = stock - :cantidad 
-        WHERE id = :producto_id AND stock >= :cantidad
+    $stmtUpdateStockUnidad = $pdo->prepare("
+        UPDATE productos SET stock_unidad = stock_unidad - :cantidad 
+        WHERE id = :producto_id AND stock_unidad >= :cantidad
+    ");
+    $stmtUpdateStockPack = $pdo->prepare("
+        UPDATE productos SET stock_pack = stock_pack - :cantidad 
+        WHERE id = :producto_id AND stock_pack >= :cantidad
     ");
 
+    // Procesar cada producto
     foreach ($productos as $producto) {
         $precio = $producto['tipo'] === 'unidad' ? $producto['precio_unitario'] : $producto['precio_pack'];
 
@@ -111,15 +137,25 @@ try {
             'tipo' => $producto['tipo'] // unidad o pack
         ]);
 
-        // Actualizar el stock del producto
-        $stmtUpdateStock->execute([
-            'producto_id' => $producto['id'],
-            'cantidad' => $producto['cantidad']
-        ]);
+        // Actualizar el stock según el tipo de producto
+        if ($producto['tipo'] === 'unidad') {
+            $stmtUpdateStockUnidad->execute([
+                'producto_id' => $producto['id'],
+                'cantidad' => $producto['cantidad']
+            ]);
 
-        // Verificar si se actualizó correctamente el stock
-        if ($stmtUpdateStock->rowCount() === 0) {
-            throw new Exception('Stock insuficiente para el producto con ID: ' . $producto['id']);
+            if ($stmtUpdateStockUnidad->rowCount() === 0) {
+                throw new Exception('Stock insuficiente para el producto (unidad) con ID: ' . $producto['id']);
+            }
+        } elseif ($producto['tipo'] === 'pack') {
+            $stmtUpdateStockPack->execute([
+                'producto_id' => $producto['id'],
+                'cantidad' => $producto['cantidad']
+            ]);
+
+            if ($stmtUpdateStockPack->rowCount() === 0) {
+                throw new Exception('Stock insuficiente para el producto (pack) con ID: ' . $producto['id']);
+            }
         }
     }
 
