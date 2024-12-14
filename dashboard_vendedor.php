@@ -552,16 +552,20 @@ $userId = $tokenData->user_id;
                                 <p><strong>Total:</strong> $${formatearNumero(totalProducto)}</p>
                             </div>
                             <div class="product-card-actions">
-                                <select class="form-select form-select-sm mb-2 w-50 mx-3" onchange="cambiarTipoProducto(${producto.id}, this.value)">
-                                    <option value="unidad" ${producto.tipo === 'unidad' ? 'selected' : ''} 
-                                        ${producto.stock_unidad > 0 ? '' : 'disabled'}>
-                                        Unidad (Stock: ${producto.stock_unidad}, Precio: $${formatearNumero(producto.precio_unitario)})
-                                    </option>
-                                    <option value="pack" ${producto.tipo === 'pack' ? 'selected' : ''} 
-                                        ${producto.stock_pack > 0 ? '' : 'disabled'}>
-                                        Pack (Stock: ${producto.stock_pack || 0}, Precio: $${formatearNumero(producto.precio_pack)})
-                                    </option>
-                                </select>
+                                ${producto.stock_unidad > 0 || producto.stock_pack > 0 ? `
+                                    <select class="form-select form-select-sm mb-2 w-50 mx-3" onchange="cambiarTipoProducto(${producto.id}, this.value)">
+                                        <option value="unidad" ${producto.tipo === 'unidad' ? 'selected' : ''} 
+                                            ${producto.stock_unidad > 0 ? '' : 'disabled'}>
+                                            Unidad (Stock: ${producto.stock_unidad || 0}, Precio: $${formatearNumero(producto.precio_unitario)})
+                                        </option>
+                                        <option value="pack" ${producto.tipo === 'pack' ? 'selected' : ''} 
+                                            ${producto.stock_pack > 0 ? '' : 'disabled'}>
+                                            Pack (Stock: ${producto.stock_pack || 0}, Precio: $${formatearNumero(producto.precio_pack)})
+                                        </option>
+                                    </select>
+                                ` : `
+                                    <p class="text-muted">Producto sin stock</p>
+                                `}
                                 <input type="number" 
                                     class="form-control cantidadProducto" 
                                     data-id="${producto.id}" 
@@ -573,6 +577,7 @@ $userId = $tokenData->user_id;
                             <button class="btn btn-danger btn-sm mt-2" onclick="eliminarProducto(${producto.id})">Eliminar</button>
                         </div>
                     `);
+
 
                 });
             } else {
