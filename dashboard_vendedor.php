@@ -403,12 +403,42 @@ $userId = $tokenData->user_id;
         function formatearNumero(numero) {
             return new Intl.NumberFormat('es-AR', {
                 style: 'decimal',
-                minimumFractionDigits: 2, // Siempre muestra 2 decimales
+                minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             }).format(numero);
         }
 
-        // Búsqueda de productos con AJAX
+        // Función para mostrar productos después de consultar la API
+        function mostrarProductos(respuesta) {
+            $('#resultadosBusqueda').empty();
+
+            if (respuesta.productos && respuesta.productos.length > 0) {
+                respuesta.productos.forEach(function (producto) {
+                    $('#resultadosBusqueda').append(`
+                        <button class="list-group-item list-group-item-action"
+                            onclick="agregarProducto(${producto.id}, '${producto.nombre}', '${producto.descripcion}', ${producto.precio_unitario || 0}, ${producto.precio_pack || 0}, ${producto.stock_unidad || 0}, ${producto.stock_pack || 0})">
+                            ${producto.nombre} ${producto.descripcion} 
+                            - ${producto.precio_unitario > 0 ? `Unidad: $${formatearNumero(producto.precio_unitario)}` : ''} 
+                            ${producto.precio_pack > 0 ? `Pack: $${formatearNumero(producto.precio_pack)}` : ''}
+                        </button>
+                    `);
+                });
+            } else {
+                $('#resultadosBusqueda').append('<div class="list-group-item">No se encontraron productos que cumplan las condiciones.</div>');
+
+                if (respuesta.exclusiones && respuesta.exclusiones.length > 0) {
+                    respuesta.exclusiones.forEach(function (producto) {
+                        $('#resultadosBusqueda').append(`
+                            <div class="list-group-item text-muted">
+                                ${producto.nombre} - No disponible: ${producto.razones.join(', ')}
+                            </div>
+                        `);
+                    });
+                }
+            }
+        }
+
+        // Buscar productos con AJAX
         $('#productoInput').on('keyup', function () {
             let termino = $(this).val();
             let filtroTipo = $('#filtroTipo').val(); // Captura el valor del filtro (pack/unidad/todos)
@@ -416,7 +446,7 @@ $userId = $tokenData->user_id;
                 $.ajax({
                     url: 'api/products.php',
                     type: 'GET',
-                    data: { termino: termino, tipo: filtroTipo },
+                    data: { termino: termino },
                     success: function (respuesta) {
                         $('#resultadosBusqueda').empty();
                         if (respuesta.productos.length > 0) {
@@ -437,7 +467,7 @@ $userId = $tokenData->user_id;
                         }
                     },
                     error: function () {
-                        mostrarMensajeModal("Error al realizar la búsqueda.");
+                        $('#resultadosBusqueda').html('<div class="list-group-item text-danger">Error al buscar productos.</div>');
                     }
                 });
             } else {
@@ -503,13 +533,13 @@ $userId = $tokenData->user_id;
                                         <option value="unidad" ${producto.tipo === 'unidad' ? 'selected' : ''}>Unidad</option>
                                         <option value="pack" ${producto.tipo === 'pack' ? 'selected' : ''}>Pack</option>
                                     </select>
-                                ` : `<p class="text-muted">Tipo: ${producto.precio_unitario > 0 ? 'Unidad' : 'Pack'}</p>`}
+                                ` : `<p class="text-muted">Tipo: ${producto.tipo === 'unidad' ? 'Unidad' : 'Pack'}</p>`}
                                 <input type="number" 
                                     class="form-control cantidadProducto" 
                                     data-id="${producto.id}" 
                                     value="${producto.cantidad}" 
                                     min="1" 
-                                    max="${producto.stock}" 
+                                    max="${producto.tipo === 'unidad' ? producto.stock_unidad : producto.stock_pack}" 
                                     onchange="actualizarCantidad(${producto.id}, this.value)">
                             </div>
                             <button class="btn btn-danger btn-sm mt-2" onclick="eliminarProducto(${producto.id})">Eliminar</button>
@@ -540,7 +570,7 @@ $userId = $tokenData->user_id;
             let producto = productosEnPedido.find(p => p.id === id);
             if (producto) {
                 nuevaCantidad = parseInt(nuevaCantidad);
-                if (nuevaCantidad >= 1 && nuevaCantidad <= producto.stock) {
+                if (nuevaCantidad >= 1 && nuevaCantidad <= (producto.tipo === 'unidad' ? producto.stock_unidad : producto.stock_pack)) {
                     producto.cantidad = nuevaCantidad;
                     actualizarTablaPedido();
                 } else if (nuevaCantidad < 1) {
@@ -556,6 +586,12 @@ $userId = $tokenData->user_id;
             productosEnPedido = productosEnPedido.filter(p => p.id !== id);
             actualizarTablaPedido();
         };
+
+        // Mostrar mensaje en un modal
+        function mostrarMensajeModal(mensaje) {
+            $('#modalMensajeCuerpo').text(mensaje);
+            $('#modalMensaje').modal('show');
+        }
 
         // Confirmar pedido
         $('#confirmarPedido').on('click', function () {
@@ -582,7 +618,7 @@ $userId = $tokenData->user_id;
                     productos: productosEnPedido
                 }),
                 success: function (response) {
-                    generarPDF()
+                    //generarPDF()
                     mostrarMensajeModal(response.message);
                     limpiarDatos(); // Limpiar todos los datos después de confirmar el pedido
                 },
@@ -623,14 +659,14 @@ $userId = $tokenData->user_id;
             productosEnPedido.forEach((producto, index) => {
                 inicioY += 10;
                 doc.text(
-                    `${index + 1}. ${producto.nombre} - Cantidad: ${producto.cantidad} - Total: $${(producto.precio * producto.cantidad).toFixed(2)}`,
+                    `${index + 1}. ${producto.nombre} - Cantidad: ${producto.cantidad} - Total: $${(producto.precio_unitario * producto.cantidad).toFixed(2)}`,
                     10,
                     inicioY
                 );
             });
 
             inicioY += 10;
-            doc.text(`Total del Pedido: $${productosEnPedido.reduce((acc, p) => acc + (p.precio * p.cantidad), 0).toFixed(2)}`, 10, inicioY);
+            doc.text(`Total del Pedido: $${productosEnPedido.reduce((acc, p) => acc + (p.precio_unitario * p.cantidad), 0).toFixed(2)}`, 10, inicioY);
 
             doc.save("pedido.pdf");
         }
