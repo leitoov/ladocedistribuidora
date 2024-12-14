@@ -395,11 +395,6 @@ $userId = $tokenData->user_id;
                 buscarClientes(texto);
             }
         });
-        // Mostrar mensaje en un modal
-        function mostrarMensajeModal(mensaje) {
-            $('#modalMensajeCuerpo').text(mensaje);
-            $('#modalMensaje').modal('show');
-        }
         function formatearNumero(numero) {
             return new Intl.NumberFormat('es-AR', {
                 style: 'decimal',
@@ -476,34 +471,32 @@ $userId = $tokenData->user_id;
         });
 
         // Agregar producto al pedido
-        window.agregarProducto = function (id, nombre, descripcion, precio_unitario, precio_pack, stock) {
+        window.agregarProducto = function (id, nombre, descripcion, precio_unitario, precio_pack, stock_unidad, stock_pack) {
             let productoExistente = productosEnPedido.find(p => p.id === id);
-            if (productoExistente) {
-                if (productoExistente.cantidad < stock) {
-                    productoExistente.cantidad++;
-                    actualizarTablaPedido();
-                } else {
-                    mostrarMensajeModal("No hay suficiente stock disponible.");
-                }
+            if (!productoExistente) {
+                productosEnPedido.push({
+                    id: id,
+                    nombre: nombre,
+                    descripcion: descripcion,
+                    precio_unitario: precio_unitario || 0,
+                    precio_pack: precio_pack || 0,
+                    cantidad: 1,
+                    stock_unidad: stock_unidad || 0,
+                    stock_pack: stock_pack || 0,
+                    tipo: precio_pack > 0 ? 'pack' : 'unidad' // Prioriza pack si está disponible
+                });
             } else {
-                if (stock > 0) {
-                    let nuevoProducto = {
-                        id: id,
-                        nombre: nombre,
-                        descripcion: descripcion,
-                        precio_unitario: precio_unitario || 0,
-                        precio_pack: precio_pack || 0,
-                        cantidad: 1,
-                        stock: stock,
-                        tipo: precio_pack > 0 ? "pack" : "unidad" // Por defecto Pack si está disponible
-                    };
-                    productosEnPedido.push(nuevoProducto);
-                    actualizarTablaPedido();
+                if (productoExistente.tipo === 'unidad' && productoExistente.cantidad < stock_unidad) {
+                    productoExistente.cantidad++;
+                } else if (productoExistente.tipo === 'pack' && productoExistente.cantidad < stock_pack) {
+                    productoExistente.cantidad++;
                 } else {
-                    mostrarMensajeModal("No hay suficiente stock disponible.");
+                    mostrarMensajeModal('No hay suficiente stock disponible.');
+                    return;
                 }
             }
-            $('#productoInput').val(''); // Limpiar el campo de búsqueda
+            actualizarTablaPedido();
+            $('#productoInput').val('');
             $('#resultadosBusqueda').empty(); // Limpiar los resultados de búsqueda
         };
 
@@ -514,13 +507,12 @@ $userId = $tokenData->user_id;
             let totalPedido = 0;
 
             if (productosEnPedido.length > 0) {
-                productosEnPedido.forEach((producto) => {
-                    const precioSeleccionado = producto.tipo === "unidad" ? producto.precio_unitario : producto.precio_pack;
+                productosEnPedido.forEach(producto => {
+                    const precioSeleccionado = producto.tipo === 'unidad' ? producto.precio_unitario : producto.precio_pack;
                     const totalProducto = precioSeleccionado * producto.cantidad;
                     totalPedido += totalProducto;
 
-                    // Crear tarjeta para el producto
-                    const cardHtml = `
+                    container.append(`
                         <div class="product-card">
                             <div class="product-card-title">${producto.nombre} ${producto.descripcion}</div>
                             <div class="product-card-details">
@@ -544,19 +536,16 @@ $userId = $tokenData->user_id;
                             </div>
                             <button class="btn btn-danger btn-sm mt-2" onclick="eliminarProducto(${producto.id})">Eliminar</button>
                         </div>
-                    `;
-                    container.append(cardHtml);
+                    `);
                 });
             } else {
                 container.append('<div class="text-center text-muted">No hay productos en el pedido.</div>');
             }
 
-            // Actualizar el total del pedido
-            $('#totalPedido').text(`${formatearNumero(totalPedido)}`);
-
+            $('#totalPedido').text(formatearNumero(totalPedido));
         }
 
-        // Cambiar el tipo de precio del producto (unidad/pack)
+        // Cambiar tipo de precio del producto (unidad/pack)
         window.cambiarTipoProducto = function (id, nuevoTipo) {
             let producto = productosEnPedido.find(p => p.id === id);
             if (producto) {
@@ -680,6 +669,7 @@ $userId = $tokenData->user_id;
    
    
     </script>
+
 
 </body>
 </html>
