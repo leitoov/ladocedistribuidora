@@ -409,44 +409,55 @@ $userId = $tokenData->user_id;
 
             if (respuesta.productos && respuesta.productos.length > 0) {
                 respuesta.productos.forEach(function (producto) {
-                    let tipoSeleccionado = ''; // Para decidir si mostrar como pack o unidad
-                    let precioSeleccionado = 0;
-                    let stockSeleccionado = 0;
+                    let tieneUnidad = producto.stock_unidad > 0 && producto.precio_unitario > 0;
+                    let tienePack = producto.stock_pack > 0 && producto.precio_pack > 0;
 
-                    // Lógica para decidir qué mostrar (pack o unidad)
-                    if (producto.precio_pack > 0 && producto.stock_pack > 0) {
-                        tipoSeleccionado = 'pack';
-                        precioSeleccionado = producto.precio_pack;
-                        stockSeleccionado = producto.stock_pack;
-                    } else if (producto.precio_unitario > 0 && producto.stock_unidad > 0) {
-                        tipoSeleccionado = 'unidad';
-                        precioSeleccionado = producto.precio_unitario;
-                        stockSeleccionado = producto.stock_unidad;
-                    }
-
-                    // Si se seleccionó una opción válida (pack o unidad), mostrar el producto
-                    if (tipoSeleccionado) {
-                        $('#resultadosBusqueda').append(`
-                            <button class="list-group-item list-group-item-action"
-                                onclick="agregarProducto(${producto.id}, '${producto.nombre}', '${producto.descripcion}', ${producto.precio_unitario || 0}, ${producto.precio_pack || 0}, ${producto.stock_unidad || 0}, ${producto.stock_pack || 0})">
-                                ${producto.nombre} ${producto.descripcion} 
-                                - ${tipoSeleccionado === 'pack' ? `Pack: $${formatearNumero(precioSeleccionado)}` : `Unidad: $${formatearNumero(precioSeleccionado)}`}
-                            </button>
-                        `);
+                    if (tieneUnidad || tienePack) {
+                        // Mostrar con select si ambos están disponibles
+                        if (tieneUnidad && tienePack) {
+                            $('#resultadosBusqueda').append(`
+                                <div class="list-group-item">
+                                    <strong>${producto.nombre}</strong> ${producto.descripcion}
+                                    <div class="form-group mt-2">
+                                        <select class="form-select form-select-sm" onchange="seleccionarTipoProducto(${producto.id}, this.value)">
+                                            <option value="unidad">Unidad - $${formatearNumero(producto.precio_unitario)} (Stock: ${producto.stock_unidad})</option>
+                                            <option value="pack">Pack - $${formatearNumero(producto.precio_pack)} (Stock: ${producto.stock_pack})</option>
+                                        </select>
+                                        <button class="btn btn-sm btn-primary mt-2" onclick="agregarProducto(${producto.id}, '${producto.nombre}', '${producto.descripcion}', ${producto.precio_unitario}, ${producto.precio_pack}, ${producto.stock_unidad}, ${producto.stock_pack}, 'unidad')">
+                                            Agregar al pedido
+                                        </button>
+                                    </div>
+                                </div>
+                            `);
+                        } 
+                        // Mostrar solo unidad si solo tiene unidad
+                        else if (tieneUnidad) {
+                            $('#resultadosBusqueda').append(`
+                                <div class="list-group-item">
+                                    <strong>${producto.nombre}</strong> ${producto.descripcion}
+                                    - Unidad: $${formatearNumero(producto.precio_unitario)} (Stock: ${producto.stock_unidad})
+                                    <button class="btn btn-sm btn-primary mt-2" onclick="agregarProducto(${producto.id}, '${producto.nombre}', '${producto.descripcion}', ${producto.precio_unitario}, 0, ${producto.stock_unidad}, 0, 'unidad')">
+                                        Agregar Unidad
+                                    </button>
+                                </div>
+                            `);
+                        } 
+                        // Mostrar solo pack si solo tiene pack
+                        else if (tienePack) {
+                            $('#resultadosBusqueda').append(`
+                                <div class="list-group-item">
+                                    <strong>${producto.nombre}</strong> ${producto.descripcion}
+                                    - Pack: $${formatearNumero(producto.precio_pack)} (Stock: ${producto.stock_pack})
+                                    <button class="btn btn-sm btn-primary mt-2" onclick="agregarProducto(${producto.id}, '${producto.nombre}', '${producto.descripcion}', 0, ${producto.precio_pack}, 0, ${producto.stock_pack}, 'pack')">
+                                        Agregar Pack
+                                    </button>
+                                </div>
+                            `);
+                        }
                     }
                 });
             } else {
                 $('#resultadosBusqueda').append('<div class="list-group-item">No se encontraron productos que cumplan las condiciones.</div>');
-
-                if (respuesta.exclusiones && respuesta.exclusiones.length > 0) {
-                    respuesta.exclusiones.forEach(function (producto) {
-                        $('#resultadosBusqueda').append(`
-                            <div class="list-group-item text-muted">
-                                ${producto.nombre} - No disponible: ${producto.razones.join(', ')}
-                            </div>
-                        `);
-                    });
-                }
             }
         }
         // Buscar productos con AJAX
