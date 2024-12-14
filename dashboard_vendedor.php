@@ -554,8 +554,14 @@ $userId = $tokenData->user_id;
                             <div class="product-card-actions">
                                 ${producto.precio_unitario > 0 && producto.precio_pack > 0 ? `
                                     <select class="form-select form-select-sm mb-2 w-50 mx-3" onchange="cambiarTipoProducto(${producto.id}, this.value)">
-                                        <option value="unidad" ${producto.tipo === 'unidad' ? 'selected' : ''}>Unidad</option>
-                                        <option value="pack" ${producto.tipo === 'pack' ? 'selected' : ''}>Pack</option>
+                                        <option value="unidad" ${producto.tipo === 'unidad' ? 'selected' : ''} 
+                                            ${producto.stock_unidad > 0 && producto.precio_unitario > 0 ? '' : 'disabled'}>
+                                            Unidad
+                                        </option>
+                                        <option value="pack" ${producto.tipo === 'pack' ? 'selected' : ''} 
+                                            ${producto.stock_pack > 0 && producto.precio_pack > 0 ? '' : 'disabled'}>
+                                            Pack
+                                        </option>
                                     </select>
                                 ` : `<p class="text-muted">Tipo: ${producto.tipo === 'unidad' ? 'Unidad' : 'Pack'}</p>`}
                                 <input type="number" 
@@ -569,6 +575,7 @@ $userId = $tokenData->user_id;
                             <button class="btn btn-danger btn-sm mt-2" onclick="eliminarProducto(${producto.id})">Eliminar</button>
                         </div>
                     `);
+
                 });
             } else {
                 container.append('<div class="text-center text-muted">No hay productos en el pedido.</div>');
