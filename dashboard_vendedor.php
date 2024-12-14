@@ -670,15 +670,75 @@ $userId = $tokenData->user_id;
                     productos: productosEnPedido
                 }),
                 success: function (response) {
-                    //generarPDF()
-                    mostrarMensajeModal(response.message);
-                    limpiarDatos(); // Limpiar todos los datos después de confirmar el pedido
+                    // Generar PDF si el pedido fue exitoso
+                    if (response.estado === "Confirmado") {
+                        $.ajax({
+                            url: 'api/clientes.php', // Ruta para obtener datos del cliente
+                            type: 'GET',
+                            data: { termino: cliente },
+                            success: function (clientes) {
+                                const clienteData = clientes.length > 0 ? clientes[0] : null; // Toma el primer cliente encontrado
+                                generarPDF(response, clienteData); // Genera el PDF con los datos del pedido y del cliente
+                                mostrarMensajeModal(response.message); // Muestra el mensaje de confirmación
+                                limpiarDatos(); // Limpiar todos los datos después de confirmar el pedido
+                            },
+                            error: function () {
+                                generarPDF(response, null); // Generar PDF sin datos del cliente si hay error
+                                mostrarMensajeModal("Pedido confirmado, pero no se pudo obtener datos del cliente.");
+                                limpiarDatos();
+                            }
+                        });
+                    }
                 },
                 error: function () {
                     mostrarMensajeModal("Error al confirmar el pedido. Por favor, inténtalo de nuevo.");
                 }
             });
         });
+
+        // Generar PDF duplicando la información para partir la hoja
+        function generarPDF(pedidoData, clienteData) {
+            const doc = new window.jspdf.jsPDF();
+
+            const generarSeccion = (inicioY) => {
+                doc.text("Distribuidora", 10, inicioY);
+                doc.text(`Pedido ID: ${pedidoData.pedido_id}`, 10, inicioY + 10);
+                doc.text(`Estado: ${pedidoData.estado}`, 10, inicioY + 20);
+                doc.text(`Cliente: ${clienteData ? clienteData.nombre : 'No especificado'}`, 10, inicioY + 30);
+                if (clienteData) {
+                    doc.text(`Dirección: ${clienteData.direccion}`, 10, inicioY + 40);
+                    doc.text(`Teléfono: ${clienteData.telefono}`, 10, inicioY + 50);
+                }
+
+                doc.text("Productos:", 10, inicioY + 60);
+
+                let inicioProductosY = inicioY + 70;
+                productosEnPedido.forEach((producto, index) => {
+                    const tipoProducto = producto.tipo === "unidad" ? "Unitario" : "Pack";
+                    doc.text(
+                        `${index + 1}. ${producto.nombre} (${tipoProducto}) - Cantidad: ${producto.cantidad} - Precio: $${formatearNumero(
+                            producto.tipo === "unidad" ? producto.precio_unitario : producto.precio_pack
+                        )} - Total: $${formatearNumero(
+                            producto.tipo === "unidad"
+                                ? producto.cantidad * producto.precio_unitario
+                                : producto.cantidad * producto.precio_pack
+                        )}`,
+                        10,
+                        inicioProductosY
+                    );
+                    inicioProductosY += 10;
+                });
+
+                doc.text(`Total del Pedido: $${formatearNumero(pedidoData.total)}`, 10, inicioProductosY + 10);
+            };
+
+            // Duplicar los datos en la hoja
+            generarSeccion(10); // Primera mitad
+            generarSeccion(150); // Segunda mitad
+
+            // Guardar PDF
+            doc.save(`pedido_${pedidoData.pedido_id}.pdf`);
+        }
 
 
         // Cancelar pedido
