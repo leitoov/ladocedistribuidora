@@ -221,8 +221,15 @@ $userId = $tokenData->user_id;
                 <div class="col-md-6">
                     <div class="input-group">
                         <label for="clienteInput" class="form-label w-100 text-start">Cliente</label>
-                        <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
+                        <input type="text" class="form-control" id="clienteInput" placeholder="Escribe para buscar cliente...">
+                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#modalBusquedaClientes">
+                            Buscar
+                        </button>
                     </div>
+                    <!--div class="input-group">
+                        <label for="clienteInput" class="form-label w-100 text-start">Cliente</label>
+                        <input type="text" class="form-control" id="clienteInput" placeholder="Buscar cliente (2 letras mínimo)">
+                    </div -->
                 </div>
                 <div class="col-md-6">
                     <div class="input-group">
@@ -265,7 +272,26 @@ $userId = $tokenData->user_id;
             </button>
         </div>
     </div>
-
+    <!-- Modal para búsqueda de clientes -->
+    <div class="modal fade" id="modalBusquedaClientes" tabindex="-1" aria-labelledby="modalBusquedaClientesLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalBusquedaClientesLabel">Buscar Cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="resultadosClientes" class="list-group">
+                        <!-- Los resultados dinámicos se agregarán aquí -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="btnUsarTextoCliente" type="button" class="btn btn-primary" data-bs-dismiss="modal">Usar lo escrito</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Modal for Order History -->
     <div class="modal fade" id="modalHistorialPedidos" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -310,6 +336,61 @@ $userId = $tokenData->user_id;
     $(document).ready(function () {
         let productosEnPedido = [];
 
+
+        $('#modalBusquedaClientes').on('shown.bs.modal', function () {
+            const termino = $('#clienteInput').val();
+            if (termino.length >= 3) {
+                buscarClientes(termino);
+            } else {
+                $('#resultadosClientes').html('<div class="list-group-item">Escribe al menos 3 letras para buscar.</div>');
+            }
+        });
+        function buscarClientes(termino) {
+            $.ajax({
+                url: 'api/clientes.php',
+                type: 'GET',
+                data: { termino: termino },
+                success: function (respuesta) {
+                    $('#resultadosClientes').empty();
+                    if (Array.isArray(respuesta) && respuesta.length > 0) {
+                        respuesta.forEach(cliente => {
+                            $('#resultadosClientes').append(`
+                                <button class="list-group-item list-group-item-action" onclick="seleccionarCliente('${cliente.nombre}')">
+                                    ${cliente.nombre} - ${cliente.direccion || ''} - ${cliente.telefono || ''} - ${cliente.email || ''}
+                                </button>
+                            `);
+                        });
+                    } else {
+                        $('#resultadosClientes').html('<div class="list-group-item">No se encontraron clientes.</div>');
+                    }
+                },
+                error: function () {
+                    $('#resultadosClientes').html('<div class="list-group-item text-danger">Error al buscar clientes.</div>');
+                }
+            });
+        }
+
+        // Seleccionar cliente de la lista
+        window.seleccionarCliente = function (nombre) {
+            $('#clienteInput').val(nombre); // Rellenar el campo con el cliente seleccionado
+            $('#modalBusquedaClientes').modal('hide'); // Cerrar el modal
+        };
+
+        // Usar el texto escrito si no se selecciona un cliente
+        $('#btnUsarTextoCliente').on('click', function () {
+            const textoEscrito = $('#clienteInput').val();
+            if (textoEscrito.length > 0) {
+                $('#clienteInput').val(textoEscrito); // Usar lo que escribió el usuario
+            }
+        });
+
+        // Cuando el usuario escribe en el campo de cliente
+        $('#clienteInput').on('input', function () {
+            const texto = $(this).val();
+            if (texto.length >= 3) {
+                buscarClientes(texto);
+            }
+        });
         // Mostrar mensaje en un modal
         function mostrarMensajeModal(mensaje) {
             $('#modalMensajeCuerpo').text(mensaje);
