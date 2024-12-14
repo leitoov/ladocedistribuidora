@@ -364,6 +364,7 @@ $userId = $tokenData->user_id;
                 }
             }
             $('#productoInput').val(''); // Limpiar el campo de búsqueda
+            $('#resultadosBusqueda').empty(); // Limpiar los resultados de búsqueda
         };
 
         // Actualizar la tabla del pedido
@@ -467,11 +468,12 @@ $userId = $tokenData->user_id;
                     tipoPedido: $('#tipoPedido').val(),
                     productos: productosEnPedido
                 }),
-                success: function () {
-                    mostrarMensajeModal("Pedido confirmado correctamente.");
+                success: function (response) {
+                    mostrarMensajeModal(response.message);
                     generarPDF();
                     productosEnPedido = [];
                     actualizarTablaPedido();
+                    limpiarDatos(); // Limpiar todos los datos
                 },
                 error: function () {
                     mostrarMensajeModal("Error al confirmar el pedido.");
@@ -481,17 +483,19 @@ $userId = $tokenData->user_id;
 
         // Cancelar pedido
         $('#cancelarPedido').on('click', function () {
-            if (productosEnPedido.length === 0) {
-                mostrarMensajeModal("No hay productos para cancelar.");
-                return;
-            }
+            limpiarDatos(); // Limpiar todos los datos
+            mostrarMensajeModal("Pedido cancelado correctamente.");
+        });
 
+        // Función para limpiar todos los datos y restablecer el formulario
+        function limpiarDatos() {
             productosEnPedido = [];
             actualizarTablaPedido();
             $('#clienteInput').val('');
             $('#tipoPedido').val('Caja');
             $('#productoInput').val('');
-        });
+            $('#resultadosBusqueda').empty();
+        }
 
         // Generar PDF del pedido
         function generarPDF() {
