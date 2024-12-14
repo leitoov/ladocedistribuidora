@@ -582,6 +582,7 @@ $userId = $tokenData->user_id;
                     productos: productosEnPedido
                 }),
                 success: function (response) {
+                    generarPDF()
                     mostrarMensajeModal(response.message);
                     limpiarDatos(); // Limpiar todos los datos después de confirmar el pedido
                 },
@@ -591,15 +592,6 @@ $userId = $tokenData->user_id;
             });
         });
 
-// Función para limpiar todos los datos después de confirmar o cancelar
-function limpiarDatos() {
-    productosEnPedido = [];
-    actualizarTablaPedido();
-    $('#clienteInput').val('');
-    $('#tipoPedido').val('Caja');
-    $('#productoInput').val('');
-    $('#resultadosBusqueda').empty();
-}
 
         // Cancelar pedido
         $('#cancelarPedido').on('click', function () {
