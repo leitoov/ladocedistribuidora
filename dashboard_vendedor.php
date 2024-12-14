@@ -710,6 +710,7 @@ $userId = $tokenData->user_id;
         });
 
         // Generar PDF duplicando la información para partir la hoja
+        // Generar PDF y enviarlo a imprimir
         function generarPDF(pedidoData, clienteData) {
             const doc = new window.jspdf.jsPDF();
 
@@ -749,9 +750,16 @@ $userId = $tokenData->user_id;
             generarSeccion(10); // Primera mitad
             generarSeccion(150); // Segunda mitad
 
-            // Guardar PDF
-            doc.save(`pedido_${pedidoData.pedido_id}.pdf`);
+            // Convertir PDF a URL y abrir en nueva ventana para imprimir
+            const pdfData = doc.output('dataurlstring');
+            const printWindow = window.open(pdfData, '_blank'); // Abre el PDF en una nueva ventana
+
+            // Asegurarse de que se imprime automáticamente cuando la ventana está lista
+            printWindow.onload = function () {
+                printWindow.print();
+            };
         }
+
 
 
         // Cancelar pedido
