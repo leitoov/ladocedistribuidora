@@ -685,9 +685,10 @@ $userId = $tokenData->user_id;
                             },
                             error: function () {
                                 if(response.estado === "Confirmado"){
-                                    generarPDF(response, null); // Generar PDF sin datos del cliente si hay error
+                                    
+                                    generarPDF(response, $('#clienteInput').val().trim()); // Generar PDF sin datos del cliente si hay error
                                 }
-                                mostrarMensajeModal("Pedido confirmado correctamente, pero no se pudo obtener datos del cliente.");
+                                mostrarMensajeModal("Pedido confirmado correctamente.");
                                 limpiarDatos();
                             }
                         });
