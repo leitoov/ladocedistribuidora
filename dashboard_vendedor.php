@@ -490,21 +490,29 @@ $userId = $tokenData->user_id;
         window.agregarProducto = function (id, nombre, descripcion, precio_unitario, precio_pack, stock_unidad, stock_pack) {
             let productoExistente = productosEnPedido.find(p => p.id === id);
 
-            // Lógica para determinar qué tipo (pack o unidad) agregar
+            // Lógica para determinar qué tipo (pack o unidad) agregar inicialmente
             let tipoSeleccionado = '';
             let precioSeleccionado = 0;
             let stockSeleccionado = 0;
 
+            // Si hay stock y precio en pack, selecciona pack por defecto
             if (precio_pack > 0 && stock_pack > 0) {
                 tipoSeleccionado = 'pack';
                 precioSeleccionado = precio_pack;
                 stockSeleccionado = stock_pack;
-            } else if (precio_unitario > 0 && stock_unidad > 0) {
+            }
+            // Si no hay stock en pack pero sí en unidad, selecciona unidad
+            else if (precio_unitario > 0 && stock_unidad > 0) {
                 tipoSeleccionado = 'unidad';
                 precioSeleccionado = precio_unitario;
                 stockSeleccionado = stock_unidad;
+            } else {
+                // Si no hay stock disponible, muestra un mensaje y no agrega el producto
+                mostrarMensajeModal('Este producto no tiene stock disponible.');
+                return;
             }
 
+            // Si el producto ya existe en el pedido, incrementa la cantidad según el tipo seleccionado
             if (!productoExistente) {
                 productosEnPedido.push({
                     id: id,
@@ -515,7 +523,7 @@ $userId = $tokenData->user_id;
                     cantidad: 1,
                     stock_unidad: stock_unidad || 0,
                     stock_pack: stock_pack || 0,
-                    tipo: tipoSeleccionado
+                    tipo: tipoSeleccionado // Establece el tipo según la lógica anterior
                 });
             } else {
                 if (productoExistente.tipo === 'unidad' && productoExistente.cantidad < stock_unidad) {
@@ -523,13 +531,17 @@ $userId = $tokenData->user_id;
                 } else if (productoExistente.tipo === 'pack' && productoExistente.cantidad < stock_pack) {
                     productoExistente.cantidad++;
                 } else {
-                    mostrarMensajeModal('No hay suficiente stock disponible.');
+                    mostrarMensajeModal('No hay suficiente stock disponible para este producto.');
                     return;
                 }
             }
+
+            // Actualiza la tabla del pedido
             actualizarTablaPedido();
+
+            // Limpia la entrada de búsqueda y los resultados
             $('#productoInput').val('');
-            $('#resultadosBusqueda').empty(); // Limpiar los resultados de búsqueda
+            $('#resultadosBusqueda').empty();
         };
 
         // Actualizar la tabla del pedido
