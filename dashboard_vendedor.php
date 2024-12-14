@@ -518,7 +518,7 @@ $userId = $tokenData->user_id;
             }
 
             // Actualizar el total del pedido
-            $('#totalPedido').text(`$ ${formatearNumero(totalPedido)}`);
+            $('#totalPedido').text(`${formatearNumero(totalPedido)}`);
 
         }
 
