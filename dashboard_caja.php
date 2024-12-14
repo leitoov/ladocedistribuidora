@@ -267,10 +267,19 @@ $userId = $tokenData->user_id;
                             <p id="totalAPagar" class="form-control-plaintext"></p>
                         </div>
                         <div class="mb-3">
+                            <label for="medioPago" class="form-label">Medio de Pago</label>
+                            <select id="medioPago" class="form-select">
+                                <option value="">Seleccionar</option>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="transferencia">Transferencia</option>
+                                <option value="mixto">Mixto</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="campoEfectivo">
                             <label for="montoEfectivo" class="form-label">Monto en Efectivo</label>
                             <input type="number" class="form-control" id="montoEfectivo" placeholder="0.00">
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-3" id="campoTransferencia">
                             <label for="montoTransferencia" class="form-label">Monto en Transferencia</label>
                             <input type="number" class="form-control" id="montoTransferencia" placeholder="0.00">
                         </div>
@@ -299,6 +308,7 @@ $userId = $tokenData->user_id;
             </div>
         </div>
     </div>
+
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
@@ -401,44 +411,72 @@ $userId = $tokenData->user_id;
 
                 // Llenar la información del modal con los detalles del pedido
                 $('#totalAPagar').text(`$${pedido.total.toFixed(2)}`);
-                $('#modalCobrarCuerpo').find('#montoEfectivo, #montoTransferencia, #vuelto, #descuentoAplicado, #recargoAplicado, #montoTotalFinal').text('');
+                $('#modalCobrarCuerpo').find('#montoEfectivo, #montoTransferencia').val('');
+                $('#modalCobrarCuerpo').find('#vuelto, #descuentoAplicado, #recargoAplicado, #montoTotalFinal').text('');
                 $('#modalCobrarPedido').modal('show');
 
-                // Calcular el total con recargo/ descuento en tiempo real
+                // Agregar selección de medio de pago
+                $('#medioPago').off('change').on('change', function () {
+                    const medioPago = $(this).val();
+                    if (medioPago === 'efectivo') {
+                        $('#montoEfectivo').parent().show();
+                        $('#montoTransferencia').parent().hide();
+                    } else if (medioPago === 'transferencia') {
+                        $('#montoTransferencia').parent().show();
+                        $('#montoEfectivo').parent().hide();
+                    } else if (medioPago === 'mixto') {
+                        $('#montoEfectivo').parent().show();
+                        $('#montoTransferencia').parent().show();
+                    } else {
+                        $('#montoEfectivo, #montoTransferencia').parent().hide();
+                    }
+                });
+
+                // Función para calcular descuentos, recargos y vuelto
+                function calcularCobro(montoEfectivo, montoTransferencia, totalPedido) {
+                    let descuento = 0, recargo = 0, totalFinal = totalPedido, vuelto = 0;
+
+                    // Aplicar recargo por transferencia
+                    if (montoTransferencia > 0) {
+                        recargo = montoTransferencia * 0.05;
+                        totalFinal += recargo;
+                    }
+
+                    // Aplicar descuento por efectivo si no hay transferencia
+                    if (montoEfectivo > 0 && montoTransferencia === 0) {
+                        descuento = totalPedido * 0.05;
+                        totalFinal -= descuento;
+                    }
+
+                    // Calcular el vuelto si el monto en efectivo es mayor al total final
+                    if (montoEfectivo > totalFinal) {
+                        vuelto = montoEfectivo - totalFinal;
+                    }
+
+                    return { totalFinal, descuento, recargo, vuelto };
+                }
+
+                // Escuchar cambios en los montos ingresados
                 $('#montoEfectivo, #montoTransferencia').on('input', function () {
                     let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
                     let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
-                    let total = pedido.total;
+                    let totalPedido = pedido.total;
 
-                    // Validaciones
-                    if (montoTransferencia > total) {
-                        $('#montoTransferencia').val(total);
+                    // Validaciones básicas
+                    if (montoTransferencia > totalPedido) {
+                        $('#montoTransferencia').val(totalPedido);
                         mostrarMensajeModal("El monto en transferencia no puede ser mayor al total a pagar.");
                         return;
                     }
 
-                    let totalConRecargo = total;
-                    let descuentoAplicado = 0;
-                    let recargoAplicado = 0;
-                    let vuelto = 0;
+                    // Calcular los valores actualizados
+                    const { totalFinal, descuento, recargo, vuelto } = calcularCobro(montoEfectivo, montoTransferencia, totalPedido);
 
-                    if (montoTransferencia > 0) {
-                        recargoAplicado = (montoTransferencia * 0.05);
-                        totalConRecargo += recargoAplicado;
-                    }
-                    if (montoEfectivo > 0 && montoTransferencia === 0) {
-                        descuentoAplicado = (montoEfectivo * 0.05);
-                        totalConRecargo -= descuentoAplicado;
-                    }
-
-                    if (montoEfectivo > totalConRecargo) {
-                        vuelto = montoEfectivo - totalConRecargo;
-                    }
-
-                    $('#descuentoAplicado').text(`$${descuentoAplicado.toFixed(2)}`).toggleClass('text-red', descuentoAplicado > 0);
-                    $('#recargoAplicado').text(`$${recargoAplicado.toFixed(2)}`).toggleClass('text-green', recargoAplicado > 0);
+                    // Actualizar el modal con los valores calculados
+                    $('#descuentoAplicado').text(`$${descuento.toFixed(2)}`).toggleClass('text-red', descuento > 0);
+                    $('#recargoAplicado').text(`$${recargo.toFixed(2)}`).toggleClass('text-green', recargo > 0);
                     $('#vuelto').text(`$${vuelto.toFixed(2)}`);
-                    $('#montoTotalFinal').text(`$${totalConRecargo.toFixed(2)}`);
+                    $('#montoTotalFinal').text(`$${totalFinal.toFixed(2)}`);
                 });
 
                 // Confirmar cobro
@@ -447,15 +485,22 @@ $userId = $tokenData->user_id;
                     let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
                     let totalConRecargo = parseFloat($('#montoTotalFinal').text().replace('$', '')) || 0;
 
-                    // Lógica para cobrar el pedido (esto puede involucrar una llamada AJAX para actualizar el pedido en el servidor)
+                    // Validación final antes de procesar el cobro
+                    if (montoEfectivo + montoTransferencia < totalConRecargo) {
+                        mostrarMensajeModal("El monto total ingresado es insuficiente para cubrir el total final.");
+                        return;
+                    }
+
+                    // Simulación de cobro (puedes integrar una llamada AJAX aquí)
                     mostrarMensajeModal(`Pedido ${pedidoId} cobrado correctamente. Total pagado: $${totalConRecargo}`);
                     $('#modalCobrarPedido').modal('hide');
                     cargarPedidosCaja();
 
-                    // Llamar a la función de impresión
+                    // Imprimir el ticket
                     imprimirTicket(pedido);
                 });
-            }
+            };
+
 
             // Anular pedido
             window.anularPedido = function (pedidoId) {
