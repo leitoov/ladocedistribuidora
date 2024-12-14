@@ -80,7 +80,7 @@ $userId = $tokenData->user_id;
 
         .order-management {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 20px;
         }
 
@@ -230,33 +230,6 @@ $userId = $tokenData->user_id;
                         </tbody>
                     </table>
                 </div>
-            </div>
-
-            <!-- Product Management Card -->
-            <div class="card">
-                <div class="card-header">
-                    <div>
-                        <i class="bi bi-box-seam"></i> Gestión de Productos
-                    </div>
-                </div>
-                <button class="btn btn-primary w-100 mb-3" onclick="window.location.href='añadir_producto.php'">
-                    <i class="bi bi-plus-circle me-2"></i> Añadir Producto
-                </button>
-                <button class="btn btn-warning w-100" onclick="window.location.href='modificar_producto.php'">
-                    <i class="bi bi-pencil me-2"></i> Editar Producto
-                </button>
-            </div>
-
-            <!-- Order History Card -->
-            <div class="card">
-                <div class="card-header">
-                    <div>
-                        <i class="bi bi-clock-history"></i> Historial de Pedidos
-                    </div>
-                </div>
-                <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#modalHistorialPedidos">
-                    <i class="bi bi-list-ul me-2"></i> Ver Historial
-                </button>
             </div>
         </div>
     </div>
