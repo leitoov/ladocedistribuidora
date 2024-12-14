@@ -676,6 +676,7 @@ $userId = $tokenData->user_id;
                             type: 'GET',
                             data: { termino: cliente },
                             success: function (clientes) {
+                                console.log(cliente)
                                 const clienteData = clientes.length > 0 ? clientes[0] : null; // Toma el primer cliente encontrado
                                 if(response.estado === "Confirmado"){
                                     generarPDF(response, clienteData); // Genera el PDF con los datos del pedido y del cliente
