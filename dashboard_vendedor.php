@@ -677,12 +677,16 @@ $userId = $tokenData->user_id;
                             data: { termino: cliente },
                             success: function (clientes) {
                                 const clienteData = clientes.length > 0 ? clientes[0] : null; // Toma el primer cliente encontrado
-                                generarPDF(response, clienteData); // Genera el PDF con los datos del pedido y del cliente
+                                if(response.estado === "Confirmado"){
+                                    generarPDF(response, clienteData); // Genera el PDF con los datos del pedido y del cliente
+                                }
                                 mostrarMensajeModal(response.message); // Mostrar mensaje de éxito
                                 limpiarDatos(); // Limpiar los campos
                             },
                             error: function () {
-                                generarPDF(response, null); // Generar PDF sin datos del cliente si hay error
+                                if(response.estado === "Confirmado"){
+                                    generarPDF(response, null); // Generar PDF sin datos del cliente si hay error
+                                }
                                 mostrarMensajeModal("Pedido confirmado correctamente, pero no se pudo obtener datos del cliente.");
                                 limpiarDatos();
                             }
