@@ -38,6 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // Agregar un nuevo cliente
     $data = json_decode(file_get_contents("php://input"), true);
     $nombre = $data['nombre'] ?? null;
+    $direccion = $data['direccion'] ?? null;
+    $telefono = $data['telefono'] ?? null;
 
     if (!$nombre) {
         http_response_code(400);
@@ -46,10 +48,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 
     try {
-        $stmt = $pdo->prepare("INSERT INTO clientes (nombre) VALUES (:nombre)");
-        $stmt->execute(['nombre' => $nombre]);
+        $stmt = $pdo->prepare("
+            INSERT INTO clientes (nombre, direccion, telefono) 
+            VALUES (:nombre, :direccion, :telefono)
+        ");
+        $stmt->execute([
+            'nombre' => $nombre,
+            'direccion' => $direccion,
+            'telefono' => $telefono
+        ]);
 
-        echo json_encode(["message" => "Cliente agregado exitosamente", "id" => $pdo->lastInsertId()]);
+        // Devolver los datos completos del cliente insertado
+        $idCliente = $pdo->lastInsertId();
+        $stmt = $pdo->prepare("
+            SELECT id, nombre, direccion, telefono 
+            FROM clientes 
+            WHERE id = :id
+        ");
+        $stmt->execute(['id' => $idCliente]);
+        $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        echo json_encode(["message" => "Cliente agregado exitosamente", "cliente" => $cliente]);
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(["message" => "Error al agregar el cliente", "error" => $e->getMessage()]);
