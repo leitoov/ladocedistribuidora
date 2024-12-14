@@ -709,12 +709,8 @@ $userId = $tokenData->user_id;
                 doc.text(`Pedido ID: ${pedidoData.pedido_id}`, 10, inicioY + 10);
                 doc.text(`Estado: ${pedidoData.estado}`, 10, inicioY + 20);
                 doc.text(`Cliente: ${clienteData ? clienteData.nombre : 'No especificado'}`, 10, inicioY + 30);
-                console.log(clienteData)
-                if (clienteData) {
-                    console.log('aca')
-                    doc.text(`Dirección: ${clienteData.direccion}`, 10, inicioY + 40);
-                    doc.text(`Teléfono: ${clienteData.telefono}`, 10, inicioY + 50);
-                }
+                doc.text(`Dirección: ${clienteData ? clienteData.direccion : 'No especificado'}`, 10, inicioY + 40);
+                doc.text(`Teléfono: ${clienteData ? clienteData.telefono : 'No especificado'}`, 10, inicioY + 50);
 
                 doc.text("Productos:", 10, inicioY + 60);
 
