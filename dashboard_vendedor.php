@@ -556,7 +556,7 @@ $userId = $tokenData->user_id;
                                     <select class="form-select form-select-sm mb-2 w-50 mx-3" onchange="cambiarTipoProducto(${producto.id}, this.value)">
                                         <option value="unidad" ${producto.tipo === 'unidad' ? 'selected' : ''} 
                                             ${producto.stock_unidad > 0 && producto.precio_unitario > 0 ? '' : 'disabled'}>
-                                            Unidad
+                                            Unidad  ${producto.stock_unidad} ${producto.precio_unitario }
                                         </option>
                                         <option value="pack" ${producto.tipo === 'pack' ? 'selected' : ''} 
                                             ${producto.stock_pack > 0 && producto.precio_pack > 0 ? '' : 'disabled'}>
