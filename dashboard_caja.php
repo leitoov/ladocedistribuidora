@@ -382,13 +382,13 @@ $userId = $tokenData->user_id;
                                         <td>
                                             <div class="d-flex justify-content-center gap-2">
                                                 <button class="btn btn-primary btn-sm" onclick="cobrarPedido(${pedido.pedido_id})">
-                                                    <i class="bi bi-cash-coin me-1"></i>Cobrar
+                                                    Cobrar
                                                 </button>
                                                 <button class="btn btn-warning btn-sm" onclick="editarPedido(${pedido.pedido_id})">
-                                                    <i class="bi bi-pencil me-1"></i>Editar
+                                                    Editar
                                                 </button>
                                                 <button class="btn btn-danger btn-sm" onclick="anularPedido(${pedido.pedido_id})">
-                                                    <i class="bi bi-x-circle me-1"></i>Anular
+                                                    Anular
                                                 </button>
                                             </div>
                                         </td>
