@@ -490,7 +490,7 @@ $userId = $tokenData->user_id;
                     mostrarMensajeModal(response.message);
                     limpiarDatos(); // Limpiar todos los datos
 
-                    generarPDF();
+                    //generarPDF(); SOLO SE HACE SI ES PEDIDO REPARTO!
                     productosEnPedido = [];
                     //actualizarTablaPedido();
                 },
