@@ -388,7 +388,7 @@ $userId = $tokenData->user_id;
                             </div>
                             <div class="product-card-actions">
                                 ${producto.precio_unitario > 0 && producto.precio_pack > 0 ? `
-                                    <select class="form-select form-select-sm mb-2" onchange="cambiarTipoProducto(${producto.id}, this.value)">
+                                    <select class="form-select form-select-sm mb-2 w-50 mx-3" onchange="cambiarTipoProducto(${producto.id}, this.value)">
                                         <option value="unidad" ${producto.tipo === 'unidad' ? 'selected' : ''}>Unidad</option>
                                         <option value="pack" ${producto.tipo === 'pack' ? 'selected' : ''}>Pack</option>
                                     </select>

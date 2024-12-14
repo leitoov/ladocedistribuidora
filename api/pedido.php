@@ -24,6 +24,9 @@ try {
     exit();
 }
 
+// Obtener el id_usuario del token
+$idUsuario = $tokenData->user_id;
+
 // Obtener los datos del pedido
 $data = json_decode(file_get_contents("php://input"), true);
 $cliente = $data['cliente'] ?? null;
@@ -75,14 +78,18 @@ try {
     // Determinar el estado del pedido
     $estadoPedido = ($tipoPedido === 'Reparto') ? 'Confirmado' : 'Pendiente';
 
-    // Insertar el pedido (asegurándonos de usar el campo correcto)
-    $stmt = $pdo->prepare("INSERT INTO pedidos (id_cliente, nombre_cliente, total, estado, tipo_pedido) VALUES (:cliente, :nombre_cliente, :total, :estado, :tipo_pedido)");
+    // Insertar el pedido (incluyendo id_usuario)
+    $stmt = $pdo->prepare("
+        INSERT INTO pedidos (id_cliente, id_usuario, nombre_cliente, total, estado, tipo_pedido) 
+        VALUES (:cliente, :usuario, :nombre_cliente, :total, :estado, :tipo_pedido)
+    ");
     $total = array_reduce($productos, function ($acc, $producto) {
-        return $acc + ($producto['precio'] * $producto['cantidad']);
+        return $acc + (($producto['tipo'] === 'unidad' ? $producto['precio_unitario'] : $producto['precio_pack']) * $producto['cantidad']);
     }, 0);
     $stmt->execute([
         'cliente' => $idCliente,
-        'nombre_cliente' => $nombreCliente, // Guardar el nombre del cliente (ya sea registrado o ingresado)
+        'usuario' => $idUsuario,
+        'nombre_cliente' => $nombreCliente,
         'total' => $total,
         'estado' => $estadoPedido,
         'tipo_pedido' => $tipoPedido
@@ -95,12 +102,15 @@ try {
     $stmtUpdateStock = $pdo->prepare("UPDATE productos SET stock = stock - :cantidad WHERE id = :producto_id AND stock >= :cantidad");
 
     foreach ($productos as $producto) {
+        // Determinar el precio según el tipo
+        $precio = $producto['tipo'] === 'unidad' ? $producto['precio_unitario'] : $producto['precio_pack'];
+
         // Insertar detalle del pedido
         $stmtDetalle->execute([
             'pedido_id' => $pedidoId,
             'producto_id' => $producto['id'],
             'cantidad' => $producto['cantidad'],
-            'precio' => $producto['precio']
+            'precio' => $precio
         ]);
 
         // Actualizar el stock del producto
@@ -132,3 +142,4 @@ try {
     http_response_code(500);
     echo json_encode(["message" => "Error al generar el pedido", "error" => $e->getMessage()]);
 }
+?>
