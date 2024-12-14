@@ -177,6 +177,10 @@ $userId = $tokenData->user_id;
             align-items: center;
             z-index: 10;
         }
+        .totalsummary{
+            font-size: 25px;
+            font-weight: 500;
+        }
 
         @media (max-width: 768px) {
             .product-columns {
@@ -262,7 +266,7 @@ $userId = $tokenData->user_id;
 
     <!-- Order Summary -->
     <div class="order-summary">
-        <div>Total: $<span id="totalPedido">0</span></div>
+        <div class="totalsummary">Total: $<span id="totalPedido">0</span></div>
         <div>
             <button class="btn btn-primary me-2" id="confirmarPedido">
                 <i class="bi bi-check-circle"></i> Confirmar Pedido
@@ -561,8 +565,10 @@ $userId = $tokenData->user_id;
             }
 
             const cliente = $('#clienteInput').val().trim();
-            if (!cliente) {
-                mostrarMensajeModal("Debe ingresar un cliente para confirmar el pedido.");
+
+            // Validar que el cliente tenga al menos 3 letras
+            if (!cliente || cliente.length < 3) {
+                mostrarMensajeModal("El campo 'Cliente' debe tener al menos 3 letras.");
                 return;
             }
 
@@ -577,17 +583,23 @@ $userId = $tokenData->user_id;
                 }),
                 success: function (response) {
                     mostrarMensajeModal(response.message);
-                    limpiarDatos(); // Limpiar todos los datos
-
-                    //generarPDF(); SOLO SE HACE SI ES PEDIDO REPARTO!
-                    productosEnPedido = [];
-                    //actualizarTablaPedido();
+                    limpiarDatos(); // Limpiar todos los datos después de confirmar el pedido
                 },
                 error: function () {
-                    mostrarMensajeModal("Error al confirmar el pedido.");
+                    mostrarMensajeModal("Error al confirmar el pedido. Por favor, inténtalo de nuevo.");
                 }
             });
         });
+
+// Función para limpiar todos los datos después de confirmar o cancelar
+function limpiarDatos() {
+    productosEnPedido = [];
+    actualizarTablaPedido();
+    $('#clienteInput').val('');
+    $('#tipoPedido').val('Caja');
+    $('#productoInput').val('');
+    $('#resultadosBusqueda').empty();
+}
 
         // Cancelar pedido
         $('#cancelarPedido').on('click', function () {
