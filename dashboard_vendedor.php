@@ -409,14 +409,31 @@ $userId = $tokenData->user_id;
 
             if (respuesta.productos && respuesta.productos.length > 0) {
                 respuesta.productos.forEach(function (producto) {
-                    $('#resultadosBusqueda').append(`
-                        <button class="list-group-item list-group-item-action"
-                            onclick="agregarProducto(${producto.id}, '${producto.nombre}', '${producto.descripcion}', ${producto.precio_unitario || 0}, ${producto.precio_pack || 0}, ${producto.stock_unidad || 0}, ${producto.stock_pack || 0})">
-                            ${producto.nombre} ${producto.descripcion} 
-                            - ${producto.precio_unitario > 0 ? `Unidad: $${formatearNumero(producto.precio_unitario)}` : ''} 
-                            ${producto.precio_pack > 0 ? `Pack: $${formatearNumero(producto.precio_pack)}` : ''}
-                        </button>
-                    `);
+                    let tipoSeleccionado = ''; // Para decidir si mostrar como pack o unidad
+                    let precioSeleccionado = 0;
+                    let stockSeleccionado = 0;
+
+                    // Lógica para decidir qué mostrar (pack o unidad)
+                    if (producto.precio_pack > 0 && producto.stock_pack > 0) {
+                        tipoSeleccionado = 'pack';
+                        precioSeleccionado = producto.precio_pack;
+                        stockSeleccionado = producto.stock_pack;
+                    } else if (producto.precio_unitario > 0 && producto.stock_unidad > 0) {
+                        tipoSeleccionado = 'unidad';
+                        precioSeleccionado = producto.precio_unitario;
+                        stockSeleccionado = producto.stock_unidad;
+                    }
+
+                    // Si se seleccionó una opción válida (pack o unidad), mostrar el producto
+                    if (tipoSeleccionado) {
+                        $('#resultadosBusqueda').append(`
+                            <button class="list-group-item list-group-item-action"
+                                onclick="agregarProducto(${producto.id}, '${producto.nombre}', '${producto.descripcion}', ${producto.precio_unitario || 0}, ${producto.precio_pack || 0}, ${producto.stock_unidad || 0}, ${producto.stock_pack || 0})">
+                                ${producto.nombre} ${producto.descripcion} 
+                                - ${tipoSeleccionado === 'pack' ? `Pack: $${formatearNumero(precioSeleccionado)}` : `Unidad: $${formatearNumero(precioSeleccionado)}`}
+                            </button>
+                        `);
+                    }
                 });
             } else {
                 $('#resultadosBusqueda').append('<div class="list-group-item">No se encontraron productos que cumplan las condiciones.</div>');
@@ -432,7 +449,6 @@ $userId = $tokenData->user_id;
                 }
             }
         }
-
         // Buscar productos con AJAX
         $('#productoInput').on('keyup', function () {
             let termino = $(this).val();
@@ -473,6 +489,22 @@ $userId = $tokenData->user_id;
         // Agregar producto al pedido
         window.agregarProducto = function (id, nombre, descripcion, precio_unitario, precio_pack, stock_unidad, stock_pack) {
             let productoExistente = productosEnPedido.find(p => p.id === id);
+
+            // Lógica para determinar qué tipo (pack o unidad) agregar
+            let tipoSeleccionado = '';
+            let precioSeleccionado = 0;
+            let stockSeleccionado = 0;
+
+            if (precio_pack > 0 && stock_pack > 0) {
+                tipoSeleccionado = 'pack';
+                precioSeleccionado = precio_pack;
+                stockSeleccionado = stock_pack;
+            } else if (precio_unitario > 0 && stock_unidad > 0) {
+                tipoSeleccionado = 'unidad';
+                precioSeleccionado = precio_unitario;
+                stockSeleccionado = stock_unidad;
+            }
+
             if (!productoExistente) {
                 productosEnPedido.push({
                     id: id,
@@ -483,7 +515,7 @@ $userId = $tokenData->user_id;
                     cantidad: 1,
                     stock_unidad: stock_unidad || 0,
                     stock_pack: stock_pack || 0,
-                    tipo: precio_pack > 0 ? 'pack' : 'unidad' // Prioriza pack si está disponible
+                    tipo: tipoSeleccionado
                 });
             } else {
                 if (productoExistente.tipo === 'unidad' && productoExistente.cantidad < stock_unidad) {
