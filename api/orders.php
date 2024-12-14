@@ -27,12 +27,12 @@ try {
 // Obtener solo los pedidos pendientes de tipo "Caja"
 try {
     $stmt = $pdo->prepare("
-        SELECT p.id AS pedido_id, p.nombre_cliente, p.total, p.estado, p.tipo_pedido, p.fecha_creacion, 
+        SELECT p.id AS pedido_id, p.nombre_cliente, p.total, p.estado, p.tipo_pedido, p.fecha, 
                u.nombre AS vendedor
         FROM pedidos p
         LEFT JOIN usuarios u ON p.id_usuario = u.id
         WHERE p.tipo_pedido = 'Caja' AND p.estado = 'Pendiente'
-        ORDER BY p.fecha_creacion DESC
+        ORDER BY p.fecha DESC
     ");
     $stmt->execute();
     $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC);
