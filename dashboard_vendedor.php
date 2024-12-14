@@ -671,22 +671,30 @@ $userId = $tokenData->user_id;
                 }),
                 success: function (response) {
                     if (response.estado === "Confirmado" || response.estado === "Pendiente") {
+                        // Llamada para obtener los datos del cliente
                         $.ajax({
-                            url: 'api/clientes.php', // Ruta para obtener datos del cliente
+                            url: 'api/clientes.php',
                             type: 'GET',
                             data: { termino: cliente },
                             success: function (clientes) {
-                                console.log(cliente)
+                                console.log(clientes);
                                 const clienteData = clientes.length > 0 ? clientes[0] : null; // Toma el primer cliente encontrado
-                                if(response.estado === "Confirmado"){
-                                    generarPDF(response, clienteData); // Genera el PDF con los datos del pedido y del cliente
+                                if (clienteData && clienteData.id === response.id_cliente) {
+                                    // Validación exitosa
+                                    if (response.estado === "Confirmado") {
+                                        generarPDF(response, clienteData); // Generar PDF con los datos completos del cliente
+                                    }
+                                    mostrarMensajeModal(response.message); // Mostrar mensaje de éxito
+                                } else {
+                                    // IDs no coinciden
+                                    mostrarMensajeModal(
+                                        "Error: el cliente registrado no coincide con el cliente devuelto por la API."
+                                    );
                                 }
-                                mostrarMensajeModal(response.message); // Mostrar mensaje de éxito
                                 limpiarDatos(); // Limpiar los campos
                             },
                             error: function () {
-                                if(response.estado === "Confirmado"){
-                                    
+                                if (response.estado === "Confirmado") {
                                     generarPDF(response, $('#clienteInput').val().trim()); // Generar PDF sin datos del cliente si hay error
                                 }
                                 mostrarMensajeModal("Pedido confirmado correctamente.");
