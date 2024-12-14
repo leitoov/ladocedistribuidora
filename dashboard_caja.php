@@ -354,13 +354,13 @@ $userId = $tokenData->user_id;
                                         <td>$${pedido.total.toFixed(2)}</td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-2">
-                                                <button class="btn btn-primary btn-sm" onclick="cobrarPedido(${pedido.pedido_id})">
+                                                <button class="btn btn-primary" onclick="cobrarPedido(${pedido.pedido_id})">
                                                     Cobrar
                                                 </button>
-                                                <button class="btn btn-warning btn-sm" onclick="editarPedido(${pedido.pedido_id})">
+                                                <button class="btn btn-warning" onclick="editarPedido(${pedido.pedido_id})">
                                                     Editar
                                                 </button>
-                                                <button class="btn btn-danger btn-sm" onclick="anularPedido(${pedido.pedido_id})">
+                                                <button class="btn btn-danger" onclick="anularPedido(${pedido.pedido_id})">
                                                     Anular
                                                 </button>
                                             </div>
