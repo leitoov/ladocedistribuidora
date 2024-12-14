@@ -411,7 +411,8 @@ $userId = $tokenData->user_id;
                 respuesta.productos.forEach(function (producto) {
                     let tieneUnidad = producto.stock_unidad > 0 && producto.precio_unitario > 0;
                     let tienePack = producto.stock_pack > 0 && producto.precio_pack > 0;
-
+                    console.log(producto)
+                    console.log(producto.stock_pack)
                     if (tieneUnidad || tienePack) {
                         // Mostrar con select si ambos están disponibles
                         if (tieneUnidad && tienePack) {
