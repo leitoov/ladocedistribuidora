@@ -521,10 +521,10 @@ $userId = $tokenData->user_id;
 
                 if (montoEfectivo > 0) {
                     const restanteTransferencia = (totalFinal - montoEfectivo) / 1.05; // Resta incluyendo recargo
-                    $('#montoTransferencia').val(restanteTransferencia > 0 ? formatCurrency(restanteTransferencia) : '');
+                    $('#montoTransferencia').val(restanteTransferencia > 0 ? restanteTransferencia.toFixed(2) : '');
                 } else if (montoTransferencia > 0) {
                     const restanteEfectivo = totalFinal - (montoTransferencia * 1.05); // Resta sin descuento
-                    $('#montoEfectivo').val(restanteEfectivo > 0 ? formatCurrency(restanteEfectivo) : '');
+                    $('#montoEfectivo').val(restanteEfectivo > 0 ? restanteEfectivo.toFixed(2) : '');
                 }
 
                 // Actualizar valores en el modal
@@ -551,6 +551,8 @@ $userId = $tokenData->user_id;
                     currency: 'ARS',
                 }).format(value);
             }
+
+
 
             // Anular pedido
             window.anularPedido = function (pedidoId) {
