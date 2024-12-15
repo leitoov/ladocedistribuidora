@@ -161,6 +161,17 @@ $userId = $tokenData->user_id;
         .form-label {
             width: 100%;
         }
+        p#totalAPagar {
+            font-size: 21px;
+            font-weight: 500;
+            margin: 0px;
+            padding: 0px;
+        }
+        p#montoTotalFinal {
+            padding: 0px;
+            font-size: 30px;
+            font-weight: 600;
+        }
 
         /* Responsive Adjustments */
         @media (max-width: 576px) {
@@ -423,19 +434,19 @@ $userId = $tokenData->user_id;
                         $('#campoTransferencia').hide();
                         $('#descuentoAplicado').parent().show();
                         $('#recargoAplicado').parent().hide();
-                        recalcularTotales();
+                        recalcularTotales(false);
                     } else if (medioPago === 'transferencia') {
                         $('#campoEfectivo').hide();
                         $('#campoTransferencia').hide();
                         $('#descuentoAplicado').parent().hide();
                         $('#recargoAplicado').parent().show();
-                        recalcularTotales();
+                        recalcularTotales(false);
                     } else if (medioPago === 'mixto') {
                         $('#campoEfectivo').show();
                         $('#campoTransferencia').show();
-                        $('#descuentoAplicado').parent().show();
+                        $('#descuentoAplicado').parent().hide();
                         $('#recargoAplicado').parent().show();
-                        recalcularTotales();
+                        recalcularTotales(true);
                     } else {
                         $('#campoEfectivo, #campoTransferencia').hide();
                         $('#descuentoAplicado').parent().hide();
@@ -444,7 +455,7 @@ $userId = $tokenData->user_id;
                 });
 
                 // Función para calcular descuentos y recargos
-                function calcularCobro(montoEfectivo, montoTransferencia, totalPedido, medioPago) {
+                function calcularCobro(montoEfectivo, montoTransferencia, totalPedido, medioPago, aplicarDescuento) {
                     let descuento = 0, recargo = 0, totalFinal = totalPedido;
 
                     if (medioPago === 'mixto') {
@@ -457,8 +468,8 @@ $userId = $tokenData->user_id;
                         // Solo recargo en transferencia
                         recargo = totalPedido * 0.05;
                         totalFinal += recargo;
-                    } else if (medioPago === 'efectivo') {
-                        // Aplicar descuento en efectivo
+                    } else if (medioPago === 'efectivo' && aplicarDescuento) {
+                        // Aplicar descuento en efectivo si el usuario lo activa
                         descuento = totalPedido * 0.05;
                         totalFinal -= descuento;
                     }
@@ -467,22 +478,22 @@ $userId = $tokenData->user_id;
                 }
 
                 // Función para recalcular los totales
-                function recalcularTotales() {
+                function recalcularTotales(esMixto) {
                     let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
                     let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
                     let totalPedido = pedido.total;
                     let medioPago = $('#medioPago').val();
 
                     // Calcular los valores actualizados
-                    const { totalFinal, descuento, recargo } = calcularCobro(montoEfectivo, montoTransferencia, totalPedido, medioPago);
+                    const { totalFinal, descuento, recargo } = calcularCobro(montoEfectivo, montoTransferencia, totalPedido, medioPago, false);
 
                     // Mostrar cuánto falta en efectivo o transferencia en el caso de mixto
-                    if (medioPago === 'mixto') {
+                    if (esMixto) {
                         if (montoEfectivo > 0) {
                             let restanteTransferencia = (totalFinal - montoEfectivo) / 1.05; // El restante en transferencia con recargo
                             $('#montoTransferencia').val(restanteTransferencia > 0 ? formatCurrency(restanteTransferencia) : '');
                         } else if (montoTransferencia > 0) {
-                            let restanteEfectivo = totalFinal - (montoTransferencia * 1.05); // El restante en efectivo sin descuento
+                            let restanteEfectivo = totalFinal - (montoTransferencia * 1.05); // El restante en efectivo
                             $('#montoEfectivo').val(restanteEfectivo > 0 ? formatCurrency(restanteEfectivo) : '');
                         }
                     }
@@ -493,8 +504,21 @@ $userId = $tokenData->user_id;
                     $('#montoTotalFinal').text(formatCurrency(totalFinal)).css('font-weight', 'bold').css('font-size', '1.2rem').css('color', 'blue');
                 }
 
+                // Aplicar descuento manualmente en efectivo
+                $('#aplicarDescuento').off('click').on('click', function () {
+                    let totalPedido = pedido.total;
+                    const { totalFinal, descuento } = calcularCobro(0, 0, totalPedido, 'efectivo', true);
+
+                    // Actualizar con el descuento aplicado
+                    $('#descuentoAplicado').text(formatCurrency(descuento)).toggleClass('text-red', descuento > 0);
+                    $('#montoTotalFinal').text(formatCurrency(totalFinal)).css('font-weight', 'bold').css('font-size', '1.2rem').css('color', 'blue');
+                });
+
                 // Escuchar cambios en los montos ingresados
-                $('#montoEfectivo, #montoTransferencia').on('input', recalcularTotales);
+                $('#montoEfectivo, #montoTransferencia').on('input', function () {
+                    let medioPago = $('#medioPago').val();
+                    recalcularTotales(medioPago === 'mixto');
+                });
 
                 // Confirmar cobro
                 $('#confirmarCobro').off('click').on('click', function () {
@@ -525,9 +549,6 @@ $userId = $tokenData->user_id;
                     }).format(value);
                 }
             };
-
-
-
 
 
             // Anular pedido
