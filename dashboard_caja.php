@@ -506,31 +506,40 @@ $userId = $tokenData->user_id;
                 $('#botonQuitarDescuento').hide();
             }
 
-            // Recalcular totales para pagos mixtos
+            // Recalcular totales dinámicos para pagos mixtos
             function recalcularTotales(pedido) {
-                const montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
-                const montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
+                let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
+                let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
                 const totalPedido = pedido.total;
 
-                let recargo = 0;
-                if (montoTransferencia > 0) {
-                    recargo = montoTransferencia * 0.05;
+                // Calcular recargo en transferencia
+                let recargoTransferencia = montoTransferencia * 0.05;
+
+                // Ajustar los valores dinámicamente
+                if (montoEfectivo > 0 && montoTransferencia === 0) {
+                    montoTransferencia = (totalPedido - montoEfectivo) / 1.05; // Calcula el restante en transferencia
+                    $('#montoTransferencia').val(montoTransferencia > 0 ? montoTransferencia.toFixed(2) : '');
+                } else if (montoTransferencia > 0 && montoEfectivo === 0) {
+                    montoEfectivo = totalPedido - (montoTransferencia * 1.05); // Calcula el restante en efectivo
+                    $('#montoEfectivo').val(montoEfectivo > 0 ? montoEfectivo.toFixed(2) : '');
                 }
 
-                const totalFinal = totalPedido + recargo;
-
-                if (montoEfectivo > 0) {
-                    const restanteTransferencia = (totalFinal - montoEfectivo) / 1.05; // Resta incluyendo recargo
-                    $('#montoTransferencia').val(restanteTransferencia > 0 ? restanteTransferencia.toFixed(2) : '');
-                } else if (montoTransferencia > 0) {
-                    const restanteEfectivo = totalFinal - (montoTransferencia * 1.05); // Resta sin descuento
-                    $('#montoEfectivo').val(restanteEfectivo > 0 ? restanteEfectivo.toFixed(2) : '');
+                // Validar si la suma de ambos montos cubre el total
+                let sumaTotal = montoEfectivo + (montoTransferencia * 1.05);
+                if (Math.abs(sumaTotal - totalPedido) > 0.01) {
+                    $('#montoTotalFinal').text('La suma no coincide con el total').css('color', 'red');
+                } else {
+                    $('#montoTotalFinal').text(formatCurrency(sumaTotal)).css('color', 'blue');
                 }
 
-                // Actualizar valores en el modal
-                $('#recargoAplicado').text(formatCurrency(recargo)).addClass('text-green');
-                $('#montoTotalFinal').text(formatCurrency(totalFinal));
+                // Mostrar el recargo
+                $('#recargoAplicado').text(formatCurrency(recargoTransferencia)).addClass('text-green');
             }
+
+            // Evento en los campos de entrada
+            $('#montoEfectivo, #montoTransferencia').on('input', function () {
+                recalcularTotales(pedido);
+            });
 
             // Resetear el modal
             function resetModal() {
