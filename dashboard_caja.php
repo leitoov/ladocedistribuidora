@@ -428,6 +428,9 @@ $userId = $tokenData->user_id;
                     } else {
                         $('#campoEfectivo, #campoTransferencia').hide();
                     }
+
+                    // Forzar recalculo al cambiar el medio de pago
+                    recalcularTotales();
                 });
 
                 // Función para calcular descuentos y recargos
@@ -457,8 +460,8 @@ $userId = $tokenData->user_id;
                     return { totalFinal, descuento, recargo };
                 }
 
-                // Escuchar cambios en los montos ingresados
-                $('#montoEfectivo, #montoTransferencia').on('input', function () {
+                // Función para recalcular los totales
+                function recalcularTotales() {
                     let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
                     let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
                     let totalPedido = pedido.total;
@@ -478,7 +481,10 @@ $userId = $tokenData->user_id;
                     $('#descuentoAplicado').text(`$${descuento.toFixed(2)}`).toggleClass('text-red', descuento > 0);
                     $('#recargoAplicado').text(`$${recargo.toFixed(2)}`).toggleClass('text-green', recargo > 0);
                     $('#montoTotalFinal').text(`$${totalFinal.toFixed(2)}`).css('font-weight', 'bold').css('font-size', '1.2rem').css('color', 'blue');
-                });
+                }
+
+                // Escuchar cambios en los montos ingresados
+                $('#montoEfectivo, #montoTransferencia').on('input', recalcularTotales);
 
                 // Confirmar cobro
                 $('#confirmarCobro').off('click').on('click', function () {
