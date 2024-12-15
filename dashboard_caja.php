@@ -410,20 +410,23 @@ $userId = $tokenData->user_id;
                 $('#modalCobrarCuerpo').find('#descuentoAplicado, #recargoAplicado, #montoTotalFinal').text('');
                 $('#modalCobrarPedido').modal('show');
 
+                // Ocultar campos inicialmente
+                $('#campoEfectivo, #campoTransferencia').hide();
+
                 // Mostrar opciones según el medio de pago
                 $('#modalCobrarCuerpo').find('#medioPago').on('change', function () {
                     const medioPago = $(this).val();
                     if (medioPago === 'efectivo') {
-                        $('#montoEfectivo').parent().show();
-                        $('#montoTransferencia').parent().hide();
+                        $('#campoEfectivo').show();
+                        $('#campoTransferencia').hide();
                     } else if (medioPago === 'transferencia') {
-                        $('#montoTransferencia').parent().show();
-                        $('#montoEfectivo').parent().hide();
+                        $('#campoTransferencia').show();
+                        $('#campoEfectivo').hide();
                     } else if (medioPago === 'mixto') {
-                        $('#montoEfectivo').parent().show();
-                        $('#montoTransferencia').parent().show();
+                        $('#campoEfectivo').show();
+                        $('#campoTransferencia').show();
                     } else {
-                        $('#montoEfectivo, #montoTransferencia').parent().hide();
+                        $('#campoEfectivo, #campoTransferencia').hide();
                     }
                 });
 
@@ -498,6 +501,7 @@ $userId = $tokenData->user_id;
                     imprimirTicket(pedido);
                 });
             };
+
 
 
             // Anular pedido
