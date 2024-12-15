@@ -443,6 +443,15 @@ $userId = $tokenData->user_id;
                     recalcularMixto(pedido);
                 });
 
+                // Botón para aplicar descuento en efectivo
+                $('#botonAplicarDescuento').off('click').on('click', function () {
+                    aplicarDescuento(pedido);
+                });
+
+                $('#botonQuitarDescuento').off('click').on('click', function () {
+                    quitarDescuento(pedido);
+                });
+
                 // Resetear el modal al cerrarlo
                 $('#modalCobrarPedido').on('hidden.bs.modal', function () {
                     resetModal();
@@ -456,6 +465,7 @@ $userId = $tokenData->user_id;
                 if (medioPago === 'efectivo') {
                     $('#descuentoAplicado').parent().show();
                     $('#recargoAplicado').parent().hide();
+                    $('#botonAplicarDescuento').show();
                     $('#montoTotalFinal').text(formatCurrency(pedido.total)); // Mostrar el total inicial
                 } else if (medioPago === 'transferencia') {
                     const recargo = pedido.total * 0.05;
@@ -464,15 +474,42 @@ $userId = $tokenData->user_id;
                     $('#recargoAplicado').text(formatCurrency(recargo)).addClass('text-green');
                     $('#descuentoAplicado').parent().hide();
                     $('#recargoAplicado').parent().show();
+                    $('#botonAplicarDescuento').hide();
+                    $('#botonQuitarDescuento').hide();
                     $('#montoTotalFinal').text(formatCurrency(totalConRecargo)); // Mostrar total con recargo
                 } else if (medioPago === 'mixto') {
                     $('#campoEfectivo').show();
                     $('#campoTransferencia').show();
+                    $('#montoTransferencia').prop('readonly', true); // Hacer el input de transferencia no editable
                     $('#recargoAplicado').parent().show();
                     $('#descuentoAplicado').parent().hide();
                     $('#recargoEnEfectivoContainer').show(); // Mostrar checkbox para recargo en efectivo
                     $('#montoTotalFinal').text(formatCurrency(pedido.total)); // Mostrar el total inicial
                 }
+            }
+
+            // Aplicar descuento manualmente en efectivo
+            function aplicarDescuento(pedido) {
+                const totalPedido = pedido.total;
+                const descuento = totalPedido * 0.05;
+                const totalConDescuento = totalPedido - descuento;
+
+                // Actualizar valores en el modal
+                $('#descuentoAplicado').text(formatCurrency(descuento)).addClass('text-red');
+                $('#montoTotalFinal').text(formatCurrency(totalConDescuento));
+                $('#botonAplicarDescuento').hide();
+                $('#botonQuitarDescuento').show();
+            }
+
+            // Quitar descuento manualmente
+            function quitarDescuento(pedido) {
+                const totalPedido = pedido.total;
+
+                // Actualizar valores en el modal
+                $('#descuentoAplicado').text(formatCurrency(0)).removeClass('text-red');
+                $('#montoTotalFinal').text(formatCurrency(totalPedido));
+                $('#botonAplicarDescuento').show();
+                $('#botonQuitarDescuento').hide();
             }
 
             // Recalcular valores para el pago mixto
@@ -506,6 +543,7 @@ $userId = $tokenData->user_id;
             function resetModal() {
                 $('#medioPago').val('');
                 $('#montoEfectivo, #montoTransferencia').val('');
+                $('#montoTransferencia').prop('readonly', false); // Hacer editable por defecto
                 $('#descuentoAplicado, #recargoAplicado, #montoTotalFinal').text('');
                 $('#campoEfectivo, #campoTransferencia, #recargoEnEfectivoContainer').hide();
                 $('#descuentoAplicado').parent().hide();
@@ -519,6 +557,7 @@ $userId = $tokenData->user_id;
                     currency: 'ARS',
                 }).format(value);
             }
+
 
 
 
