@@ -420,8 +420,8 @@ $userId = $tokenData->user_id;
                         $('#campoEfectivo').show();
                         $('#campoTransferencia').hide();
                     } else if (medioPago === 'transferencia') {
-                        $('#campoTransferencia').show();
                         $('#campoEfectivo').hide();
+                        $('#campoTransferencia').hide(); // No mostrar input de transferencia
                     } else if (medioPago === 'mixto') {
                         $('#campoEfectivo').show();
                         $('#campoTransferencia').show();
@@ -443,6 +443,10 @@ $userId = $tokenData->user_id;
                             recargo = montoTransferencia * 0.05;
                             totalFinal += recargo;
                         }
+                    } else if (medioPago === 'transferencia') {
+                        // Solo recargo en transferencia
+                        recargo = totalPedido * 0.05;
+                        totalFinal += recargo;
                     } else {
                         // Aplicar recargo por transferencia
                         if (montoTransferencia > 0) {
