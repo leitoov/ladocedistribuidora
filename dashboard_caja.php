@@ -292,12 +292,8 @@ $userId = $tokenData->user_id;
                             <p id="recargoAplicado" class="form-control-plaintext text-green"></p>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Vuelto</label>
-                            <p id="vuelto" class="form-control-plaintext"></p>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Monto Total Final</label>
-                            <p id="montoTotalFinal" class="form-control-plaintext"></p>
+                            <label class="form-label" style="font-weight: bold; font-size: 1.2rem; color: blue;">Monto Total Final</label>
+                            <p id="montoTotalFinal" class="form-control-plaintext" style="font-weight: bold; font-size: 1.2rem; color: blue;"></p>
                         </div>
                     </form>
                 </div>
@@ -308,7 +304,6 @@ $userId = $tokenData->user_id;
             </div>
         </div>
     </div>
-
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
@@ -412,11 +407,11 @@ $userId = $tokenData->user_id;
                 // Llenar la información del modal con los detalles del pedido
                 $('#totalAPagar').text(`$${pedido.total.toFixed(2)}`);
                 $('#modalCobrarCuerpo').find('#montoEfectivo, #montoTransferencia').val('');
-                $('#modalCobrarCuerpo').find('#vuelto, #descuentoAplicado, #recargoAplicado, #montoTotalFinal').text('');
+                $('#modalCobrarCuerpo').find('#descuentoAplicado, #recargoAplicado, #montoTotalFinal').text('');
                 $('#modalCobrarPedido').modal('show');
 
-                // Agregar selección de medio de pago
-                $('#medioPago').off('change').on('change', function () {
+                // Mostrar opciones según el medio de pago
+                $('#modalCobrarCuerpo').find('#medioPago').on('change', function () {
                     const medioPago = $(this).val();
                     if (medioPago === 'efectivo') {
                         $('#montoEfectivo').parent().show();
@@ -432,28 +427,31 @@ $userId = $tokenData->user_id;
                     }
                 });
 
-                // Función para calcular descuentos, recargos y vuelto
-                function calcularCobro(montoEfectivo, montoTransferencia, totalPedido) {
-                    let descuento = 0, recargo = 0, totalFinal = totalPedido, vuelto = 0;
+                // Función para calcular descuentos y recargos
+                function calcularCobro(montoEfectivo, montoTransferencia, totalPedido, medioPago) {
+                    let descuento = 0, recargo = 0, totalFinal = totalPedido;
 
-                    // Aplicar recargo por transferencia
-                    if (montoTransferencia > 0) {
-                        recargo = montoTransferencia * 0.05;
-                        totalFinal += recargo;
+                    if (medioPago === 'mixto') {
+                        // Sin descuento en efectivo, pero con recargo en transferencia
+                        if (montoTransferencia > 0) {
+                            recargo = montoTransferencia * 0.05;
+                            totalFinal += recargo;
+                        }
+                    } else {
+                        // Aplicar recargo por transferencia
+                        if (montoTransferencia > 0) {
+                            recargo = montoTransferencia * 0.05;
+                            totalFinal += recargo;
+                        }
+
+                        // Aplicar descuento por efectivo si no hay transferencia
+                        if (montoEfectivo > 0 && montoTransferencia === 0) {
+                            descuento = totalPedido * 0.05;
+                            totalFinal -= descuento;
+                        }
                     }
 
-                    // Aplicar descuento por efectivo si no hay transferencia
-                    if (montoEfectivo > 0 && montoTransferencia === 0) {
-                        descuento = totalPedido * 0.05;
-                        totalFinal -= descuento;
-                    }
-
-                    // Calcular el vuelto si el monto en efectivo es mayor al total final
-                    if (montoEfectivo > totalFinal) {
-                        vuelto = montoEfectivo - totalFinal;
-                    }
-
-                    return { totalFinal, descuento, recargo, vuelto };
+                    return { totalFinal, descuento, recargo };
                 }
 
                 // Escuchar cambios en los montos ingresados
@@ -461,6 +459,7 @@ $userId = $tokenData->user_id;
                     let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
                     let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
                     let totalPedido = pedido.total;
+                    let medioPago = $('#medioPago').val();
 
                     // Validaciones básicas
                     if (montoTransferencia > totalPedido) {
@@ -470,13 +469,12 @@ $userId = $tokenData->user_id;
                     }
 
                     // Calcular los valores actualizados
-                    const { totalFinal, descuento, recargo, vuelto } = calcularCobro(montoEfectivo, montoTransferencia, totalPedido);
+                    const { totalFinal, descuento, recargo } = calcularCobro(montoEfectivo, montoTransferencia, totalPedido, medioPago);
 
                     // Actualizar el modal con los valores calculados
                     $('#descuentoAplicado').text(`$${descuento.toFixed(2)}`).toggleClass('text-red', descuento > 0);
                     $('#recargoAplicado').text(`$${recargo.toFixed(2)}`).toggleClass('text-green', recargo > 0);
-                    $('#vuelto').text(`$${vuelto.toFixed(2)}`);
-                    $('#montoTotalFinal').text(`$${totalFinal.toFixed(2)}`);
+                    $('#montoTotalFinal').text(`$${totalFinal.toFixed(2)}`).css('font-weight', 'bold').css('font-size', '1.2rem').css('color', 'blue');
                 });
 
                 // Confirmar cobro
