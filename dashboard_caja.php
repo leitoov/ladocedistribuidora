@@ -420,181 +420,130 @@ $userId = $tokenData->user_id;
                     return;
                 }
 
-                // Llenar la información del modal con los detalles del pedido
+                // Resetear el estado del modal
+                resetModal();
+
+                // Llenar datos iniciales del pedido
                 $('#totalAPagar').text(formatCurrency(pedido.total));
-                $('#modalCobrarCuerpo').find('#montoEfectivo, #montoTransferencia').val('');
-                $('#modalCobrarCuerpo').find('#descuentoAplicado, #recargoAplicado, #montoTotalFinal').text('');
                 $('#modalCobrarPedido').modal('show');
 
-                // Ocultar campos inicialmente
-                $('#campoEfectivo, #campoTransferencia').hide();
-                $('#descuentoAplicado').parent().hide();
-                $('#recargoAplicado').parent().hide();
-                $('#botonAplicarDescuento').hide(); // Ocultar botón por defecto
-                $('#botonQuitarDescuento').hide(); // Ocultar botón por defecto
+                // Asignar eventos para el selector de medio de pago
+                $('#medioPago').off('change').on('change', function () {
+                    const medioPago = $(this).val();
+                    handleMedioPagoChange(medioPago, pedido);
+                });
 
-                // Reiniciar datos al abrir o cerrar el modal
+                // Asignar eventos para los botones de descuento
+                $('#botonAplicarDescuento').off('click').on('click', function () {
+                    aplicarDescuento(pedido);
+                });
+
+                $('#botonQuitarDescuento').off('click').on('click', function () {
+                    quitarDescuento(pedido);
+                });
+
+                // Escuchar cambios en los inputs de monto
+                $('#montoEfectivo, #montoTransferencia').off('input').on('input', function () {
+                    recalcularTotales(pedido);
+                });
+
+                // Resetear el modal al cerrarlo
                 $('#modalCobrarPedido').on('hidden.bs.modal', function () {
                     resetModal();
                 });
-
-                // Mostrar opciones según el medio de pago
-                $('#modalCobrarCuerpo').find('#medioPago').on('change', function () {
-                    resetModal(); // Reiniciar datos al cambiar de opción
-                    const medioPago = $(this).val();
-                    if (medioPago === 'efectivo') {
-                        $('#campoEfectivo').hide();
-                        $('#campoTransferencia').hide();
-                        $('#descuentoAplicado').parent().show();
-                        $('#recargoAplicado').parent().hide();
-                        $('#botonAplicarDescuento').show();
-                        recalcularTotales(false);
-                    } else if (medioPago === 'transferencia') {
-                        $('#campoEfectivo').hide();
-                        $('#campoTransferencia').hide();
-                        $('#descuentoAplicado').parent().hide();
-                        $('#recargoAplicado').parent().show();
-                        $('#botonAplicarDescuento').hide();
-                        $('#botonQuitarDescuento').hide();
-                        recalcularTotales(false);
-                    } else if (medioPago === 'mixto') {
-                        $('#campoEfectivo').show();
-                        $('#campoTransferencia').show();
-                        $('#descuentoAplicado').parent().hide();
-                        $('#recargoAplicado').parent().show();
-                        $('#botonAplicarDescuento').hide();
-                        $('#botonQuitarDescuento').hide();
-                        recalcularTotales(true);
-                    } else {
-                        $('#campoEfectivo, #campoTransferencia').hide();
-                        $('#descuentoAplicado').parent().hide();
-                        $('#recargoAplicado').parent().hide();
-                        $('#botonAplicarDescuento').hide();
-                        $('#botonQuitarDescuento').hide();
-                    }
-                });
-
-                // Función para calcular descuentos y recargos
-                function calcularCobro(montoEfectivo, montoTransferencia, totalPedido, medioPago, aplicarDescuento) {
-                    let descuento = 0, recargo = 0, totalFinal = totalPedido;
-
-                    if (medioPago === 'mixto') {
-                        // Sin descuento en efectivo, pero con recargo en transferencia
-                        if (montoTransferencia > 0) {
-                            recargo = montoTransferencia * 0.05;
-                            totalFinal += recargo;
-                        }
-                    } else if (medioPago === 'transferencia') {
-                        // Solo recargo en transferencia
-                        recargo = totalPedido * 0.05;
-                        totalFinal += recargo;
-                    } else if (medioPago === 'efectivo' && aplicarDescuento) {
-                        // Aplicar descuento en efectivo si el usuario lo activa
-                        descuento = totalPedido * 0.05;
-                        totalFinal -= descuento;
-                    }
-
-                    return { totalFinal, descuento, recargo };
-                }
-
-                // Función para recalcular los totales
-                function recalcularTotales(esMixto) {
-                    let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
-                    let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
-                    let totalPedido = pedido.total;
-                    let medioPago = $('#medioPago').val();
-
-                    // Calcular los valores actualizados
-                    const { totalFinal, descuento, recargo } = calcularCobro(montoEfectivo, montoTransferencia, totalPedido, medioPago, false);
-
-                    // Mostrar cuánto falta en efectivo o transferencia en el caso de mixto
-                    if (esMixto) {
-                        if (montoEfectivo > 0) {
-                            let restanteTransferencia = (totalFinal - montoEfectivo) / 1.05; // El restante en transferencia con recargo
-                            $('#montoTransferencia').val(restanteTransferencia > 0 ? formatCurrency(restanteTransferencia) : '');
-                        } else if (montoTransferencia > 0) {
-                            let restanteEfectivo = totalFinal - (montoTransferencia * 1.05); // El restante en efectivo
-                            $('#montoEfectivo').val(restanteEfectivo > 0 ? formatCurrency(restanteEfectivo) : '');
-                        }
-                    }
-
-                    // Actualizar el modal con los valores calculados
-                    $('#descuentoAplicado').text(formatCurrency(descuento)).toggleClass('text-red', descuento > 0);
-                    $('#recargoAplicado').text(formatCurrency(recargo)).toggleClass('text-green', recargo > 0);
-                    $('#montoTotalFinal').text(formatCurrency(totalFinal)).css('font-weight', 'bold').css('font-size', '1.2rem').css('color', 'blue');
-                }
-
-                // Aplicar descuento manualmente en efectivo
-                $('#botonAplicarDescuento').off('click').on('click', function () {
-                    let totalPedido = pedido.total;
-                    const { totalFinal, descuento } = calcularCobro(0, 0, totalPedido, 'efectivo', true);
-
-                    // Actualizar con el descuento aplicado
-                    $('#descuentoAplicado').text(formatCurrency(descuento)).toggleClass('text-red', descuento > 0);
-                    $('#montoTotalFinal').text(formatCurrency(totalFinal)).css('font-weight', 'bold').css('font-size', '1.2rem').css('color', 'blue');
-                    $('#botonAplicarDescuento').hide();
-                    $('#botonQuitarDescuento').show();
-                });
-
-                // Quitar descuento manualmente
-                $('#botonQuitarDescuento').off('click').on('click', function () {
-                    let totalPedido = pedido.total;
-                    const { totalFinal } = calcularCobro(0, 0, totalPedido, 'efectivo', false);
-
-                    // Actualizar con el descuento quitado
-                    $('#descuentoAplicado').text(formatCurrency(0)).removeClass('text-red');
-                    $('#montoTotalFinal').text(formatCurrency(totalFinal)).css('font-weight', 'bold').css('font-size', '1.2rem').css('color', 'blue');
-                    $('#botonAplicarDescuento').show();
-                    $('#botonQuitarDescuento').hide();
-                });
-
-                // Escuchar cambios en los montos ingresados
-                $('#montoEfectivo, #montoTransferencia').on('input', function () {
-                    let medioPago = $('#medioPago').val();
-                    recalcularTotales(medioPago === 'mixto');
-                });
-
-                // Confirmar cobro
-                $('#confirmarCobro').off('click').on('click', function () {
-                    let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
-                    let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
-                    let totalConRecargo = parseFloat($('#montoTotalFinal').text().replace(/\./g, '').replace(',', '.')) || 0;
-
-                    // Validación final antes de procesar el cobro
-                    if (montoEfectivo + (montoTransferencia * 1.05) < totalConRecargo) {
-                        mostrarMensajeModal("El monto total ingresado es insuficiente para cubrir el total final.");
-                        return;
-                    }
-
-                    // Simulación de cobro (puedes integrar una llamada AJAX aquí)
-                    mostrarMensajeModal(`Pedido ${pedidoId} cobrado correctamente. Total pagado: ${formatCurrency(totalConRecargo)}`);
-                    $('#modalCobrarPedido').modal('hide');
-                    cargarPedidosCaja();
-
-                    // Imprimir el ticket
-                    imprimirTicket(pedido);
-                });
-
-                // Función para formatear moneda en formato Argentino
-                function formatCurrency(value) {
-                    return new Intl.NumberFormat('es-AR', {
-                        style: 'currency',
-                        currency: 'ARS'
-                    }).format(value);
-                }
-
-                // Función para reiniciar el modal
-                function resetModal() {
-                    $('#medioPago').val('');
-                    $('#montoEfectivo, #montoTransferencia').val('');
-                    $('#descuentoAplicado, #recargoAplicado, #montoTotalFinal').text('');
-                    $('#campoEfectivo, #campoTransferencia').hide();
-                    $('#descuentoAplicado').parent().hide();
-                    $('#recargoAplicado').parent().hide();
-                    $('#botonAplicarDescuento').hide();
-                    $('#botonQuitarDescuento').hide();
-                }
             };
+
+            // Manejar cambios en el medio de pago
+            function handleMedioPagoChange(medioPago, pedido) {
+                resetModal(); // Reiniciar antes de manejar el nuevo medio de pago
+
+                if (medioPago === 'efectivo') {
+                    $('#descuentoAplicado').parent().show();
+                    $('#recargoAplicado').parent().hide();
+                    $('#botonAplicarDescuento').show();
+                } else if (medioPago === 'transferencia') {
+                    $('#recargoAplicado').parent().show();
+                    $('#descuentoAplicado').parent().hide();
+                    $('#botonAplicarDescuento').hide();
+                    $('#botonQuitarDescuento').hide();
+                } else if (medioPago === 'mixto') {
+                    $('#campoEfectivo').show();
+                    $('#campoTransferencia').show();
+                    $('#recargoAplicado').parent().show();
+                    $('#descuentoAplicado').parent().hide();
+                }
+            }
+
+            // Aplicar descuento manualmente
+            function aplicarDescuento(pedido) {
+                const totalPedido = pedido.total;
+                const descuento = totalPedido * 0.05;
+                const totalConDescuento = totalPedido - descuento;
+
+                // Actualizar valores en el modal
+                $('#descuentoAplicado').text(formatCurrency(descuento)).addClass('text-red');
+                $('#montoTotalFinal').text(formatCurrency(totalConDescuento));
+                $('#botonAplicarDescuento').hide();
+                $('#botonQuitarDescuento').show();
+            }
+
+            // Quitar descuento manualmente
+            function quitarDescuento(pedido) {
+                const totalPedido = pedido.total;
+
+                // Actualizar valores en el modal
+                $('#descuentoAplicado').text(formatCurrency(0)).removeClass('text-red');
+                $('#montoTotalFinal').text(formatCurrency(totalPedido));
+                $('#botonAplicarDescuento').show();
+                $('#botonQuitarDescuento').hide();
+            }
+
+            // Recalcular totales para pagos mixtos
+            function recalcularTotales(pedido) {
+                const montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
+                const montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
+                const totalPedido = pedido.total;
+
+                let recargo = 0;
+                if (montoTransferencia > 0) {
+                    recargo = montoTransferencia * 0.05;
+                }
+
+                const totalFinal = totalPedido + recargo;
+
+                if (montoEfectivo > 0) {
+                    const restanteTransferencia = (totalFinal - montoEfectivo) / 1.05; // Resta incluyendo recargo
+                    $('#montoTransferencia').val(restanteTransferencia > 0 ? formatCurrency(restanteTransferencia) : '');
+                } else if (montoTransferencia > 0) {
+                    const restanteEfectivo = totalFinal - (montoTransferencia * 1.05); // Resta sin descuento
+                    $('#montoEfectivo').val(restanteEfectivo > 0 ? formatCurrency(restanteEfectivo) : '');
+                }
+
+                // Actualizar valores en el modal
+                $('#recargoAplicado').text(formatCurrency(recargo)).addClass('text-green');
+                $('#montoTotalFinal').text(formatCurrency(totalFinal));
+            }
+
+            // Resetear el modal
+            function resetModal() {
+                $('#medioPago').val('');
+                $('#montoEfectivo, #montoTransferencia').val('');
+                $('#descuentoAplicado, #recargoAplicado, #montoTotalFinal').text('');
+                $('#campoEfectivo, #campoTransferencia').hide();
+                $('#descuentoAplicado').parent().hide();
+                $('#recargoAplicado').parent().hide();
+                $('#botonAplicarDescuento').hide();
+                $('#botonQuitarDescuento').hide();
+            }
+
+            // Formatear moneda en formato argentino
+            function formatCurrency(value) {
+                return new Intl.NumberFormat('es-AR', {
+                    style: 'currency',
+                    currency: 'ARS',
+                }).format(value);
+            }
+
 
 
 
