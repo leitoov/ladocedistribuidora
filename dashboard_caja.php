@@ -425,9 +425,10 @@ $userId = $tokenData->user_id;
 
                 // Llenar datos iniciales del pedido
                 $('#totalAPagar').text(formatCurrency(pedido.total));
+                $('#montoTotalFinal').text(formatCurrency(pedido.total)); // Mostrar el total inicial
                 $('#modalCobrarPedido').modal('show');
 
-                // Asignar eventos para el selector de medio de pago
+                // Asignar eventos para el selector de medios de pago
                 $('#medioPago').off('change').on('change', function () {
                     const medioPago = $(this).val();
                     handleMedioPagoChange(medioPago, pedido);
@@ -461,16 +462,23 @@ $userId = $tokenData->user_id;
                     $('#descuentoAplicado').parent().show();
                     $('#recargoAplicado').parent().hide();
                     $('#botonAplicarDescuento').show();
+                    $('#montoTotalFinal').text(formatCurrency(pedido.total)); // Mostrar el total inicial
                 } else if (medioPago === 'transferencia') {
-                    $('#recargoAplicado').parent().show();
+                    const recargo = pedido.total * 0.05;
+                    const totalConRecargo = pedido.total + recargo;
+
+                    $('#recargoAplicado').text(formatCurrency(recargo)).addClass('text-green');
                     $('#descuentoAplicado').parent().hide();
+                    $('#recargoAplicado').parent().show();
                     $('#botonAplicarDescuento').hide();
                     $('#botonQuitarDescuento').hide();
+                    $('#montoTotalFinal').text(formatCurrency(totalConRecargo)); // Mostrar total con recargo
                 } else if (medioPago === 'mixto') {
                     $('#campoEfectivo').show();
                     $('#campoTransferencia').show();
                     $('#recargoAplicado').parent().show();
                     $('#descuentoAplicado').parent().hide();
+                    $('#montoTotalFinal').text(formatCurrency(pedido.total)); // Mostrar el total inicial
                 }
             }
 
@@ -543,10 +551,6 @@ $userId = $tokenData->user_id;
                     currency: 'ARS',
                 }).format(value);
             }
-
-
-
-
 
             // Anular pedido
             window.anularPedido = function (pedidoId) {
