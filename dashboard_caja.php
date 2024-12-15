@@ -481,6 +481,17 @@ $userId = $tokenData->user_id;
                     // Calcular los valores actualizados
                     const { totalFinal, descuento, recargo } = calcularCobro(montoEfectivo, montoTransferencia, totalPedido, medioPago);
 
+                    // Mostrar cuánto falta en efectivo o transferencia en el caso de mixto
+                    if (medioPago === 'mixto') {
+                        if (montoEfectivo > 0) {
+                            let restanteTransferencia = (totalFinal - montoEfectivo) / 1.05; // El restante en transferencia con recargo
+                            $('#montoTransferencia').val(restanteTransferencia > 0 ? restanteTransferencia.toFixed(2) : '');
+                        } else if (montoTransferencia > 0) {
+                            let restanteEfectivo = totalFinal - (montoTransferencia * 1.05); // El restante en efectivo sin descuento
+                            $('#montoEfectivo').val(restanteEfectivo > 0 ? restanteEfectivo.toFixed(2) : '');
+                        }
+                    }
+
                     // Actualizar el modal con los valores calculados
                     $('#descuentoAplicado').text(`$${descuento.toFixed(2)}`).toggleClass('text-red', descuento > 0);
                     $('#recargoAplicado').text(`$${recargo.toFixed(2)}`).toggleClass('text-green', recargo > 0);
@@ -497,7 +508,7 @@ $userId = $tokenData->user_id;
                     let totalConRecargo = parseFloat($('#montoTotalFinal').text().replace('$', '')) || 0;
 
                     // Validación final antes de procesar el cobro
-                    if (montoEfectivo + montoTransferencia < totalConRecargo) {
+                    if (montoEfectivo + (montoTransferencia * 1.05) < totalConRecargo) {
                         mostrarMensajeModal("El monto total ingresado es insuficiente para cubrir el total final.");
                         return;
                     }
