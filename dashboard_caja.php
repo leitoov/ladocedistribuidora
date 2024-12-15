@@ -263,7 +263,6 @@ $userId = $tokenData->user_id;
         </div>
     </div>
 
-    <!-- Payment Modal -->
     <div class="modal fade" id="modalCobrarPedido" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -297,6 +296,8 @@ $userId = $tokenData->user_id;
                         <div class="mb-3">
                             <label class="form-label">Descuento Aplicado (Efectivo)</label>
                             <p id="descuentoAplicado" class="form-control-plaintext text-red"></p>
+                            <!-- Botón para aplicar el descuento -->
+                            <button type="button" id="botonAplicarDescuento" class="btn btn-warning btn-sm mt-2">Aplicar Descuento</button>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Recargo Aplicado (Transferencia)</label>
@@ -315,6 +316,8 @@ $userId = $tokenData->user_id;
             </div>
         </div>
     </div>
+
+
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
@@ -425,6 +428,7 @@ $userId = $tokenData->user_id;
                 $('#campoEfectivo, #campoTransferencia').hide();
                 $('#descuentoAplicado').parent().hide();
                 $('#recargoAplicado').parent().hide();
+                $('#botonAplicarDescuento').hide(); // Ocultar botón por defecto
 
                 // Mostrar opciones según el medio de pago
                 $('#modalCobrarCuerpo').find('#medioPago').on('change', function () {
@@ -434,23 +438,27 @@ $userId = $tokenData->user_id;
                         $('#campoTransferencia').hide();
                         $('#descuentoAplicado').parent().show();
                         $('#recargoAplicado').parent().hide();
+                        $('#botonAplicarDescuento').show(); // Mostrar botón de descuento
                         recalcularTotales(false);
                     } else if (medioPago === 'transferencia') {
                         $('#campoEfectivo').hide();
                         $('#campoTransferencia').hide();
                         $('#descuentoAplicado').parent().hide();
                         $('#recargoAplicado').parent().show();
+                        $('#botonAplicarDescuento').hide(); // Ocultar botón de descuento
                         recalcularTotales(false);
                     } else if (medioPago === 'mixto') {
                         $('#campoEfectivo').show();
                         $('#campoTransferencia').show();
                         $('#descuentoAplicado').parent().hide();
                         $('#recargoAplicado').parent().show();
+                        $('#botonAplicarDescuento').hide(); // Ocultar botón de descuento
                         recalcularTotales(true);
                     } else {
                         $('#campoEfectivo, #campoTransferencia').hide();
                         $('#descuentoAplicado').parent().hide();
                         $('#recargoAplicado').parent().hide();
+                        $('#botonAplicarDescuento').hide(); // Ocultar botón de descuento
                     }
                 });
 
@@ -505,7 +513,7 @@ $userId = $tokenData->user_id;
                 }
 
                 // Aplicar descuento manualmente en efectivo
-                $('#aplicarDescuento').off('click').on('click', function () {
+                $('#botonAplicarDescuento').off('click').on('click', function () {
                     let totalPedido = pedido.total;
                     const { totalFinal, descuento } = calcularCobro(0, 0, totalPedido, 'efectivo', true);
 
@@ -549,6 +557,7 @@ $userId = $tokenData->user_id;
                     }).format(value);
                 }
             };
+
 
 
             // Anular pedido
