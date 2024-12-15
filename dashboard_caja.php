@@ -412,24 +412,34 @@ $userId = $tokenData->user_id;
 
                 // Ocultar campos inicialmente
                 $('#campoEfectivo, #campoTransferencia').hide();
+                $('#descuentoAplicado').parent().hide();
+                $('#recargoAplicado').parent().hide();
 
                 // Mostrar opciones según el medio de pago
                 $('#modalCobrarCuerpo').find('#medioPago').on('change', function () {
                     const medioPago = $(this).val();
                     if (medioPago === 'efectivo') {
                         $('#campoEfectivo').hide();
-                        $('#campoTransferencia').hide(); // No mostrar inputs, solo calcular el total con descuento
+                        $('#campoTransferencia').hide();
+                        $('#descuentoAplicado').parent().show();
+                        $('#recargoAplicado').parent().hide();
                         recalcularTotales();
                     } else if (medioPago === 'transferencia') {
                         $('#campoEfectivo').hide();
-                        $('#campoTransferencia').hide(); // No mostrar input de transferencia, solo calcular el total con recargo
+                        $('#campoTransferencia').hide();
+                        $('#descuentoAplicado').parent().hide();
+                        $('#recargoAplicado').parent().show();
                         recalcularTotales();
                     } else if (medioPago === 'mixto') {
                         $('#campoEfectivo').show();
                         $('#campoTransferencia').show();
+                        $('#descuentoAplicado').parent().show();
+                        $('#recargoAplicado').parent().show();
                         recalcularTotales();
                     } else {
                         $('#campoEfectivo, #campoTransferencia').hide();
+                        $('#descuentoAplicado').parent().hide();
+                        $('#recargoAplicado').parent().hide();
                     }
                 });
 
@@ -515,6 +525,7 @@ $userId = $tokenData->user_id;
                     }).format(value);
                 }
             };
+
 
 
 
