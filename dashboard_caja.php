@@ -291,7 +291,7 @@ $userId = $tokenData->user_id;
                         </div>
                         <div class="mb-3" id="campoTransferencia">
                             <label for="montoTransferencia" class="form-label">Monto en Transferencia</label>
-                            <input type="number" class="form-control" id="montoTransferencia" placeholder="0.00">
+                            <p id="montoTransferencia"></p>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Descuento Aplicado (Efectivo)</label>
