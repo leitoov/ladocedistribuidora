@@ -405,7 +405,7 @@ $userId = $tokenData->user_id;
                 }
 
                 // Llenar la información del modal con los detalles del pedido
-                $('#totalAPagar').text(`$${pedido.total.toFixed(2)}`);
+                $('#totalAPagar').text(formatCurrency(pedido.total));
                 $('#modalCobrarCuerpo').find('#montoEfectivo, #montoTransferencia').val('');
                 $('#modalCobrarCuerpo').find('#descuentoAplicado, #recargoAplicado, #montoTotalFinal').text('');
                 $('#modalCobrarPedido').modal('show');
@@ -417,20 +417,20 @@ $userId = $tokenData->user_id;
                 $('#modalCobrarCuerpo').find('#medioPago').on('change', function () {
                     const medioPago = $(this).val();
                     if (medioPago === 'efectivo') {
-                        $('#campoEfectivo').show();
-                        $('#campoTransferencia').hide();
+                        $('#campoEfectivo').hide();
+                        $('#campoTransferencia').hide(); // No mostrar inputs, solo calcular el total con descuento
+                        recalcularTotales();
                     } else if (medioPago === 'transferencia') {
                         $('#campoEfectivo').hide();
-                        $('#campoTransferencia').hide(); // No mostrar input de transferencia
+                        $('#campoTransferencia').hide(); // No mostrar input de transferencia, solo calcular el total con recargo
+                        recalcularTotales();
                     } else if (medioPago === 'mixto') {
                         $('#campoEfectivo').show();
                         $('#campoTransferencia').show();
+                        recalcularTotales();
                     } else {
                         $('#campoEfectivo, #campoTransferencia').hide();
                     }
-
-                    // Forzar recalculo al cambiar el medio de pago
-                    recalcularTotales();
                 });
 
                 // Función para calcular descuentos y recargos
@@ -447,18 +447,10 @@ $userId = $tokenData->user_id;
                         // Solo recargo en transferencia
                         recargo = totalPedido * 0.05;
                         totalFinal += recargo;
-                    } else {
-                        // Aplicar recargo por transferencia
-                        if (montoTransferencia > 0) {
-                            recargo = montoTransferencia * 0.05;
-                            totalFinal += recargo;
-                        }
-
-                        // Aplicar descuento por efectivo si no hay transferencia
-                        if (montoEfectivo > 0 && montoTransferencia === 0) {
-                            descuento = totalPedido * 0.05;
-                            totalFinal -= descuento;
-                        }
+                    } else if (medioPago === 'efectivo') {
+                        // Aplicar descuento en efectivo
+                        descuento = totalPedido * 0.05;
+                        totalFinal -= descuento;
                     }
 
                     return { totalFinal, descuento, recargo };
@@ -471,13 +463,6 @@ $userId = $tokenData->user_id;
                     let totalPedido = pedido.total;
                     let medioPago = $('#medioPago').val();
 
-                    // Validaciones básicas
-                    if (montoTransferencia > totalPedido) {
-                        $('#montoTransferencia').val(totalPedido);
-                        mostrarMensajeModal("El monto en transferencia no puede ser mayor al total a pagar.");
-                        return;
-                    }
-
                     // Calcular los valores actualizados
                     const { totalFinal, descuento, recargo } = calcularCobro(montoEfectivo, montoTransferencia, totalPedido, medioPago);
 
@@ -485,17 +470,17 @@ $userId = $tokenData->user_id;
                     if (medioPago === 'mixto') {
                         if (montoEfectivo > 0) {
                             let restanteTransferencia = (totalFinal - montoEfectivo) / 1.05; // El restante en transferencia con recargo
-                            $('#montoTransferencia').val(restanteTransferencia > 0 ? restanteTransferencia.toFixed(2) : '');
+                            $('#montoTransferencia').val(restanteTransferencia > 0 ? formatCurrency(restanteTransferencia) : '');
                         } else if (montoTransferencia > 0) {
                             let restanteEfectivo = totalFinal - (montoTransferencia * 1.05); // El restante en efectivo sin descuento
-                            $('#montoEfectivo').val(restanteEfectivo > 0 ? restanteEfectivo.toFixed(2) : '');
+                            $('#montoEfectivo').val(restanteEfectivo > 0 ? formatCurrency(restanteEfectivo) : '');
                         }
                     }
 
                     // Actualizar el modal con los valores calculados
-                    $('#descuentoAplicado').text(`$${descuento.toFixed(2)}`).toggleClass('text-red', descuento > 0);
-                    $('#recargoAplicado').text(`$${recargo.toFixed(2)}`).toggleClass('text-green', recargo > 0);
-                    $('#montoTotalFinal').text(`$${totalFinal.toFixed(2)}`).css('font-weight', 'bold').css('font-size', '1.2rem').css('color', 'blue');
+                    $('#descuentoAplicado').text(formatCurrency(descuento)).toggleClass('text-red', descuento > 0);
+                    $('#recargoAplicado').text(formatCurrency(recargo)).toggleClass('text-green', recargo > 0);
+                    $('#montoTotalFinal').text(formatCurrency(totalFinal)).css('font-weight', 'bold').css('font-size', '1.2rem').css('color', 'blue');
                 }
 
                 // Escuchar cambios en los montos ingresados
@@ -505,7 +490,7 @@ $userId = $tokenData->user_id;
                 $('#confirmarCobro').off('click').on('click', function () {
                     let montoEfectivo = parseFloat($('#montoEfectivo').val()) || 0;
                     let montoTransferencia = parseFloat($('#montoTransferencia').val()) || 0;
-                    let totalConRecargo = parseFloat($('#montoTotalFinal').text().replace('$', '')) || 0;
+                    let totalConRecargo = parseFloat($('#montoTotalFinal').text().replace(/\./g, '').replace(',', '.')) || 0;
 
                     // Validación final antes de procesar el cobro
                     if (montoEfectivo + (montoTransferencia * 1.05) < totalConRecargo) {
@@ -514,14 +499,23 @@ $userId = $tokenData->user_id;
                     }
 
                     // Simulación de cobro (puedes integrar una llamada AJAX aquí)
-                    mostrarMensajeModal(`Pedido ${pedidoId} cobrado correctamente. Total pagado: $${totalConRecargo}`);
+                    mostrarMensajeModal(`Pedido ${pedidoId} cobrado correctamente. Total pagado: ${formatCurrency(totalConRecargo)}`);
                     $('#modalCobrarPedido').modal('hide');
                     cargarPedidosCaja();
 
                     // Imprimir el ticket
                     imprimirTicket(pedido);
                 });
+
+                // Función para formatear moneda en formato Argentino
+                function formatCurrency(value) {
+                    return new Intl.NumberFormat('es-AR', {
+                        style: 'currency',
+                        currency: 'ARS'
+                    }).format(value);
+                }
             };
+
 
 
 
