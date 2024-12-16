@@ -611,7 +611,7 @@ $userId = $tokenData->user_id;
                         <div class="product-card">
                             <div class="product-card-title">${producto.nombre} ${producto.descripcion}</div>
                             <div class="product-card-details">
-                            <p>Liberar: ${producto.nombre} </p>
+                            <p>Liberar: ${producto.liberar} </p>
                                 <p><strong>Precio:</strong> $${formatearNumero(precioSeleccionado)}</p>
                                 <p><strong>Total:</strong> $${formatearNumero(totalProducto)}</p>
                             </div>
