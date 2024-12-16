@@ -66,7 +66,8 @@ switch ($_SERVER['REQUEST_METHOD']) {
                         "stock_pack" => $tieneStockPack ? $producto['stock_pack'] : null,
                         "estado" => $producto['estado'],
                         "categoria" => $producto['categoria'],
-                        "aplica_descuento" => $producto['aplica_descuento']
+                        "aplica_descuento" => $producto['aplica_descuento'],
+                        "liberar" => $producto['liberar']
                     ];
                 } else {
                     // El producto no cumple con las reglas, se incluye en las exclusiones
