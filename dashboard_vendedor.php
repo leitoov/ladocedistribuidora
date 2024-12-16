@@ -464,7 +464,7 @@ $userId = $tokenData->user_id;
                                             <option value="unidad">Unidad - $${formatearNumero(producto.precio_unitario)} (Stock: ${producto.stock_unidad})</option>
                                             <option value="pack">Pack - $${formatearNumero(producto.precio_pack)} (Stock: ${producto.stock_pack})</option>
                                         </select>
-                                        <button class="btn btn-sm btn-primary mt-2" onclick="agregarProducto(${producto.id}, '${producto.nombre}', '${producto.descripcion}', ${producto.precio_unitario}, ${producto.precio_pack}, ${producto.stock_unidad}, ${producto.stock_pack}, 'unidad')">
+                                        <button class="btn btn-sm btn-primary mt-2" onclick="agregarProducto(${producto.id}, '${producto.nombre}', '${producto.descripcion}', ${producto.precio_unitario}, ${producto.precio_pack}, ${producto.stock_unidad}, ${producto.stock_pack}, 'unidad', ${producto.liberar})">
                                             Agregar al pedido
                                         </button>
                                     </div>
@@ -477,7 +477,7 @@ $userId = $tokenData->user_id;
                                 <div class="list-group-item">
                                     <strong>${producto.nombre}</strong> ${producto.descripcion}
                                     - Unidad: $${formatearNumero(producto.precio_unitario)} (Stock: ${producto.stock_unidad})
-                                    <button class="btn btn-sm btn-primary mt-2" onclick="agregarProducto(${producto.id}, '${producto.nombre}', '${producto.descripcion}', ${producto.precio_unitario}, 0, ${producto.stock_unidad}, 0, 'unidad')">
+                                    <button class="btn btn-sm btn-primary mt-2" onclick="agregarProducto(${producto.id}, '${producto.nombre}', '${producto.descripcion}', ${producto.precio_unitario}, 0, ${producto.stock_unidad}, 0, 'unidad',${producto.liberar})">
                                         Agregar Unidad
                                     </button>
                                 </div>
@@ -518,7 +518,7 @@ $userId = $tokenData->user_id;
                                     `<button class="list-group-item list-group-item-action" 
                                         onclick="agregarProducto(${producto.id}, '${producto.nombre}', 
                                         '${producto.descripcion}', ${producto.precio_unitario || 0}, 
-                                        ${producto.precio_pack || 0}, ${producto.stock_unidad}, ${producto.stock_pack})">
+                                        ${producto.precio_pack || 0}, ${producto.stock_unidad}, ${producto.stock_pack},${producto.liberar})">
                                         ${producto.nombre} ${producto.descripcion} 
                                         - ${producto.precio_unitario > 0 ? `Unidad: $${formatearNumero(producto.precio_unitario)}` : ''} 
                                         ${producto.precio_pack > 0 ? `Pack: $${formatearNumero(producto.precio_pack)}` : ''}
@@ -539,7 +539,7 @@ $userId = $tokenData->user_id;
         });
 
         // Agregar producto al pedido
-        window.agregarProducto = function (id, nombre, descripcion, precio_unitario, precio_pack, stock_unidad, stock_pack) {
+        window.agregarProducto = function (id, nombre, descripcion, precio_unitario, precio_pack, stock_unidad, stock_pack, liberar) {
             let productoExistente = productosEnPedido.find(p => p.id === id);
             // Lógica para determinar qué tipo (pack o unidad) agregar inicialmente
             let tipoSeleccionado = '';
