@@ -611,7 +611,15 @@ $userId = $tokenData->user_id;
                         <div class="product-card">
                             <div class="product-card-title">${producto.nombre} ${producto.descripcion}</div>
                             <div class="product-card-details">
-                                <p><strong>Precio:</strong> $${formatearNumero(precioSeleccionado)}</p>
+                                <p><strong>Precio:</strong> 
+                                    ${producto.liberar === 1 
+                                        ? `<input type="number" class="form-control form-control-sm" 
+                                            value="${precioSeleccionado}" 
+                                            onchange="actualizarPrecio(${producto.id}, this.value, '${producto.tipo}')" 
+                                            style="display: inline-block; width: auto;" />`
+                                        : `$${formatearNumero(precioSeleccionado)}`
+                                    }
+                                </p>
                                 <p><strong>Total:</strong> $${formatearNumero(totalProducto)}</p>
                             </div>
                             <div class="product-card-actions">
@@ -640,6 +648,23 @@ $userId = $tokenData->user_id;
             }
 
             $('#totalPedido').text(formatearNumero(totalPedido));
+        }
+                // Función para actualizar el precio del producto
+        function actualizarPrecio(productId, nuevoPrecio, tipo) {
+            const producto = productosEnPedido.find(p => p.id === productId);
+            if (producto) {
+                nuevoPrecio = parseFloat(nuevoPrecio);
+                if (!isNaN(nuevoPrecio) && nuevoPrecio >= 0) {
+                    if (tipo === 'unidad') {
+                        producto.precio_unitario = nuevoPrecio;
+                    } else if (tipo === 'pack') {
+                        producto.precio_pack = nuevoPrecio;
+                    }
+                    actualizarTablaPedido(); // Refrescar la tabla para reflejar el nuevo precio
+                } else {
+                    mostrarMensajeModal('Por favor, ingresa un precio válido.');
+                }
+            }
         }
 
         // Cambiar tipo de precio del producto (unidad/pack)
