@@ -225,6 +225,7 @@ $userId = $tokenData->user_id;
             </div>
 
             <!-- Inputs for Client and Order Type -->
+             
             <div class="row g-3 pt-2">
                 <div class="col-md-6">
                     <div class="input-group">
@@ -232,6 +233,9 @@ $userId = $tokenData->user_id;
                         <input type="text" class="form-control" id="clienteInput" placeholder="Escribe para buscar cliente...">
                         <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#modalBusquedaClientes">
                             Buscar
+                        </button>
+                        <button class="btn btn-outline-primary" type="button" id="abrirModalNuevoCliente">
+                            Añadir Cliente
                         </button>
                     </div>
                     <!--div class="input-group">
@@ -335,6 +339,40 @@ $userId = $tokenData->user_id;
         </div>
     </div>
 
+    <div class="modal fade" id="modalNuevoCliente" tabindex="-1" aria-labelledby="modalNuevoClienteLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalNuevoClienteLabel">Agregar Nuevo Cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formNuevoCliente">
+                        <div class="mb-3">
+                            <label for="nombreCliente" class="form-label">Nombre <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nombreCliente" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="direccionCliente" class="form-label">Dirección</label>
+                            <input type="text" class="form-control" id="direccionCliente">
+                        </div>
+                        <div class="mb-3">
+                            <label for="telefonoCliente" class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="telefonoCliente">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="guardarNuevoCliente">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
@@ -342,8 +380,7 @@ $userId = $tokenData->user_id;
 
     <script>
     $(document).ready(function () {
-        let productosEnPedido = [];
-
+        let productosEnPedido = []; 
 
         $('#modalBusquedaClientes').on('shown.bs.modal', function () {
             const termino = $('#clienteInput').val();
@@ -795,6 +832,47 @@ $userId = $tokenData->user_id;
         // Cerrar sesión
         $('#logoutButton').on('click', function () {
             window.location.href = 'logout.php';
+        });
+    
+    
+        //añade cliente
+        $('#abrirModalNuevoCliente').on('click', function () {
+            $('#modalNuevoCliente').modal('show'); // Mostrar el modal
+        });
+
+        // Guardar nuevo cliente
+        $('#guardarNuevoCliente').on('click', function () {
+            const nombre = $('#nombreCliente').val().trim();
+            const direccion = $('#direccionCliente').val().trim();
+            const telefono = $('#telefonoCliente').val().trim();
+
+            // Validar que el nombre no esté vacío
+            if (!nombre) {
+                alert('El nombre del cliente es obligatorio.');
+                return;
+            }
+
+            // Enviar la solicitud para guardar el cliente
+            $.ajax({
+                url: 'api/clientes.php', // Ruta de tu API para guardar clientes
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    nombre: nombre,
+                    direccion: direccion || null,
+                    telefono: telefono || null
+                }),
+                success: function (response) {
+                    alert(response.message); // Mostrar mensaje de éxito
+                    $('#formNuevoCliente')[0].reset(); // Limpiar formulario
+                    $('#modalNuevoCliente').modal('hide'); // Cerrar modal
+                    $('#clienteInput').val(response.cliente.nombre); // Seleccionar el nuevo cliente en el input
+                },
+                error: function (xhr) {
+                    const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error al guardar el cliente.';
+                    alert(errorMessage);
+                }
+            });
         });
     });
 

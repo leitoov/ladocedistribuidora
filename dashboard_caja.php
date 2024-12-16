@@ -378,11 +378,8 @@ $userId = $tokenData->user_id;
                                                 <button class="btn btn-primary" onclick="cobrarPedido(${pedido.pedido_id})">
                                                     Cobrar
                                                 </button>
-                                                <button class="btn btn-warning" onclick="editarPedido(${pedido.pedido_id})">
-                                                    Editar
-                                                </button>
-                                                <button class="btn btn-danger" onclick="anularPedido(${pedido.pedido_id})">
-                                                    Anular
+                                                <button class="btn btn-danger" onclick="devolverPedido(${pedido.pedido_id})">
+                                                    Devolver
                                                 </button>
                                             </div>
                                         </td>
@@ -407,10 +404,6 @@ $userId = $tokenData->user_id;
                 $('#modalMensaje').modal('show');
             }
 
-            // Editar Pedido
-            window.editarPedido = function (pedidoId) {
-                window.location.href = `editar_pedido.php?pedidoId=${pedidoId}`;
-            }
 
             // Cobrar pedido - Mostrar Modal
             window.cobrarPedido = function (pedidoId) {
@@ -555,18 +548,6 @@ $userId = $tokenData->user_id;
                     style: 'currency',
                     currency: 'ARS',
                 }).format(value);
-            }
-
-
-
-
-
-            // Anular pedido
-            window.anularPedido = function (pedidoId) {
-                if (confirm(`¿Estás seguro de que quieres anular el pedido ${pedidoId}?`)) {
-                    mostrarMensajeModal(`Pedido ${pedidoId} anulado.`);
-                    cargarPedidosCaja();
-                }
             }
 
             // Cargar pedidos al cargar la página
