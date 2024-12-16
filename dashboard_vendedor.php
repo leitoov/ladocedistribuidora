@@ -574,7 +574,8 @@ $userId = $tokenData->user_id;
                     cantidad: 1,
                     stock_unidad: stock_unidad || 0,
                     stock_pack: stock_pack || 0,
-                    tipo: tipoSeleccionado // Establece el tipo según la lógica anterior
+                    tipo: tipoSeleccionado,
+                    liberar: liberar
                 });
             } else {
                 if (productoExistente.tipo === 'unidad' && productoExistente.cantidad < stock_unidad) {
