@@ -480,7 +480,6 @@ $userId = $tokenData->user_id;
                 } else if (medioPago === 'mixto') {
                     $('#campoEfectivo').show();
                     $('#campoTransferencia').show();
-                    $('#montoTransferencia').prop('readonly', true); // Hacer el input de transferencia no editable
                     $('#recargoAplicado').parent().show();
                     $('#descuentoAplicado').parent().hide();
                     $('#recargoEnEfectivoContainer').show(); // Mostrar checkbox para recargo en efectivo
@@ -534,7 +533,7 @@ $userId = $tokenData->user_id;
                 const totalFinal = montoEfectivo + restanteTransferencia + recargo;
 
                 // Actualizar campos
-                $('#montoTransferencia').val(restanteTransferencia > 0 ? restanteTransferencia.toFixed(2) : '');
+                $('#montoTransferencia').text(formatCurrency(restanteTransferencia > 0 ? restanteTransferencia : 0));
                 $('#recargoAplicado').text(formatCurrency(recargo)).addClass('text-green');
                 $('#montoTotalFinal').text(formatCurrency(totalFinal)).css('color', 'blue');
             }
@@ -542,8 +541,8 @@ $userId = $tokenData->user_id;
             // Resetear el modal
             function resetModal() {
                 $('#medioPago').val('');
-                $('#montoEfectivo, #montoTransferencia').val('');
-                $('#montoTransferencia').prop('readonly', false); // Hacer editable por defecto
+                $('#montoEfectivo').val('');
+                $('#montoTransferencia').text('');
                 $('#descuentoAplicado, #recargoAplicado, #montoTotalFinal').text('');
                 $('#campoEfectivo, #campoTransferencia, #recargoEnEfectivoContainer').hide();
                 $('#descuentoAplicado').parent().hide();
