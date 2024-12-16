@@ -863,14 +863,13 @@ $userId = $tokenData->user_id;
                     telefono: telefono || null
                 }),
                 success: function (response) {
-                    alert(response.message); // Mostrar mensaje de éxito
+                    mostrarMensajeModal(response.message);
                     $('#formNuevoCliente')[0].reset(); // Limpiar formulario
                     $('#modalNuevoCliente').modal('hide'); // Cerrar modal
-                    $('#clienteInput').val(response.cliente.nombre); // Seleccionar el nuevo cliente en el input
                 },
                 error: function (xhr) {
                     const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error al guardar el cliente.';
-                    alert(errorMessage);
+                    mostrarMensajeModal(errorMessage);
                 }
             });
         });
